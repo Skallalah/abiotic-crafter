@@ -434,3 +434,41 @@ button.open:hover { color: var(--amber); }
     margin-left: auto; color: var(--ink-2); font-size: 12px; text-decoration: none;
   }
   .details-foot .wiki:hover { color: var(--amber); text-decoration: underline; }
+
+  /* ---------- barres de défilement intérieures (hors mockup) ---------- */
+  /* Les deux seuls conteneurs qui défilent : les colonnes latérales et le
+     corps d'une fenêtre de détail. La barre native du système jurait avec les
+     tokens : piste claire et pouce gris sur des panneaux sombres. */
+  .pane-body, .wb-body {
+    scrollbar-width: thin;                        /* Firefox */
+    scrollbar-color: var(--line) transparent;
+  }
+
+  .pane-body::-webkit-scrollbar,
+  .wb-body::-webkit-scrollbar { width: 10px; height: 10px; }
+
+  /* piste transparente : c'est le fond du panneau qu'on voit à travers */
+  .pane-body::-webkit-scrollbar-track,
+  .wb-body::-webkit-scrollbar-track,
+  .pane-body::-webkit-scrollbar-corner,
+  .wb-body::-webkit-scrollbar-corner { background: transparent; }
+
+  /* la bordure transparente amincit le pouce sans réduire la zone cliquable */
+  .pane-body::-webkit-scrollbar-thumb,
+  .wb-body::-webkit-scrollbar-thumb {
+    background: var(--line);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 6px;
+  }
+  .pane-body::-webkit-scrollbar-thumb:hover,
+  .wb-body::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-2);
+    background-clip: padding-box;
+  }
+  /* ambre pendant le glissé, comme tout ce qui est actif dans l'app */
+  .pane-body::-webkit-scrollbar-thumb:active,
+  .wb-body::-webkit-scrollbar-thumb:active {
+    background: var(--amber);
+    background-clip: padding-box;
+  }
