@@ -375,11 +375,11 @@ button.open:hover { color: var(--accent-ink); }
      déplaçables et refermables une à une (WinBox.js, seule dépendance front). */
   button.link {
     background: none; border: 0; padding: 0;
-    font: inherit; font-weight: 600; color: var(--accent-ink);
+    font: inherit; font-weight: 600; color: var(--link);
     text-align: left;
   }
   button.link:hover { text-decoration: underline; }
-  button.link.provider { color: var(--teal-ink); }
+  button.link.provider { color: var(--link-2); }
 
   .winbox.app {
     border-radius: var(--radius);

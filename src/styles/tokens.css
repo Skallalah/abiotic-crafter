@@ -39,6 +39,10 @@
      Ici chacune vaut son aplat : le thème par défaut ne change pas d'un pixel.
      C'est sur un fond clair que les deux rôles divergent. */
   --accent-ink: #f0b641;
+  /* liens : vers un item, vers un contenant. Deux couleurs, pour qu'un clic
+     gauche sur l'un ne promette pas la même chose que sur l'autre. */
+  --link: #f0b641;
+  --link-2: #4fb3a9;
   --kw-drop: #d6604a;
   --kw-pickup: #8dbb62;
   --kw-break: #f0b641;

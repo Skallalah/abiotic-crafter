@@ -452,3 +452,18 @@ La classe des fenêtres passe de `gate` à `app` — `gate` est devenu un nom de
 thème. Comme les fenêtres sont accrochées à `document.body` et que le thème vit
 sur `<html>`, une fenêtre **déjà ouverte** change d'habillage avec le reste :
 vérifié, dégradé ambre → barre ardoise sans la rouvrir.
+
+
+### Après essai : gris plus clair, liens teal
+Premier jet à `#c0c0c0`, l'argent canonique : les liens ambre s'y noyaient. Deux
+retouches, demandées après coup et vérifiées à la mesure :
+
+- l'argent passe à **`#d4d0c8`**, le gris des thèmes classiques de Windows 2000.
+  Tout le texte y gagne près d'un point de contraste — les encres passent de
+  4,6 à 5,45 — sans quitter l'époque ;
+- le **lien devient un rôle de token à part entière**, `--link` et `--link-2`.
+  Ils valent l'ambre et le teal existants dans le thème par défaut, donc rien n'y
+  change ; le rétro met le teal `#0f5f68` sur les liens vers un item et le bleu
+  `#1a4f8a` sur ceux vers un contenant. Deux couleurs plutôt qu'une : un clic
+  gauche sur l'un sélectionne l'objet, sur l'autre il ouvre une fenêtre, et rien
+  d'autre ne le disait.

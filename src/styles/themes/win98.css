@@ -4,9 +4,11 @@
 
    Le fond du plan de travail est un gris neutre plutôt que le teal #008080 de
    l'époque : la grille pointée reste lisible dessus et on peut le regarder une
-   heure. Tout le reste vise le rendu d'origine — argent #c0c0c0, angles droits,
-   biseaux à quatre arêtes, fonte pixel. L'ambre reste la couleur d'accent :
-   c'est l'identité de l'app, elle traverse les thèmes. */
+   heure. L'argent est éclairci de #c0c0c0 à #d4d0c8, gris des thèmes classiques
+   de Windows 2000 : le texte y gagne près d'un point de contraste sans perdre
+   l'époque. Le reste vise le rendu d'origine — angles droits, biseaux à quatre
+   arêtes, fonte pixel. L'ambre reste la couleur d'accent de l'app et traverse
+   les thèmes ; seuls les liens passent au teal, illisibles en ambre sur gris. */
 
 /* ------------------------------------------------------------------ tokens */
 
@@ -14,8 +16,8 @@
   --font: "Ark Pixel", Tahoma, Verdana, sans-serif;
 
   --bg: #808080;
-  --panel: #c0c0c0;
-  --panel-2: #b0b0b0;
+  --panel: #d4d0c8;
+  --panel-2: #c6c1b8;
   --line: #808080;
   --grid: #9c9c9c;
   --ink: #000000;
@@ -42,17 +44,23 @@
   --kw-vendor: #3d3d3d;
   --kw-craft: #694700;
 
+  /* Les liens passent au teal : sur l'argent, l'ambre en texte se confondait
+     avec le reste. Le bleu distingue un lien vers un contenant d'un lien vers
+     un item — et c'était la couleur des hyperliens de l'époque. */
+  --link: #0f5f68;
+  --link-2: #1a4f8a;
+
   --wash: rgba(240, 182, 65, .13);
   --wash-hl: rgba(240, 182, 65, .55);
 
   --radius: 0;
   --shadow: none;
   --bevel-out: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff,
-               inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+               inset -2px -2px #9d9890, inset 2px 2px #f2efe9;
   --bevel-in: inset 1px 1px #0a0a0a, inset -1px -1px #ffffff,
-              inset 2px 2px #808080, inset -2px -2px #dfdfdf;
+              inset 2px 2px #9d9890, inset -2px -2px #f2efe9;
 
-  --frame: #c0c0c0;
+  --frame: #d4d0c8;
   --title-bg: linear-gradient(90deg, #694700, #f0b641);
   --title-ink: #000000;
 
@@ -179,12 +187,12 @@
   border: 0;
   border-radius: 0;
   background: var(--wash);
-  box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff;
+  box-shadow: inset 1px 1px #9d9890, inset -1px -1px #ffffff;
 }
 [data-theme="win98"] .parents .more {
   border: 0;
   border-radius: 0;
-  box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff;
+  box-shadow: inset 1px 1px #9d9890, inset -1px -1px #ffffff;
 }
 
 /* ------------------------------------------------------ fenêtres de détail */
@@ -235,14 +243,14 @@
 [data-theme="win98"] .winbox.app .wb-close:active { box-shadow: var(--bevel-in); }
 
 [data-theme="win98"] .details-head,
-[data-theme="win98"] .details-foot { border-color: #808080; }
+[data-theme="win98"] .details-foot { border-color: #9d9890; }
 
 /* --------------------------------------------------------- ascenseurs 16px */
 
 [data-theme="win98"] .pane-body,
 [data-theme="win98"] .wb-body {
   scrollbar-width: auto;                          /* Firefox */
-  scrollbar-color: #c0c0c0 #d8d8d8;
+  scrollbar-color: #d4d0c8 #e6e3dd;
 }
 
 [data-theme="win98"] .pane-body::-webkit-scrollbar,
@@ -253,14 +261,14 @@
 [data-theme="win98"] .wb-body::-webkit-scrollbar-track,
 [data-theme="win98"] .pane-body::-webkit-scrollbar-corner,
 [data-theme="win98"] .wb-body::-webkit-scrollbar-corner {
-  background-color: #c0c0c0;
-  background-image: repeating-conic-gradient(#ffffff 0 25%, #c0c0c0 0 50%);
+  background-color: #d4d0c8;
+  background-image: repeating-conic-gradient(#ffffff 0 25%, #d4d0c8 0 50%);
   background-size: 2px 2px;
 }
 
 [data-theme="win98"] .pane-body::-webkit-scrollbar-thumb,
 [data-theme="win98"] .wb-body::-webkit-scrollbar-thumb {
-  background: #c0c0c0;
+  background: #d4d0c8;
   background-clip: border-box;
   border: 0;
   border-radius: 0;
@@ -270,7 +278,7 @@
 [data-theme="win98"] .wb-body::-webkit-scrollbar-thumb:hover,
 [data-theme="win98"] .pane-body::-webkit-scrollbar-thumb:active,
 [data-theme="win98"] .wb-body::-webkit-scrollbar-thumb:active {
-  background: #c0c0c0;
+  background: #d4d0c8;
   box-shadow: var(--bevel-out);
 }
 
@@ -280,7 +288,7 @@
   display: block;
   width: 16px;
   height: 16px;
-  background-color: #c0c0c0;
+  background-color: #d4d0c8;
   background-repeat: no-repeat;
   background-position: center;
   box-shadow: var(--bevel-out);

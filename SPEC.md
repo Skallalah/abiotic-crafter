@@ -349,13 +349,15 @@ divergent : un `#f0b641` reste lisible en aplat et disparaît en texte.
 | GATE terminal | `gate` (défaut) | l'habillage du mockup, inchangé |
 | Windows 98 | `win98` | argent, biseaux, angles droits, fonte pixel |
 
-**Windows 98.** Panneaux `#c0c0c0` en relief à quatre arêtes (`--bevel-out`),
+**Windows 98.** Panneaux `#d4d0c8` en relief à quatre arêtes (`--bevel-out`),
 champs en creux (`--bevel-in`), `--radius: 0`, aucune ombre portée. Le plan de
 travail est un **gris neutre**, pas le teal `#008080` de l'époque : on le regarde
 une heure sans fatigue, et la grille pointée y reste lisible. L'ambre reste la
 couleur d'accent — c'est l'identité de l'app, elle traverse les thèmes ; seules
 les encres s'assombrissent pour tenir **4.5:1 sur l'argent**, valeur mesurée et
-non estimée. Les fenêtres de détail prennent une barre de titre en dégradé
+non estimée. Les **liens** font exception : `--link` (vers un item) passe au
+teal et `--link-2` (vers un contenant) au bleu — l'ambre en texte se noyait dans
+le gris, et le bleu était la couleur des hyperliens de l'époque. Les fenêtres de détail prennent une barre de titre en dégradé
 encastrée dans le cadre, et un ✕ en petit bouton biseauté. Les ascenseurs
 reprennent la trame un-pixel-sur-deux et les flèches de l'époque.
 
