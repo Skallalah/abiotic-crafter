@@ -6,6 +6,9 @@ n'importe quoi** — un item, une caisse, une créature — pour une fenêtre
 déplaçable montrant son image, où le trouver et ce qu'il donne. Spécification
 complète dans `SPEC.md`, choix d'implémentation dans `DECISIONS.md`.
 
+Deux habillages, au choix dans la barre du haut : « GATE terminal » et
+« Windows 98 » — argent, biseaux, fonte pixel.
+
 ## Lancer l'app
 
 ```sh
@@ -52,3 +55,6 @@ Les phrases de source que le parseur n'a pas su classer sont listées dans
 
 Contenu du wiki en CC BY-SA 4.0 ; les icônes sont des assets du jeu. Usage
 personnel local, pas de redistribution de `data/icons/`.
+
+Polices embarquées : **Archivo** (OFL 1.1) et **Ark Pixel** (OFL 1.1, texte de
+la licence dans `src/styles/fonts/ark-pixel.OFL.txt`).

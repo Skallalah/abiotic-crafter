@@ -104,10 +104,10 @@ export class DetailsWindows {
     const win = new WinBox({
       title,
       // déplaçable et refermable, rien d'autre : ni réduire, ni agrandir
-      class: ["gate", "no-min", "no-max", "no-full"],
+      class: ["app", "no-min", "no-max", "no-full"],
       x, y, width: WIDTH, height: HEIGHT,
       minwidth: 260, minheight: 160,
-      background: "var(--line)",
+      background: "var(--frame)",
       border: 0,
       mount: body,
       onclose: () => { this.open.delete(key); },

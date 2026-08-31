@@ -395,3 +395,60 @@ une classe CSS, pas un appel à `resize()` — qui serait bloqué par le
 `minheight: 160` des fenêtres — et l'animation vient de la transition de WinBox.
 Son double-clic natif agrandit la fenêtre, mais `no-max` le désactive : la voie
 était libre.
+
+
+## Thèmes : le niveau des tokens avant l'habillage
+
+L'app n'avait qu'un habillage. Ajouter un thème rétro aurait pu se faire en
+empilant des surcharges, mais `app.css` contenait encore **une quinzaine de
+couleurs en dur** (`#10191b`, `#2f6e68`, `#6f8f92`, deux `rgba` ambre, un
+`#fff`) : chacune serait restée ardoise sur un habillage clair. La première
+moitié du travail a donc été de les faire toutes passer par un token, et un test
+interdit désormais toute couleur littérale dans `app.css`.
+
+### Aplats et encres
+Le point non évident : `--amber`, `--teal`, `--red`, `--metal`, `--glass`,
+`--green` servaient **à deux choses** — remplir une pastille d'icône, avec du
+texte sombre par-dessus, et colorer du texte sur un panneau. Sur l'ardoise, une
+seule valeur suffit aux deux. Sur l'argent `#c0c0c0`, un `#f0b641` reste lisible
+en aplat et devient illisible en texte.
+
+D'où la scission en deux familles : les **aplats** (`--accent`, `--teal`…) ne
+bougent pas d'un thème à l'autre, ce sont eux qui portent le sens des matériaux ;
+les **encres** (`--accent-ink`, `--kw-*`, `--teal-ink`, `--red-ink`)
+s'assombrissent. Dans le thème par défaut chaque encre vaut exactement son
+aplat, et **le test le vérifie** : la scission ne change pas un pixel de
+l'existant, ce qui la rend démontrable plutôt que déclarative.
+
+### La police a dicté deux choix
+Le rendu rétro tient d'abord à la fonte. Les clones fidèles de MS Sans Serif
+(W95FA notamment) sont « gratuits pour usage personnel » — ce qui n'autorise pas
+la redistribution, or le dépôt est public. **Ark Pixel 12 px proportionnel, SIL
+OFL 1.1**, sous-ensemble latin réduit avec `fonttools` : 7,7 ko, licence claire,
+texte de la licence à côté du fichier.
+
+Deux conséquences :
+
+- **Le séparateur de sous-zone change de glyphe.** Ark Pixel n'a pas de U+203A
+  (`›`). Un caractère absent se comble par une autre fonte au milieu de la ligne
+  et ça se voit tout de suite. Plutôt que de toucher la donnée, `spotLine` ne
+  recopie plus le chevron : il pose un `<span class="sep">` dont le glyphe vient
+  du token `--spot-sep` — c'est de la typographie, pas de la donnée. Le thème
+  rétro y met `»`, qui existe. La table `cmap` de la fonte, pas une mesure de
+  largeur, sert de vérification : deux caractères peuvent avoir la même largeur
+  dans deux fontes différentes, la sonde par mesure donne des faux positifs.
+- **Les tailles de police sont ramenées à une seule.** Une fonte pixel n'est
+  nette qu'à sa taille de dessin ; `app.css` en étale huit entre 10 et 16 px.
+  Le thème rétro les force toutes à 12 px, avec `letter-spacing: 0` et
+  `font-stretch: normal` — les axes de largeur d'Archivo n'existent pas ici.
+
+### Contraste mesuré, pas estimé
+Les premières encres rétro tombaient entre 3,79 et 4,19 sur l'argent. Mesure
+scriptée dans le navigateur, assombrissement à luminance constante de teinte,
+re-mesure : **toutes au-dessus de 4,5:1**, la plus basse à 4,60.
+
+### WinBox suit sans effort
+La classe des fenêtres passe de `gate` à `app` — `gate` est devenu un nom de
+thème. Comme les fenêtres sont accrochées à `document.body` et que le thème vit
+sur `<html>`, une fenêtre **déjà ouverte** change d'habillage avec le reste :
+vérifié, dégradé ambre → barre ardoise sans la rouvrir.

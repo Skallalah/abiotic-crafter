@@ -1,11 +1,13 @@
 import "./styles/tokens.css";
 import "./styles/app.css";
+import "./styles/themes/win98.css";
 
 import { dataset } from "./data/load";
 import { Model } from "./core/tree";
 import type { ItemId } from "./data/types";
 import { Canvas, type View } from "./ui/canvas";
 import { DetailsWindows } from "./ui/details";
+import { mountThemePicker } from "./ui/theme";
 import { ItemList } from "./ui/list";
 import { Summary } from "./ui/summary";
 import { TreeView } from "./ui/tree-view";
@@ -19,6 +21,8 @@ interface Session {
   choice: [ItemId, number][];
   view: View;
 }
+
+mountThemePicker(document.getElementById("theme") as HTMLSelectElement);
 
 const model = new Model(dataset);
 

@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GATE Crafting Index</title>
+<script>
+  /* Pose le thème avant le premier rendu. La feuille de style part avant le
+     bundle : sans ce script on verrait l'habillage par défaut clignoter avant
+     celui qu'on a choisi. Seul endroit où la clé de src/ui/theme.ts est
+     recopiée — les deux commentaires se répondent. */
+  try {
+    var saved = localStorage.getItem("gate-crafting-index/theme");
+    if (saved) document.documentElement.dataset.theme = saved;
+  } catch (e) { /* stockage indisponible : thème par défaut */ }
+</script>
 </head>
 <body>
 
@@ -11,6 +21,7 @@
   <h1>GATE Crafting Index</h1>
   <span class="current">Item: <b id="currentName">—</b></span>
   <a id="wikiLink" class="wiki" href="#" target="_blank" rel="noreferrer noopener">wiki page ↗</a>
+  <select id="theme" class="theme" title="Interface theme"></select>
   <span class="spacer"></span>
   <span class="hint">Click a craftable card to expand it · <span class="up">dashed links above</span> = what consumes this item · <b>right-click anything</b> for a movable window · double-click its title bar to roll it up · drag to pan · wheel to zoom · <kbd>/</kbd> to search</span>
 </header>

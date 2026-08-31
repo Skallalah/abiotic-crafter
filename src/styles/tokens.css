@@ -1,4 +1,8 @@
-/* Tokens de mockup/index.html (§6). Ne pas en dévier sans raison. */
+/* Tokens de mockup/index.html (§6). Ne pas en dévier sans raison.
+   `:root` porte le thème par défaut, « GATE terminal ». Les autres thèmes
+   redéfinissent ces mêmes variables sous `[data-theme="…"]` — voir
+   src/styles/themes/. Aucune couleur ne doit être écrite en dur ailleurs :
+   src/styles/tokens.test.ts le vérifie sur app.css. */
 
 @font-face {
   font-family: "Archivo";
@@ -10,27 +14,81 @@
   src: url("./fonts/archivo-variable.woff2") format("woff2");
 }
 
+@font-face {
+  /* Ark Pixel 12px proportionnel, sous-ensemble latin — SIL OFL 1.1, texte de
+     la licence dans ./fonts/ark-pixel.OFL.txt. Sert au thème rétro. */
+  font-family: "Ark Pixel";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/ark-pixel-12px.woff2") format("woff2");
+}
+
 :root {
+  --font: "Archivo", system-ui, sans-serif;
+
+  /* --- aplats : on peint avec, du texte sombre passe par-dessus --- */
+  --accent: #f0b641;
+  --red: #d6604a;
+  --teal: #4fb3a9;
+  --green: #8dbb62;
+  --glass: #7fb7d9;
+  --metal: #a9b1b4;
+
+  /* --- encres : du texte, posé sur --panel ---
+     Ici chacune vaut son aplat : le thème par défaut ne change pas d'un pixel.
+     C'est sur un fond clair que les deux rôles divergent. */
+  --accent-ink: #f0b641;
+  --kw-drop: #d6604a;
+  --kw-pickup: #8dbb62;
+  --kw-break: #f0b641;
+  --kw-salvage: #7fb7d9;
+  --kw-grow: #4fb3a9;
+  --kw-vendor: #a9b1b4;
+  --kw-craft: #f0b641;
+
+  /* --- surfaces et texte --- */
   --bg: #1b2629;
   --panel: #23313a;
   --panel-2: #2b3b44;
   --line: #48606a;
   --ink: #dfe6e2;
   --ink-2: #93a6ad;
-  --amber: #f0b641;
+  --ink-3: #6f8f92;
+  /* texte posé sur un aplat clair, et fond des vignettes d'icône */
+  --deep: #10191b;
+  --on-drop: #ffffff;
   --amber-dim: #8c6a22;
-  --red: #d6604a;
-  --teal: #4fb3a9;
-  --green: #8dbb62;
-  --glass: #7fb7d9;
-  --metal: #a9b1b4;
+  --teal-dim: #2f6e68;
+  /* encres de chrome : liens montants (teal), nœud en boucle (rouge) */
+  --teal-ink: #4fb3a9;
+  --red-ink: #d6604a;
+
+  /* voiles ambre : nœud explosé, ligne surlignée */
+  --wash: rgba(240, 182, 65, .04);
+  --wash-hl: rgba(240, 182, 65, .14);
+
+  /* --- formes --- */
   --radius: 6px;
+  --shadow: 0 14px 34px rgba(0, 0, 0, .5);
+  /* les biseaux n'existent que dans les thèmes qui en veulent */
+  --bevel-out: none;
+  --bevel-in: none;
+  /* fenêtres de détail : cadre passé à WinBox, puis la barre de titre */
+  --frame: var(--line);
+  --title-bg: var(--line);
+  --title-ink: var(--ink);
+  /* séparateur de sous-zone, « Level 2 › Bio Lab D. » : c'est de la
+     typographie, pas de la donnée — le thème peut en changer */
+  --spot-sep: "›";
+  /* pointillé du plan de travail : lisible sur --bg, quel qu'il soit */
+  --grid: var(--line);
 }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body {
-  font-family: "Archivo", system-ui, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   color: var(--ink);
   background: var(--bg);
@@ -38,6 +96,6 @@ body {
   grid-template-rows: 48px 1fr;
   overflow: hidden;
 }
-button, input { font: inherit; color: inherit; }
+button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
-:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }

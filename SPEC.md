@@ -323,6 +323,51 @@ Mots-clés d'obtention, colorés pour repérer la nature d'une provenance sans l
 - Aucune animation d'apparition. Seule transition tolérée : `border-color` au survol des cartes craftables.
 - Focus clavier visible (outline ambre 2 px).
 
+### 6.1 Thèmes
+
+Le thème vit sur `<html data-theme>` ; **tout le reste n'est que des tokens
+redéfinis sous ce sélecteur**. Un sélecteur dans la barre du haut en change,
+`localStorage` le retient sous une clé distincte de celle de la session — vider
+la session ne doit pas faire perdre l'habillage. Un script inline de trois
+lignes pose l'attribut avant le premier rendu : la feuille de style part avant
+le bundle, sans lui on verrait le thème par défaut clignoter.
+
+**Aucune couleur ne s'écrit en dur hors des fichiers de thème.** Un test
+(`src/styles/tokens.test.ts`) le vérifie sur `app.css` : une couleur littérale y
+serait invisible pour les thèmes et resterait ardoise sur un habillage clair.
+
+**Aplats et encres sont deux rôles distincts.** `--accent`, `--teal`, `--red`,
+`--green`, `--glass`, `--metal` sont des *aplats* : on peint avec, du texte
+sombre passe par-dessus. `--accent-ink`, `--teal-ink`, `--red-ink` et les
+`--kw-*` sont des *encres* : du texte posé sur `--panel`. Sur l'ardoise sombre
+les deux rôles partagent la même valeur — et le test vérifie cette égalité, ce
+qui rend la scission neutre sur le thème d'origine. Sur un fond clair ils
+divergent : un `#f0b641` reste lisible en aplat et disparaît en texte.
+
+| Thème | `data-theme` | Ce qui change |
+|---|---|---|
+| GATE terminal | `gate` (défaut) | l'habillage du mockup, inchangé |
+| Windows 98 | `win98` | argent, biseaux, angles droits, fonte pixel |
+
+**Windows 98.** Panneaux `#c0c0c0` en relief à quatre arêtes (`--bevel-out`),
+champs en creux (`--bevel-in`), `--radius: 0`, aucune ombre portée. Le plan de
+travail est un **gris neutre**, pas le teal `#008080` de l'époque : on le regarde
+une heure sans fatigue, et la grille pointée y reste lisible. L'ambre reste la
+couleur d'accent — c'est l'identité de l'app, elle traverse les thèmes ; seules
+les encres s'assombrissent pour tenir **4.5:1 sur l'argent**, valeur mesurée et
+non estimée. Les fenêtres de détail prennent une barre de titre en dégradé
+encastrée dans le cadre, et un ✕ en petit bouton biseauté. Les ascenseurs
+reprennent la trame un-pixel-sur-deux et les flèches de l'époque.
+
+Police : **Ark Pixel 12 px proportionnel**, sous-ensemble latin, **SIL Open Font
+License 1.1** — licence qui autorise la redistribution, contrairement aux clones
+de MS Sans Serif (« gratuit pour usage personnel »). Deux conséquences
+assumées : les huit tailles de police d'`app.css` sont ramenées à une seule, une
+fonte pixel n'étant nette qu'à sa taille de dessin ; et le séparateur de
+sous-zone passe de `›` à `»` via le token `--spot-sep`, la fonte n'ayant pas de
+U+203A — un glyphe manquant se comble par une autre fonte au milieu de la ligne,
+et ça se voit.
+
 ---
 
 ## 7. Algorithmes (à couvrir par des tests)

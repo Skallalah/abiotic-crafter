@@ -1,0 +1,310 @@
+/* Thème « Windows 98 » (§6).
+   Chargé après app.css : à spécificité égale, c'est lui qui gagne.
+   Les couleurs littérales sont ici chez elles — c'est un fichier de thème.
+
+   Le fond du plan de travail est un gris neutre plutôt que le teal #008080 de
+   l'époque : la grille pointée reste lisible dessus et on peut le regarder une
+   heure. Tout le reste vise le rendu d'origine — argent #c0c0c0, angles droits,
+   biseaux à quatre arêtes, fonte pixel. L'ambre reste la couleur d'accent :
+   c'est l'identité de l'app, elle traverse les thèmes. */
+
+/* ------------------------------------------------------------------ tokens */
+
+[data-theme="win98"] {
+  --font: "Ark Pixel", Tahoma, Verdana, sans-serif;
+
+  --bg: #808080;
+  --panel: #c0c0c0;
+  --panel-2: #b0b0b0;
+  --line: #808080;
+  --grid: #9c9c9c;
+  --ink: #000000;
+  --ink-2: #3d3d3d;
+  --ink-3: #4d4d4d;
+  --deep: #000000;
+  --on-drop: #000000;
+
+  /* Les aplats (--accent, --teal, --red…) ne bougent pas : ce sont eux qui
+     portent le sens des matériaux sur les pastilles. Seules les encres
+     s'assombrissent, sans quoi un #f0b641 en texte disparaîtrait sur l'argent. */
+  /* toutes ces encres tiennent 4.5:1 sur l'argent — mesuré, pas estimé */
+  --accent-ink: #694700;
+  --amber-dim: #694700;
+  --teal-ink: #125751;
+  --teal-dim: #125751;
+  --red-ink: #912715;
+
+  --kw-drop: #912715;
+  --kw-pickup: #2a580e;
+  --kw-break: #694700;
+  --kw-salvage: #14507c;
+  --kw-grow: #125751;
+  --kw-vendor: #3d3d3d;
+  --kw-craft: #694700;
+
+  --wash: rgba(240, 182, 65, .13);
+  --wash-hl: rgba(240, 182, 65, .55);
+
+  --radius: 0;
+  --shadow: none;
+  --bevel-out: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff,
+               inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  --bevel-in: inset 1px 1px #0a0a0a, inset -1px -1px #ffffff,
+              inset 2px 2px #808080, inset -2px -2px #dfdfdf;
+
+  --frame: #c0c0c0;
+  --title-bg: linear-gradient(90deg, #694700, #f0b641);
+  --title-ink: #000000;
+
+  /* la fonte pixel n'a pas de U+203A : le chevron simple deviendrait un trou
+     dans la ligne, comblé par une autre fonte */
+  --spot-sep: "»";
+}
+
+/* -------------------------------------------------------------------- fonte
+   Une fonte pixel n'est nette qu'à sa taille de dessin. app.css étale huit
+   tailles entre 10 et 16 px ; on les ramène toutes à 12, et les axes de largeur
+   d'Archivo, qui n'existent pas ici, sont neutralisés. */
+
+[data-theme="win98"] .topbar,
+[data-theme="win98"] .layout,
+[data-theme="win98"] .winbox.app { font-size: 12px; }
+
+[data-theme="win98"] .topbar *,
+[data-theme="win98"] .layout *,
+[data-theme="win98"] .winbox.app * {
+  font-size: inherit;
+  font-stretch: normal;
+  letter-spacing: 0;
+}
+
+/* les seules exceptions : l'intertitre de catégorie garde son espacement, et
+   l'abréviation d'une pastille doit tenir dans 24 px */
+[data-theme="win98"] .itemlist .group { letter-spacing: 1px; }
+[data-theme="win98"] .tile { font-size: 10px; }
+[data-theme="win98"] .tile.big { font-size: 24px; }
+
+[data-theme="win98"] :focus-visible {
+  outline: 1px dotted #000000;
+  outline-offset: -3px;
+}
+
+/* ------------------------------------------------------------------ chrome */
+
+[data-theme="win98"] .topbar {
+  border-bottom: 0;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .pane {
+  border-right: 0;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .pane.right { border-left: 0; }
+
+/* un champ de saisie est en creux, blanc, carré */
+[data-theme="win98"] .search {
+  background: #ffffff;
+  color: #000000;
+  border: 0;
+  border-radius: 0;
+  padding: 4px 6px;
+  box-shadow: var(--bevel-in);
+}
+[data-theme="win98"] .search::placeholder { color: #707070; }
+
+/* un bouton est en relief et s'enfonce quand on appuie dessus */
+[data-theme="win98"] .canvas-tools button,
+[data-theme="win98"] .details-foot button,
+[data-theme="win98"] .theme {
+  background: var(--panel);
+  color: var(--ink);
+  border: 0;
+  border-radius: 0;
+  padding: 4px 10px;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .canvas-tools button:hover { border-color: transparent; }
+[data-theme="win98"] .canvas-tools button:active,
+[data-theme="win98"] .details-foot button:active {
+  box-shadow: var(--bevel-in);
+  padding: 5px 9px 3px 11px;
+}
+
+[data-theme="win98"] .itemlist button.active {
+  background: var(--accent);
+  color: var(--deep);
+  border-left-color: var(--deep);
+}
+[data-theme="win98"] .itemlist button.active .meta { color: var(--deep); }
+
+[data-theme="win98"] .badge,
+[data-theme="win98"] .tile,
+[data-theme="win98"] .node .swap,
+[data-theme="win98"] .node button.open { border-radius: 0; }
+
+/* ------------------------------------------------------------------- arbre */
+
+[data-theme="win98"] .node {
+  border: 0;
+  border-radius: 0;
+  background: var(--panel);
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .node.base { background: var(--panel); }
+[data-theme="win98"] .node.craftable:hover,
+[data-theme="win98"] .node.base:hover {
+  box-shadow: var(--bevel-out), inset 0 0 0 3px var(--accent);
+}
+[data-theme="win98"] .node.hl,
+[data-theme="win98"] .node.base.hl { background: var(--wash-hl); }
+[data-theme="win98"] .node.loop { box-shadow: var(--bevel-out), inset 0 0 0 3px var(--red); }
+[data-theme="win98"] .node.parent { opacity: .85; }
+[data-theme="win98"] .node.parent:hover,
+[data-theme="win98"] .node.parent:focus-visible {
+  opacity: 1;
+  box-shadow: var(--bevel-out), inset 0 0 0 3px var(--teal);
+}
+
+[data-theme="win98"] .node .qty {
+  border-radius: 0;
+  padding: 1px 6px;
+  background: var(--panel);
+  box-shadow: var(--bevel-in);
+}
+[data-theme="win98"] .node.root .qty,
+[data-theme="win98"] .node.parent .qty { background: var(--accent); }
+
+/* la boîte explosée devient un cadre de regroupement, gravé dans le panneau */
+[data-theme="win98"] .exploded {
+  border: 0;
+  border-radius: 0;
+  background: var(--wash);
+  box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff;
+}
+[data-theme="win98"] .parents .more {
+  border: 0;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff;
+}
+
+/* ------------------------------------------------------ fenêtres de détail */
+
+[data-theme="win98"] .winbox.app {
+  border-radius: 0;
+  box-shadow: var(--bevel-out);
+}
+/* la barre de titre est encastrée dans le cadre, comme sur une vraie fenêtre */
+[data-theme="win98"] .winbox.app .wb-header {
+  left: 3px;
+  top: 3px;
+  width: calc(100% - 6px);
+  height: 22px;
+  line-height: 22px;
+}
+[data-theme="win98"] .winbox.app .wb-title { padding-left: 4px; }
+[data-theme="win98"] .winbox.app .wb-body {
+  top: 28px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  border: 0;
+  box-shadow: var(--bevel-in);
+}
+[data-theme="win98"] .winbox.app.shaded { height: 28px !important; }
+
+/* le ✕ de WinBox est une image blanche : ici c'est un petit bouton en relief */
+[data-theme="win98"] .winbox.app .wb-close {
+  background-image: none;
+  width: 18px;
+  height: 16px;
+  margin: 3px 2px 0 0;
+  background: var(--panel);
+  box-shadow: var(--bevel-out);
+  position: relative;
+}
+[data-theme="win98"] .winbox.app .wb-close::after {
+  content: "×";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #000000;
+  font-size: 12px;
+  line-height: 1;
+}
+[data-theme="win98"] .winbox.app .wb-close:active { box-shadow: var(--bevel-in); }
+
+[data-theme="win98"] .details-head,
+[data-theme="win98"] .details-foot { border-color: #808080; }
+
+/* --------------------------------------------------------- ascenseurs 16px */
+
+[data-theme="win98"] .pane-body,
+[data-theme="win98"] .wb-body {
+  scrollbar-width: auto;                          /* Firefox */
+  scrollbar-color: #c0c0c0 #d8d8d8;
+}
+
+[data-theme="win98"] .pane-body::-webkit-scrollbar,
+[data-theme="win98"] .wb-body::-webkit-scrollbar { width: 16px; height: 16px; }
+
+/* la trame un-pixel-sur-deux du fond d'ascenseur */
+[data-theme="win98"] .pane-body::-webkit-scrollbar-track,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-track,
+[data-theme="win98"] .pane-body::-webkit-scrollbar-corner,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-corner {
+  background-color: #c0c0c0;
+  background-image: repeating-conic-gradient(#ffffff 0 25%, #c0c0c0 0 50%);
+  background-size: 2px 2px;
+}
+
+[data-theme="win98"] .pane-body::-webkit-scrollbar-thumb,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  background-clip: border-box;
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .pane-body::-webkit-scrollbar-thumb:hover,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-thumb:hover,
+[data-theme="win98"] .pane-body::-webkit-scrollbar-thumb:active,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-thumb:active {
+  background: #c0c0c0;
+  box-shadow: var(--bevel-out);
+}
+
+/* les flèches, en relief elles aussi ; le triangle est dessiné en SVG inline */
+[data-theme="win98"] .pane-body::-webkit-scrollbar-button,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-button {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-color: #c0c0c0;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .pane-body::-webkit-scrollbar-button:vertical:decrement,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-button:vertical:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1z'/%3E%3C/svg%3E");
+}
+[data-theme="win98"] .pane-body::-webkit-scrollbar-button:vertical:increment,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-button:vertical:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M0 0h7v1H6v1H5v1H4v1H3V3H2V2H1V1H0z'/%3E%3C/svg%3E");
+}
+[data-theme="win98"] .pane-body::-webkit-scrollbar-button:horizontal:decrement,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-button:horizontal:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7'%3E%3Cpath d='M3 0v7H2V6H1V5H0V2h1V1h1V0z'/%3E%3C/svg%3E");
+}
+[data-theme="win98"] .pane-body::-webkit-scrollbar-button:horizontal:increment,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-button:horizontal:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7'%3E%3Cpath d='M0 0h1v1h1v1h1v3H2v1H1v1H0z'/%3E%3C/svg%3E");
+}
+/* WebKit dessine aussi les deux coins doubles : on les masque */
+[data-theme="win98"] .pane-body::-webkit-scrollbar-button:vertical:start:increment,
+[data-theme="win98"] .pane-body::-webkit-scrollbar-button:vertical:end:decrement,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-button:vertical:start:increment,
+[data-theme="win98"] .wb-body::-webkit-scrollbar-button:vertical:end:decrement {
+  display: none;
+}

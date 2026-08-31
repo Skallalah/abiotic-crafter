@@ -246,14 +246,27 @@ export function sourceList(
   return ul;
 }
 
-/** Un emplacement, avec sa sous-zone mise en avant : « Level 2 › Bio Lab D. ». */
+/** Délimiteur posé par le scraper entre une sous-zone et son emplacement. */
+export const SPOT_SEP = " › ";
+
+/**
+ * Un emplacement, avec sa sous-zone mise en avant : « Level 2 › Bio Lab D. ».
+ *
+ * Le chevron n'est pas recopié depuis la donnée : c'est de la typographie, et
+ * il devient un `<span class="sep">` dont le glyphe vient du token
+ * `--spot-sep`. Un thème peut ainsi en changer — la fonte pixel du thème rétro
+ * n'a pas de U+203A, et un caractère qui retombe sur une autre fonte au milieu
+ * d'une ligne se voit tout de suite.
+ */
 export function spotLine(spot: string): HTMLLIElement {
   const li = document.createElement("li");
-  const cut = spot.indexOf(" › ");
+  const cut = spot.indexOf(SPOT_SEP);
   if (cut > 0) {
     const area = document.createElement("b");
     area.textContent = spot.slice(0, cut);
-    li.append(area, spot.slice(cut));   // garde le « › » et ses espaces
+    const sep = document.createElement("span");
+    sep.className = "sep";
+    li.append(area, sep, spot.slice(cut + SPOT_SEP.length));
   } else {
     li.textContent = spot;
   }
