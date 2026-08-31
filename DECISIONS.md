@@ -385,3 +385,13 @@ Seule dépendance front du projet, embarquée dans le bundle : la contrainte
 **Vérifié au navigateur :** fenêtre ouverte au point du clic (`left` = clientX +
 12), déplacement par la barre de titre effectif, deux fenêtres cohabitant,
 rouvrir un sujet ne duplique pas.
+
+### Enrouler plutôt que minimiser
+Le double-clic sur la barre de titre réduit la fenêtre à son seul titre, **sans
+la déplacer**. WinBox offre bien un `minimize()`, mais il empile les fenêtres en
+bas de l'écran : on perdrait l'endroit où on les avait posées, alors que c'est
+justement la disposition qu'on construit en les baladant. L'implémentation est
+une classe CSS, pas un appel à `resize()` — qui serait bloqué par le
+`minheight: 160` des fenêtres — et l'animation vient de la transition de WinBox.
+Son double-clic natif agrandit la fenêtre, mais `no-max` le désactive : la voie
+était libre.

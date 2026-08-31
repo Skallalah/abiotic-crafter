@@ -388,6 +388,13 @@ button.open:hover { color: var(--amber); }
   }
   .details-body { padding: 12px 14px 14px; }
 
+  /* enroulée : plus que sa barre de titre, à sa place */
+  .winbox.gate.shaded { height: 30px !important; }
+  .winbox.gate.shaded .wb-body { display: none; }
+  .winbox.gate.shaded .wb-n, .winbox.gate.shaded .wb-s,
+  .winbox.gate.shaded .wb-nw, .winbox.gate.shaded .wb-ne,
+  .winbox.gate.shaded .wb-sw, .winbox.gate.shaded .wb-se { display: none; }
+
   .details-head {
     display: grid; grid-template-columns: auto 1fr; gap: 12px;
     align-items: start;

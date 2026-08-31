@@ -21,7 +21,10 @@ declare module "winbox/src/js/winbox.js" {
   export default class WinBox {
     constructor(params: WinBoxParams);
     readonly body: HTMLElement;
+    readonly dom: HTMLElement;
     focus(): this;
+    hasClass(name: string): boolean;
+    toggleClass(name: string): this;
     close(force?: boolean): boolean | void;
     move(x: number | string, y: number | string): this;
   }

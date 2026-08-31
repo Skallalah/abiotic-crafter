@@ -102,6 +102,23 @@ describe("plusieurs fenêtres", () => {
   });
 });
 
+describe("enrouler", () => {
+  it("réduit la fenêtre à sa barre de titre au double-clic, et la rouvre", () => {
+    mount();
+    rightClick(anchorEl(), 300, 220);
+    const box = boxes()[0]!;
+    const header = box.querySelector(".wb-header")!;
+
+    header.dispatchEvent(new window.MouseEvent("dblclick", { bubbles: true }));
+    expect(box.classList.contains("shaded")).toBe(true);
+    // elle ne bouge pas : c'est ce qui la distingue d'un minimize
+    expect(box.style.left).toBe("312px");
+
+    header.dispatchEvent(new window.MouseEvent("dblclick", { bubbles: true }));
+    expect(box.classList.contains("shaded")).toBe(false);
+  });
+});
+
 describe("fenêtre d'un item", () => {
   it("liste sa recette, ce qui la consomme, et sélectionne à la demande", () => {
     const { selected } = mount();

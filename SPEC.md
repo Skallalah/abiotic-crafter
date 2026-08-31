@@ -278,6 +278,8 @@ Titre, nom de l'objet courant en ambre, rappel des interactions à droite. Ajout
 
 Les fenêtres sont **déplaçables par leur barre de titre et refermables une à une** (WinBox.js, seule dépendance front, embarquée dans le bundle). Plusieurs cohabitent : c'est ce tri qui remplace un historique de navigation. Rouvrir un sujet déjà ouvert ramène sa fenêtre devant plutôt que d'empiler un doublon.
 
+Un **double-clic sur la barre de titre enroule** la fenêtre sur elle-même : il ne reste que son titre, **à la place où on l'avait posée**. Un second double-clic la rouvre. C'est ce qui la distingue du `minimize` de WinBox, qui l'enverrait dans une pile en bas de l'écran : garder trois caisses côte à côte réduites à leur titre relève du même tri que fermer celles dont on n'a plus besoin.
+
 **Fenêtre d'un contenant ou d'une créature** : son image en grand, sa nature (« Destroyable object — break it »), ses zones, ses emplacements précis, puis son contenu — une ligne par item, du plus probable au moins probable, avec quantité et chance. Pour une créature, ce qu'elle lâche et ce qu'on récolte sur elle sont deux listes distinctes.
 
 **Fenêtre d'un item** : image, catégorie, poids, stack, matériau de recherche, description ; où le trouver (les mêmes lignes de provenance qu'au §5.4, contenants cliquables compris) ; ses recettes avec bench, unlock et ingrédients ; ce qui le consomme ; un bouton « Observe this item » qui en fait l'objet courant.

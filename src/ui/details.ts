@@ -101,7 +101,7 @@ export class DetailsWindows {
     body.appendChild(render());
 
     const { x, y } = anchor(at);
-    this.open.set(key, new WinBox({
+    const win = new WinBox({
       title,
       // déplaçable et refermable, rien d'autre : ni réduire, ni agrandir
       class: ["gate", "no-min", "no-max", "no-full"],
@@ -111,7 +111,9 @@ export class DetailsWindows {
       border: 0,
       mount: body,
       onclose: () => { this.open.delete(key); },
-    }));
+    });
+    shadeOnDoubleClick(win);
+    this.open.set(key, win);
   }
 
   // ------------------------------------------------------------------ item
@@ -311,6 +313,20 @@ export class DetailsWindows {
     }
     return list;
   }
+}
+
+/**
+ * Double-clic sur la barre de titre : la fenêtre s'enroule sur elle-même.
+ *
+ * Elle reste là où on l'a posée — c'est ce qui la distingue du `minimize` de
+ * WinBox, qui l'envoie dans une pile en bas de l'écran. Garder trois caisses
+ * côte à côte réduites à leur titre, c'est le même tri que fermer celles dont
+ * on n'a plus besoin. Le double-clic natif de WinBox agrandit, mais `no-max`
+ * le désactive : la voie est libre.
+ */
+function shadeOnDoubleClick(win: WinBox): void {
+  const header = win.dom.querySelector(".wb-header");
+  header?.addEventListener("dblclick", () => win.toggleClass("shaded"));
 }
 
 /** Coin haut-gauche de la fenêtre : au curseur, sans déborder de l'écran. */
