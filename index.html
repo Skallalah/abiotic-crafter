@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GATE Crafting Index</title>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>GATE Crafting Index</h1>
+  <span class="current">Item: <b id="currentName">—</b></span>
+  <a id="wikiLink" class="wiki" href="#" target="_blank" rel="noreferrer noopener">wiki page ↗</a>
+  <span class="spacer"></span>
+  <span class="hint">Click a craftable card to expand it · <span class="up">dashed links above</span> = what consumes this item · <b>right-click anything</b> for a movable window · drag to pan · wheel to zoom · <kbd>/</kbd> to search</span>
+</header>
+
+<div class="layout">
+
+  <aside class="pane left">
+    <div class="pane-head">
+      <h2>Craftable items</h2>
+      <input id="search" class="search" type="search" placeholder="Search an item…" autocomplete="off">
+    </div>
+    <div class="pane-body">
+      <ul id="itemlist" class="itemlist"></ul>
+    </div>
+  </aside>
+
+  <main id="canvas" class="canvas">
+    <div class="canvas-tools">
+      <button id="expandAll">Expand all</button>
+      <button id="collapseAll">Collapse all</button>
+      <button id="recenter">Recenter</button>
+    </div>
+    <div id="stage" class="stage"></div>
+  </main>
+
+  <aside class="pane right">
+    <div class="pane-head">
+      <h2>Requirements, as expanded</h2>
+      <div class="note" style="margin:0">
+        A collapsed node counts as one whole item to obtain; expanding it
+        replaces it with its components. &nbsp;·&nbsp;
+        <span class="badge craft">Craft</span> is made &nbsp;·&nbsp;
+        <span class="badge loot">Loot</span> is found. Items marked both are counted
+        along their primary way, the other one is shown as an alternative.
+      </div>
+    </div>
+    <div class="pane-body">
+      <div class="section">
+        <h3>Base resources <span id="baseCount"></span></h3>
+        <div id="baseRows" class="rows"></div>
+      </div>
+      <div class="section">
+        <h3>Intermediate crafts, in order</h3>
+        <ol id="steps" class="steps"></ol>
+      </div>
+      <div class="section">
+        <h3>Where to find, by zone</h3>
+        <div id="zones"></div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

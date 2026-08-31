@@ -1,0 +1,43 @@
+/* Tokens de mockup/index.html (§6). Ne pas en dévier sans raison. */
+
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  /* Servie localement : l'app ne fait aucune requête réseau à l'exécution (§8). */
+  src: url("./fonts/archivo-variable.woff2") format("woff2");
+}
+
+:root {
+  --bg: #1b2629;
+  --panel: #23313a;
+  --panel-2: #2b3b44;
+  --line: #48606a;
+  --ink: #dfe6e2;
+  --ink-2: #93a6ad;
+  --amber: #f0b641;
+  --amber-dim: #8c6a22;
+  --red: #d6604a;
+  --teal: #4fb3a9;
+  --green: #8dbb62;
+  --glass: #7fb7d9;
+  --metal: #a9b1b4;
+  --radius: 6px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: "Archivo", system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--bg);
+  display: grid;
+  grid-template-rows: 48px 1fr;
+  overflow: hidden;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }

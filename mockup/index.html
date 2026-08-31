@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GATE Crafting Index — mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1b2629;
+    --panel: #23313a;
+    --panel-2: #2b3b44;
+    --line: #48606a;
+    --ink: #dfe6e2;
+    --ink-2: #93a6ad;
+    --amber: #f0b641;
+    --amber-dim: #8c6a22;
+    --red: #d6604a;
+    --teal: #4fb3a9;
+    --green: #8dbb62;
+    --glass: #7fb7d9;
+    --metal: #a9b1b4;
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Archivo", system-ui, sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--bg);
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    overflow: hidden;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; gap: 18px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .topbar h1 {
+    margin: 0; font-size: 15px; font-weight: 600;
+    font-stretch: 80%; letter-spacing: .02em;
+  }
+  .topbar .current { color: var(--ink-2); }
+  .topbar .current b { color: var(--amber); font-weight: 600; }
+  .topbar .spacer { flex: 1; }
+  .topbar .hint { color: var(--ink-2); font-size: 12px; }
+
+  /* ---------- 3 columns ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 270px 1fr 340px;
+    min-height: 0;
+  }
+  .pane {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .pane.right { border-right: 0; border-left: 1px solid var(--line); }
+  .pane-head {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .pane-head h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; font-stretch: 85%; color: var(--ink-2); }
+  .pane-body { overflow: auto; padding: 8px 0; }
+
+  /* left list */
+  .search {
+    width: 100%; padding: 8px 10px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+  }
+  .search::placeholder { color: var(--ink-2); }
+  .itemlist { list-style: none; margin: 0; padding: 0; }
+  .itemlist button {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; background: none; border: 0; text-align: left;
+    border-left: 3px solid transparent;
+  }
+  .itemlist button:hover { background: var(--panel-2); }
+  .itemlist button.active { border-left-color: var(--amber); background: var(--panel-2); }
+  .itemlist .meta { color: var(--ink-2); font-size: 12px; margin-left: auto; font-stretch: 85%; }
+  .empty { padding: 20px 14px; color: var(--ink-2); }
+
+  /* badges craft / loot */
+  .badges { display: inline-flex; gap: 4px; vertical-align: middle; }
+  .badge {
+    font-size: 10px; font-weight: 600; font-stretch: 80%; letter-spacing: .02em;
+    padding: 1px 5px; border-radius: 3px; border: 1px solid; line-height: 1.3;
+  }
+  .badge.craft { color: var(--amber); border-color: var(--amber-dim); }
+  .badge.loot  { color: var(--teal);  border-color: #2f6e68; }
+  .alt { color: var(--ink-2); font-size: 12px; line-height: 1.35; margin-top: 2px; }
+  .alt b { color: var(--ink); font-weight: 600; }
+  .row.optional { opacity: .8; border-left: 2px solid var(--line); border-radius: 0 4px 4px 0; }
+
+  /* icon tile */
+  .tile { position: relative; overflow: hidden; }
+  .tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #10191b; }
+  .tile {
+    flex: none; width: 28px; height: 28px; border-radius: 4px;
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 700; font-stretch: 75%;
+    color: #10191b; background: var(--metal);
+  }
+  .tile.tech { background: var(--teal); }
+  .tile.metal { background: var(--metal); }
+  .tile.glass { background: var(--glass); }
+  .tile.bio { background: var(--green); }
+  .tile.drop { background: var(--red); color: #fff; }
+  .tile.gear { background: var(--amber); }
+
+  /* ---------- canvas ---------- */
+  .canvas {
+    position: relative; overflow: hidden;
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--line) 1px, transparent 1px);
+    background-size: 22px 22px;
+    cursor: grab;
+  }
+  .canvas.dragging { cursor: grabbing; }
+  .canvas-tools {
+    position: absolute; top: 12px; left: 12px; z-index: 2;
+    display: flex; gap: 6px;
+  }
+  .canvas-tools button {
+    padding: 6px 10px; font-size: 12px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  }
+  .canvas-tools button:hover { border-color: var(--ink-2); }
+  .stage { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+
+  /* ---------- tree ---------- */
+  .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+  .tree { padding: 70px 60px 60px; display: inline-block; }
+  .tree ul {
+    display: flex; justify-content: center; align-items: flex-start;
+    padding-top: 26px; position: relative;
+  }
+  .tree ul::before {
+    content: ""; position: absolute; top: 0; left: 50%;
+    height: 26px; border-left: 1.5px solid var(--line);
+  }
+  .tree li {
+    position: relative; padding: 26px 10px 0;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .tree li::before, .tree li::after {
+    content: ""; position: absolute; top: 0; height: 26px; width: 50%;
+    border-top: 1.5px solid var(--line);
+  }
+  .tree li::before { right: 50%; border-right: 1.5px solid var(--line); }
+  .tree li::after  { left: 50%; }
+  .tree li:first-child::before { border-top: 0; }
+  .tree li:last-child::after  { border-top: 0; }
+  .tree > li { padding-top: 0; }
+  .tree > li::before, .tree > li::after { display: none; }
+
+  .node {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px 8px 8px;
+    background: var(--panel); border: 1.5px solid var(--line); border-radius: var(--radius);
+    white-space: nowrap; user-select: none;
+  }
+  .node.craftable { cursor: pointer; }
+  .node.craftable:hover { border-color: var(--amber); }
+  .node.base {
+    flex-direction: column; gap: 5px; width: 92px; padding: 8px 6px;
+    background: var(--panel-2); white-space: normal; text-align: center; cursor: pointer;
+  }
+  .node.base:hover { border-color: var(--ink-2); }
+  .node.base .tile { width: 32px; height: 32px; }
+  .node.base .name { font-size: 12px; line-height: 1.15; }
+  .node.base .name .badges { display: flex; justify-content: center; margin-top: 3px; }
+  .node.base .tile img { background: #10191b; }
+  .node.base .sub { display: none; }
+  .node.base .qty { margin: 0; }
+  .node.base.hl { border-color: var(--amber); }
+  .node .name { font-weight: 600; }
+  .node .sub { color: var(--ink-2); font-size: 11.5px; font-stretch: 85%; }
+  .node .qty {
+    margin-left: 4px; padding: 2px 7px; border-radius: 10px;
+    font-size: 12px; font-weight: 700; font-stretch: 80%;
+    background: var(--bg); color: var(--amber);
+  }
+  .node.root .qty { background: var(--amber); color: #10191b; }
+
+  /* exploded box: replaces the node, dashed, contains header + children */
+  .exploded {
+    border: 1.5px dashed var(--amber); border-radius: 8px;
+    padding: 10px 12px 14px;
+    background: rgba(240,182,65,.04);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .exploded > .node { border-color: var(--amber-dim); }
+  .exploded > .node .tile { width: 22px; height: 22px; font-size: 9px; }
+  .exploded .bench { color: var(--ink-2); font-size: 11px; margin-top: 4px; font-stretch: 85%; }
+
+  /* ---------- right pane ---------- */
+  .section { padding: 10px 14px 12px; border-bottom: 1px solid var(--line); }
+  .section h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; font-stretch: 85%; color: var(--ink-2); }
+  .section h3 span { color: var(--ink); }
+  .rows { display: flex; flex-direction: column; gap: 4px; }
+  .row {
+    display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px;
+    padding: 5px 6px; border-radius: 4px;
+  }
+  .row.hl { background: rgba(240,182,65,.14); }
+  .row .tile { width: 24px; height: 24px; font-size: 9px; }
+  .row .stack { color: var(--ink-2); font-size: 12px; font-stretch: 85%; text-align: right; }
+  .row .stack b { color: var(--ink); font-weight: 600; }
+  .row .qtybig { font-weight: 700; font-stretch: 80%; font-size: 15px; color: var(--amber); }
+  .row .qtybig.done { color: var(--ink-2); }
+  .zone { margin-top: 10px; }
+  .zone:first-of-type { margin-top: 0; }
+  .zone h4 {
+    margin: 0 0 4px; font-size: 13px; font-weight: 600;
+    display: flex; justify-content: space-between; gap: 8px;
+  }
+  .zone h4 small { color: var(--ink-2); font-weight: 400; font-stretch: 85%; }
+  .zone .where { color: var(--ink-2); font-size: 12px; line-height: 1.35; }
+  .zone .row { grid-template-columns: 24px 1fr auto; }
+  .steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .steps li { display: flex; gap: 8px; align-items: baseline; font-size: 13px; }
+  .steps li .n { color: var(--amber); font-weight: 700; font-stretch: 80%; min-width: 26px; }
+  .steps li .b { color: var(--ink-2); font-size: 12px; margin-left: auto; font-stretch: 85%; white-space: nowrap; flex: none; }
+  .opt { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.35; }
+  .opt input { margin-top: 3px; }
+  .note { color: var(--ink-2); font-size: 12px; line-height: 1.4; margin: 6px 0 0; }
+  .approx { color: var(--ink-2); }
+
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 220px 1fr 300px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .node.craftable { transition: border-color .12s; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>GATE Crafting Index</h1>
+  <span class="current">Objet : <b id="currentName">—</b></span>
+  <span class="spacer"></span>
+  <span class="hint">Clic sur un composant craftable = l'exploser · glisser = déplacer · molette = zoom</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT : craftable items -->
+  <aside class="pane left">
+    <div class="pane-head">
+      <h2>Objets craftables</h2>
+      <input id="search" class="search" type="search" placeholder="Rechercher un objet…" autocomplete="off">
+    </div>
+    <div class="pane-body">
+      <ul id="itemlist" class="itemlist"></ul>
+    </div>
+  </aside>
+
+  <!-- CENTER : draggable tree -->
+  <main id="canvas" class="canvas">
+    <div class="canvas-tools">
+      <button id="expandAll">Tout exploser</button>
+      <button id="collapseAll">Tout replier</button>
+      <button id="recenter">Recentrer</button>
+    </div>
+    <div id="stage" class="stage"></div>
+  </main>
+
+  <!-- RIGHT : totals + where to find -->
+  <aside class="pane right">
+    <div class="pane-head">
+      <h2>Bilan complet (récursif)</h2>
+      <div class="note" style="margin:0">
+        <span class="badge craft">Craft</span> se fabrique &nbsp;·&nbsp;
+        <span class="badge loot">Loot</span> se ramasse. Les objets marqués des deux
+        sont comptés selon leur voie principale, l'autre est indiquée en alternative.
+      </div>
+    </div>
+    <div class="pane-body">
+      <div class="section">
+        <h3>Ressources de base <span id="baseCount"></span></h3>
+        <div id="baseRows" class="rows"></div>
+        <p class="note">Les tailles de stack marquées ≈ ne sont pas encore vérifiées sur le wiki. Icônes chargées depuis abioticfactor.wiki.gg — à copier en local dans l'app finale.</p>
+      </div>
+      <div class="section">
+        <h3>Crafts intermédiaires, dans l'ordre</h3>
+        <ol id="steps" class="steps"></ol>
+      </div>
+      <div class="section">
+        <h3>Où trouver, par zone</h3>
+        <div id="zones"></div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+/* =========================================================
+   DATA — recettes vérifiées sur abioticfactor.wiki.gg (août 2026)
+   cat : tech | metal | glass | bio | drop | gear
+   recipe : liste {id, qty} ; bench : où crafter
+   loot : liste {zone, where} pour les ressources de base
+   stack : taille de stack ; stackOk:false = non vérifié
+   craftDefault:false = objet lootable, la recette n'est utilisée
+   que si l'utilisateur l'active (cas du Circuit Board)
+   ========================================================= */
+const IMG = "https://abioticfactor.wiki.gg/images/thumb/";
+const ITEMS = {
+  keypad_hacker: {
+    name: "Keypad Hacker", ab: "KH", cat: "gear", stack: 1,
+    icon: "Itemicon_KeypadHacker1.png",
+    bench: "Crafting Bench",
+    unlock: "Parler à Alice Mayfield (Office Sector L3) ou réunir les composants",
+    recipe: [ {id:"controller",qty:1}, {id:"lcd_screen",qty:1}, {id:"infrared_emitter",qty:1} ]
+  },
+  controller: {
+    name: "Controller", ab: "CTL", cat: "tech", stack: 3, icon: "Itemicon_controller.png", bench: "Crafting Bench",
+    recipe: [ {id:"computation_brick",qty:1}, {id:"keyboard",qty:2}, {id:"desk_phone",qty:2}, {id:"box_of_screws",qty:1} ]
+  },
+  lcd_screen: {
+    name: "LCD Screen", ab: "LCD", cat: "tech", stack: 3, icon: "Item_Icon_-_LCD_Screen.png", bench: "Crafting Bench",
+    recipe: [ {id:"computation_brick",qty:1}, {id:"tech_scrap",qty:3}, {id:"glowstick",qty:1}, {id:"box_of_screws",qty:1} ]
+  },
+  infrared_emitter: {
+    name: "Infrared Emitter", ab: "IR", cat: "tech", stack: 3, icon: "Item_Icon_-_Infrared_Emitter.png", bench: "Crafting Bench",
+    recipe: [ {id:"circuit_board",qty:1}, {id:"computation_brick",qty:1}, {id:"glass_scrap",qty:2} ]
+  },
+  computation_brick: {
+    name: "Computation Brick", ab: "CPU", cat: "tech", stack: 16, icon: "Itemicon_cpublock.png", bench: "Crafting Bench",
+    recipe: [ {id:"security_bot_cpu",qty:1}, {id:"circuit_board",qty:3}, {id:"tech_scrap",qty:1}, {id:"case_fan",qty:1} ]
+  },
+  glowstick: {
+    name: "Glowstick", ab: "GLW", cat: "glass", stack: 10, icon: "Itemicon_glowstick.png", bench: "Inventaire ou Crafting Bench",
+    recipe: [ {id:"test_tube",qty:1}, {id:"bio_scrap",qty:1} ]
+  },
+
+  /* ---- objets à double voie : craft ET loot ----
+     primary = voie utilisée pour le bilan ; l'autre est proposée en alternative */
+  box_of_screws: {
+    name: "Box of Screws", ab: "SCR", cat: "metal", stack: 64, icon: "Itemicon_screws.png", bench: "Crafting Bench",
+    primary: "craft",
+    recipe: [ {id:"metal_scrap",qty:2} ],
+    loot: [ {zone:"Office Sector", where:"L2 sous la Data Farm, bureaux L3 ; caisses en bois de Manufacturing"},
+            {zone:"Flathill", where:"Petite réserve en haut de l'arcade"} ]
+  },
+  circuit_board: {
+    name: "Circuit Board", ab: "PCB", cat: "tech", stack: 64, icon: "Itemicon_circuitboard.png", bench: "Crafting Bench",
+    primary: "loot",
+    recipe: [ {id:"tech_scrap",qty:8} ],
+    loot: [ {zone:"Office Sector", where:"Casser des ordinateurs (bureaux L1–L3, Data Farm)"} ]
+  },
+
+  /* ---- ressources de base (loot uniquement) ---- */
+  security_bot_cpu: { name:"Security Bot CPU", ab:"BOT", cat:"drop", stack:8, stackOk:false, icon:"Item_Icon_-_Security_Bot_CPU.png",
+    loot:[ {zone:"Office Sector", where:"Drop des Security Bots — checkpoint sécurité L2, couloirs L3 (respawn)"} ] },
+  case_fan: { name:"Case Fan", ab:"FAN", cat:"tech", stack:8, stackOk:false, icon:"Itemicon_casefan.png",
+    loot:[ {zone:"Office Sector", where:"Casser des tours PC / serveurs (Data Farm L2)"} ] },
+  keyboard: { name:"Keyboard", ab:"KBD", cat:"tech", stack:5, stackOk:false, icon:"Item_Icon_-_Keyboard.png",
+    loot:[ {zone:"Office Sector", where:"Sur les bureaux, un peu partout"} ] },
+  desk_phone: { name:"Desk Phone", ab:"TEL", cat:"tech", stack:5, stackOk:false, icon:"Itemicon_telephone.png",
+    loot:[ {zone:"Office Sector", where:"Sur les bureaux, un peu partout"} ] },
+  tech_scrap: { name:"Tech Scrap", ab:"TEC", cat:"tech", stack:64, stackOk:false, icon:"Item_Icon_-_Tech_Scrap.png",
+    loot:[ {zone:"Office Sector", where:"Salvage d'électronique, casser écrans / imprimantes"} ] },
+  metal_scrap: { name:"Metal Scrap", ab:"MET", cat:"metal", stack:64, stackOk:false, icon:"Item_Icon_-_Metal_Scrap.png",
+    loot:[ {zone:"Office Sector", where:"Casser chaises, casiers, étagères métalliques"},
+           {zone:"Manufacturing West", where:"Partout, en grande quantité"} ] },
+  glass_scrap: { name:"Glass Scrap", ab:"GLS", cat:"glass", stack:64, stackOk:false, icon:"Itemicon_scrap_glass.png",
+    loot:[ {zone:"Office Sector", where:"Casser fenêtres et vitrines ; salvage d'un Glowstick"} ] },
+  test_tube: { name:"Test Tube", ab:"TUB", cat:"glass", stack:10, stackOk:false, icon:"Item_Icon_-_Test_Tube.png",
+    loot:[ {zone:"Office Sector", where:"Laboratoires (L1), paillasses"},
+           {zone:"Cascade Laboratories", where:"Un peu partout dans les labos"} ] },
+  bio_scrap: { name:"Bio Scrap", ab:"BIO", cat:"bio", stack:64, stackOk:false, icon:"Itemicon_scrap_bio.png",
+    loot:[ {zone:"Office Sector", where:"Drop des Peccarys et Exors ; nourriture périmée"} ] },
+};
+
+const ZONE_ORDER = ["Office Sector", "Manufacturing West", "Cascade Laboratories", "Flathill"];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let rootId = "keypad_hacker";
+let expanded = new Set();         // chemins "keypad_hacker/controller/computation_brick"
+let highlight = null;             // id de ressource surligné dans le bilan
+let view = { x: 0, y: 0, k: 1 };  // pan / zoom
+
+const hasRecipe = id => !!ITEMS[id].recipe;
+const hasLoot   = id => !!ITEMS[id].loot;
+const isDual    = id => hasRecipe(id) && hasLoot(id);
+// voie principale : craft si recette seule, loot si loot seul, sinon champ primary
+const primaryWay = id => isDual(id) ? ITEMS[id].primary : (hasRecipe(id) ? "craft" : "loot");
+const isCraftable = id => primaryWay(id) === "craft";   // compté via sa recette
+const isBaseLeaf  = id => !isCraftable(id);             // compté comme ressource à ramasser
+
+function tileHtml(it) {
+  return `<span class="tile ${it.cat}"><img src="${IMG}${it.icon}/64px-${it.icon}" alt="" loading="lazy"
+    onerror="this.remove()"><span class="ab">${it.ab}</span></span>`;
+}
+function badgesHtml(id) {
+  const b = [];
+  if (hasRecipe(id)) b.push('<span class="badge craft">Craft</span>');
+  if (hasLoot(id))   b.push('<span class="badge loot">Loot</span>');
+  return `<span class="badges">${b.join("")}</span>`;
+}
+function altText(id, qty) {
+  // alternative à la voie principale, pour un objet double
+  const it = ITEMS[id];
+  if (!isDual(id)) return "";
+  if (primaryWay(id) === "loot") {
+    const r = it.recipe.map(c => `<b>${c.qty * qty} ${ITEMS[c.id].name}</b> (${c.qty} chacun)`).join(", ");
+    return `ou craft : ${r}`;
+  }
+  return `ou loot : ` + it.loot.map(l => `<b>${l.zone}</b> — ${l.where}`).join(" ; ");
+}
+
+/* =========================================================
+   CALCUL RÉCURSIF
+   ========================================================= */
+function computeTotals(id, qty, base, steps) {
+  const it = ITEMS[id];
+  if (isBaseLeaf(id)) { base.set(id, (base.get(id) || 0) + qty); return; }
+  // on descend d'abord (ordre bottom-up pour les étapes)
+  for (const c of it.recipe) computeTotals(c.id, c.qty * qty, base, steps);
+  steps.set(id, (steps.get(id) || 0) + qty);
+}
+
+/* =========================================================
+   RENDU — liste de gauche
+   ========================================================= */
+function renderList(filter = "") {
+  const ul = document.getElementById("itemlist");
+  ul.innerHTML = "";
+  const q = filter.trim().toLowerCase();
+  const ids = Object.keys(ITEMS).filter(hasRecipe)
+    .filter(id => ITEMS[id].name.toLowerCase().includes(q));
+  if (!ids.length) {
+    ul.innerHTML = `<li class="empty">Aucun objet ne contient « ${filter} ». La base ne contient pour l'instant que l'arbre du Keypad Hacker.</li>`;
+    return;
+  }
+  for (const id of ids) {
+    const it = ITEMS[id];
+    const li = document.createElement("li");
+    li.innerHTML = `<button class="${id===rootId?'active':''}" data-id="${id}">
+        ${tileHtml(it)}
+        <span>${it.name}</span>
+        <span class="meta">${badgesHtml(id)}</span>
+      </button>`;
+    li.querySelector("button").addEventListener("click", () => setRoot(id));
+    ul.appendChild(li);
+  }
+}
+
+/* =========================================================
+   RENDU — arbre
+   ========================================================= */
+function nodeEl(id, qty, path, isRoot) {
+  const it = ITEMS[id];
+  const craftable = hasRecipe(id);   // tout objet avec recette est explosable
+  const el = document.createElement("div");
+  el.className = "node" + (craftable ? " craftable" : "") + (isCraftable(id) ? "" : " base") + (isRoot ? " root" : "") + (highlight === id ? " hl" : "");
+  el.dataset.id = id;
+  const sub = craftable
+    ? (expanded.has(path) ? "cliquer pour replier" : `${it.recipe.length} composant${it.recipe.length>1?"s":""} — cliquer pour exploser`)
+    : it.loot[0].zone;
+  el.innerHTML = `${tileHtml(it)}
+    <span><div class="name">${it.name} ${badgesHtml(id)}</div><div class="sub">${sub}</div></span>
+    <span class="qty">×${qty}</span>`;
+  el.addEventListener("click", e => {
+    e.stopPropagation();
+    highlight = highlight === id ? null : id;
+    if (craftable) expanded.has(path) ? expanded.delete(path) : expanded.add(path);
+    renderSummary(); renderTree();
+  });
+  return el;
+}
+
+function subtree(id, qty, path, isRoot) {
+  const it = ITEMS[id];
+  const li = document.createElement("li");
+  if (hasRecipe(id) && expanded.has(path)) {
+    const box = document.createElement("div");
+    box.className = "exploded";
+    box.appendChild(nodeEl(id, qty, path, isRoot));
+    const bench = document.createElement("div");
+    bench.className = "bench";
+    bench.textContent = (isDual(id) && primaryWay(id) === "loot" ? "recette alternative — " : "") + it.bench;
+    box.appendChild(bench);
+    const ul = document.createElement("ul");
+    for (const c of it.recipe) ul.appendChild(subtree(c.id, c.qty, path + "/" + c.id, false));
+    box.appendChild(ul);
+    li.appendChild(box);
+  } else {
+    li.appendChild(nodeEl(id, qty, path, isRoot));
+  }
+  return li;
+}
+
+function renderTree() {
+  const stage = document.getElementById("stage");
+  stage.innerHTML = "";
+  const tree = document.createElement("ul");
+  tree.className = "tree";
+  tree.appendChild(subtree(rootId, 1, rootId, true));
+  stage.appendChild(tree);
+}
+
+/* =========================================================
+   RENDU — bilan de droite
+   ========================================================= */
+function stackText(it, qty) {
+  const s = it.stack, mark = it.stackOk === false ? "≈" : "";
+  if (s <= 1) return "";
+  const full = Math.floor(qty / s), rest = qty % s;
+  if (qty <= s) return `${mark}${qty} / ${s}`;
+  return `<b>${full} stack${full>1?"s":""}</b>${rest ? " + " + rest : ""} <span class="approx">(${mark}${s})</span>`;
+}
+
+function renderSummary() {
+  const base = new Map(), steps = new Map();
+  computeTotals(rootId, 1, base, steps);
+
+  // ressources de base
+  const rows = document.getElementById("baseRows");
+  rows.innerHTML = "";
+  const baseIds = [...base.keys()].sort((a,b) => base.get(b) - base.get(a));
+  for (const id of baseIds) {
+    const it = ITEMS[id], q = base.get(id);
+    const r = document.createElement("div");
+    r.className = "row" + (highlight === id ? " hl" : "");
+    r.innerHTML = `${tileHtml(it)}
+      <span>${it.name} ${badgesHtml(id)}</span>
+      <span class="stack"><span class="qtybig">${q}</span> &nbsp;${stackText(it, q)}</span>`;
+    rows.appendChild(r);
+  }
+  document.getElementById("baseCount").textContent = `— ${baseIds.length} types, ${[...base.values()].reduce((a,b)=>a+b,0)} unités`;
+
+  // étapes de craft : les plus profondes d'abord = ordre de fabrication
+  const depth = new Map();
+  (function walk(id, d) {
+    depth.set(id, Math.max(depth.get(id) || 0, d));
+    if (isCraftable(id)) for (const c of ITEMS[id].recipe) walk(c.id, d + 1);
+  })(rootId, 0);
+  const ol = document.getElementById("steps");
+  ol.innerHTML = "";
+  const stepOrder = [...steps].sort((a, b) => depth.get(b[0]) - depth.get(a[0]));
+  for (const [id, q] of stepOrder) {
+    const it = ITEMS[id];
+    const li = document.createElement("li");
+    const alt = altText(id, q);
+    li.innerHTML = `<span class="n">×${q}</span><span>${it.name} ${badgesHtml(id)}${alt ? `<div class="alt">${alt}</div>` : ""}</span><span class="b">${it.bench}</span>`;
+    ol.appendChild(li);
+  }
+
+  // par zone
+  const zones = new Map();
+  const push = (zone, e) => { if (!zones.has(zone)) zones.set(zone, []); zones.get(zone).push(e); };
+  for (const id of baseIds) {
+    for (const l of ITEMS[id].loot) push(l.zone, { id, qty: base.get(id), where: l.where, optional: false });
+  }
+  // objets doubles fabriqués par défaut : on montre quand même où les looter
+  for (const [id, q] of steps) if (isDual(id)) {
+    for (const l of ITEMS[id].loot) push(l.zone, { id, qty: q, where: l.where, optional: true });
+  }
+  const zc = document.getElementById("zones");
+  zc.innerHTML = "";
+  const ordered = [...zones.keys()].sort((a,b) => ZONE_ORDER.indexOf(a) - ZONE_ORDER.indexOf(b));
+  for (const z of ordered) {
+    const list = zones.get(z);
+    const d = document.createElement("div");
+    d.className = "zone";
+    d.innerHTML = `<h4>${z}<small>${list.length} ressource${list.length>1?"s":""}</small></h4>`;
+    for (const e of list) {
+      const it = ITEMS[e.id];
+      const r = document.createElement("div");
+      r.className = "row" + (highlight === e.id ? " hl" : "") + (e.optional ? " optional" : "");
+      const alt = e.optional ? "" : altText(e.id, e.qty);
+      const optNote = e.optional ? `<div class="alt">optionnel : évite de crafter ${ITEMS[e.id].recipe.map(c => `<b>${c.qty * e.qty} ${ITEMS[c.id].name}</b>`).join(", ")}</div>` : "";
+      r.innerHTML = `${tileHtml(it)}
+        <span>${it.name} ${badgesHtml(e.id)}<div class="where">${e.optional ? "loot : " : ""}${e.where}</div>${alt ? `<div class="alt">${alt}</div>` : ""}${optNote}</span>
+        <span class="qtybig${e.optional ? " done" : ""}">${e.qty}</span>`;
+      d.appendChild(r);
+    }
+    zc.appendChild(d);
+  }
+}
+
+/* =========================================================
+   CANVAS — drag / zoom
+   ========================================================= */
+const canvas = document.getElementById("canvas");
+const stage = document.getElementById("stage");
+function applyView() { stage.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.k})`; }
+function recenter() {
+  const cw = canvas.clientWidth, ch = canvas.clientHeight;
+  const sw = stage.offsetWidth, sh = stage.offsetHeight;   // taille non transformée
+  const k = Math.min(1, (cw - 40) / sw, (ch - 40) / sh);
+  view = { x: (cw - sw * k) / 2, y: Math.max(0, (ch - sh * k) / 2 - 20), k };
+  applyView();
+}
+let drag = null;
+canvas.addEventListener("pointerdown", e => {
+  if (e.target.closest(".node") || e.target.closest("button")) return;
+  drag = { x: e.clientX - view.x, y: e.clientY - view.y };
+  canvas.classList.add("dragging");
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", e => {
+  if (!drag) return;
+  view.x = e.clientX - drag.x; view.y = e.clientY - drag.y; applyView();
+});
+canvas.addEventListener("pointerup", () => { drag = null; canvas.classList.remove("dragging"); });
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const k2 = Math.min(2.5, Math.max(.3, view.k * (e.deltaY < 0 ? 1.1 : 0.9)));
+  view.x = mx - (mx - view.x) * (k2 / view.k);
+  view.y = my - (my - view.y) * (k2 / view.k);
+  view.k = k2; applyView();
+}, { passive: false });
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+function setRoot(id) {
+  rootId = id; expanded = new Set([id]); highlight = null;
+  document.getElementById("currentName").textContent = ITEMS[id].name;
+  renderList(document.getElementById("search").value);
+  renderTree(); renderSummary(); recenter();
+}
+function allPaths(id, path, out) {
+  if (!hasRecipe(id)) return;
+  out.push(path);
+  for (const c of ITEMS[id].recipe) allPaths(c.id, path + "/" + c.id, out);
+}
+document.getElementById("expandAll").addEventListener("click", () => {
+  const p = []; allPaths(rootId, rootId, p); expanded = new Set(p); renderTree(); recenter();
+});
+document.getElementById("collapseAll").addEventListener("click", () => {
+  expanded = new Set([rootId]); renderTree(); recenter();
+});
+document.getElementById("recenter").addEventListener("click", recenter);
+document.getElementById("search").addEventListener("input", e => renderList(e.target.value));
+
+setRoot("keypad_hacker");
+</script>
+</body>
+</html>

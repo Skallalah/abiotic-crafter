@@ -1,0 +1,387 @@
+# Décisions
+
+Choix faits pendant l'implémentation là où `SPEC.md` laissait une ambiguïté ou
+là où le wiki ne correspondait pas à ce que la spec supposait.
+
+## Scraping
+
+**Cargo est disponible, malgré `siteinfo`.** L'extension Cargo n'apparaît pas
+dans `action=query&meta=siteinfo&siprop=extensions`, mais `action=cargoquery`
+répond et `Special:CargoTables` liste 15 tables. L'étape 1 du §4 s'applique donc
+pleinement : items, recettes, stack, salvage et loot viennent tous de Cargo. Le
+wikitext (§4 étape 2) ne sert plus que de complément ciblé.
+
+**Le wikitext ne couvre que 2 besoins.** Les zones et les phrases de source ne
+sont nulle part dans Cargo. On télécharge donc les 9 pages secteur et les pages
+des ~1 000 items du périmètre craft, par lots de 50 via
+`action=query&prop=revisions` — une vingtaine de requêtes au lieu d'un millier.
+
+**Les recettes de chimie, de distillation et de soupe sont des `craft`.**
+`ChemistryRecipes`, `DistillRecipes` et `SoupRecipes` sont des tables séparées de
+`Recipes` mais décrivent la même chose : un résultat, des ingrédients, une
+station. Les traiter comme `kind: "craft"` avec leur bench propre est ce qui
+permet aux arbres de cuisine et de chimie de se résoudre jusqu'aux ressources de
+base. Les `UpgradeRecipes` restent `kind: "upgrade"` : stockées, non affichées
+(§1).
+
+**L'ordre des zones est écrit en dur.** Le wiki n'expose l'ordre de progression
+nulle part — ni dans `Template:Sector`, ni dans une catégorie. `ZONE_ORDER` dans
+`scraper/build.py` le fixe à la main ; toute zone rencontrée hors de cette liste
+est ajoutée en fin avec un warning.
+
+**Les sources de salvage sont plafonnées à 6 par item.** `ItemScrapingResults`
+est indexée par objet démonté ; la relire à l'envers donne jusqu'à 190
+provenances pour Metal Scrap, ce qui noie la colonne de droite sans rien
+apprendre. On garde les 6 meilleurs rendements (`MAX_SALVAGE`).
+
+**Les sources redondantes sont élaguées.** La table `Loot`, les drops d'ennemis
+et les listes de secteur décrivent souvent le même fait à trois niveaux de
+précision (« drop » / « drop dans Office Sector » / « drop du Security Bot dans
+Office Sector »). `prune_sources` ne garde que le plus précis.
+
+**Écart au défaut `primary`.** La spec fixe `"loot"` par défaut pour un dual sans
+`primary`. Exception : quand *toutes* les sources d'un item sont du salvage, le
+défaut est `"craft"` — obtenir l'objet en démontant un objet fini n'est jamais un
+plan d'approvisionnement. 27 items sur 113 duals sont concernés.
+
+**Les objets démontés entrent dans le périmètre.** Un `Source` de type salvage
+porte un `from: ItemId` ; si cet item n'est pas dans le dataset, l'UI affiche son
+slug. Le périmètre inclut donc, en plus de la clôture des recettes, les items
+cités en `from`.
+
+**Les noms de bench restent en anglais.** Ce sont des données du wiki, pas de
+l'UI (§1 : noms d'items en anglais, interface en français). « Inventory or
+Crafting Bench » s'affiche tel quel.
+
+## Application
+
+**La recherche interroge aussi le `gearSlot`.** Le critère du §8 attend que
+« hacker » remonte les 5 tiers **et** le Gatekey. Le wiki nomme la tier 6
+« Gatekey (Tier 6) » : aucun « hacker » dans son nom. Les six partagent en
+revanche `gearSlot = "Hacking Device"`. La recherche porte donc sur le nom plus
+le gearSlot : « hacker » donne les 5 Keypad Hacker, « hacking » les 6.
+
+**Les icônes sont servies à la racine.** `vite.config.ts` déclare
+`publicDir: "data/icons"`, donc une icône `Item_Icon_-_Tech_Scrap.png` est
+accessible en `/Item_Icon_-_Tech_Scrap.png`, en dev comme dans `dist/`. Les deux
+JSON, eux, sont importés statiquement et embarqués dans le bundle : aucune
+requête réseau à l'exécution (§8).
+
+**La police est téléchargée en local.** Le mockup charge Archivo depuis Google
+Fonts ; le sous-ensemble latin est copié dans `src/styles/fonts/`, pour la même
+raison.
+
+**`recenter()` peut descendre sous le zoom minimum de la molette.** Repris tel
+quel du mockup : la molette est bornée à 0,3–2,5 mais « Recentrer » calcule le
+zoom qui fait tenir l'arbre, quitte à aller plus bas (0,15 pour le Gatekey tier 6
+et ses 64 nœuds sur 6 360 px).
+
+## Liens montants (hors spec v1)
+
+L'arbre descend de la racine vers les ressources. Les **liens montants** ajoutent
+la lecture inverse au-dessus de la racine : les crafts qui consomment l'objet
+courant, reliés par des pointillés teal — par opposition aux connecteurs pleins
+et gris de l'arbre descendant. Un clic sur l'un d'eux en fait la nouvelle
+racine, exactement comme un clic dans la liste de gauche (`setRoot`), donc avec
+réinitialisation du dépli et recentrage.
+
+**Cartes au format compact, plafonnées à 12.** 89 % des items sont consommés par
+12 crafts ou moins, mais Box of Screws en compte 51. Deux garde-fous : les
+cartes parentes reprennent le format vertical 92 px des feuilles plutôt que le
+format horizontal des nœuds craftables, et la rangée est plafonnée à 12, le
+reste annoncé par un compteur « + N autres ». Mesuré sur Box of Screws : la
+scène passe de 3 609 px à 1 576 px et le zoom de « Recentrer » de 0,33 à 0,76 —
+en dessous, l'arbre lui-même devenait illisible.
+
+**Tri alphabétique.** Un tri par pertinence (quantité consommée, profondeur dans
+l'arbre) serait défendable ; l'ordre alphabétique a l'avantage d'être stable et
+prévisible d'un objet à l'autre.
+
+**Un résultat n'apparaît qu'une fois.** Un item ayant plusieurs recettes qui
+consomment toutes l'objet courant ne donne qu'une carte, avec la quantité de la
+première recette rencontrée.
+
+**Les recettes d'upgrade sont exclues**, comme partout ailleurs en v1 (§1).
+
+**Limite connue.** La racine est toujours un item craftable, puisqu'on ne peut la
+choisir que dans la liste de gauche ou parmi des résultats de recette. Les liens
+montants d'une ressource de base — les 51 crafts qui consomment du Metal Scrap —
+ne sont donc pas atteignables en v1.
+
+## Objets dérivés (hors spec v1)
+
+Un objet qu'on n'obtient qu'en transformant un autre était un cul-de-sac : la
+Canister affichait « démonter Fire Extinguisher » et s'arrêtait là, sans dire où
+trouver l'extincteur. **137 items sont dans ce cas**, dont des ingrédients très
+sollicités (Fisherman's Glue dans 28 recettes, Solder dans 25).
+
+**`Source.from` est élargi.** Le §3 le définit comme « pour salvage : l'item
+démonté » ; il désigne désormais **l'item dont celui-ci dérive, quel que soit le
+`kind`** — démonter, cuire, planter. C'est le seul champ que l'app consulte : la
+résolution des noms reste côté scraper, qui seul connaît items, zones et établis.
+
+**Le parseur ne choisit plus la cible.** `parse_sources` rend `targets`, tous les
+liens de la phrase dans l'ordre ; `OriginResolver` (build.py) prend le premier
+qui désigne vraiment un item, en écartant l'item lui-même, les 9 zones et les
+établis. Prendre aveuglément le premier lien donnait « Aloe ← Repair and Salvage
+Station » (l'origine réelle est le Glow Tulip, non lié dans la phrase),
+« Desk Leg ← Office Sector » et, via `[[{{PAGENAME}}#Locations]]`, « Baton ←
+Baton ». Un lien désignant une zone alimente `Source.zone`.
+
+Les **établis ne sont écartés que dans la prose** : « Crafting Bench » est aussi
+un item du jeu, et `ItemScrapingResults` dit à juste titre qu'en le démontant on
+récupère une Power Supply Unit.
+
+**Le placement indirect se fait côté app, pas dans le JSON.** `groupByZone` range
+un dérivé sous les zones de son origine, marqué `via`. Écrire cette zone dans
+`scraped.json` serait un mensonge : ce n'est pas là qu'on trouve la Canister,
+c'est là qu'on trouve l'extincteur. Le marqueur `via` garde la nuance à
+l'affichage. Un item qui a déjà une zone à lui n'hérite de rien — sinon Metal
+Scrap et ses six origines de salvage apparaîtraient partout.
+
+**Un seul niveau de dérivation.** La mesure sur les données réelles ne gagne rien
+au-delà, et s'arrêter là évite le cycle Anteverse Wheat Seed ↔ Anteverse Wheat.
+
+**Toutes les pages items sont téléchargées.** `fetch_wikitext.py` se limitait à
+la clôture des recettes ; 47 items du dataset n'avaient donc aucune page, dont 39
+origines de dérivés — sans aucune source, Fire Extinguisher compris. Les lots de
+50 ramènent les 1 622 pages à 33 requêtes : le ciblage ne valait plus son coût.
+Effet de bord mesuré : les lootables passent de 419 à 532.
+
+**Le clic simple reste le surlignage.** Le §5.3 le réserve au surlignage et le
+§5.4 exige qu'il soit synchronisé arbre ↔ bilan. Ouvrir un objet passe donc par
+un bouton ↗ dédié, apparaissant au survol des cartes, et par les noms d'origine
+cliquables. En contrepartie **n'importe quel objet peut devenir racine**, pas
+seulement les craftables : c'est ce qui rend enfin visibles les 3 crafts qui
+consomment la Canister. La liste de gauche reste limitée aux craftables (§5.2),
+et le filtre de recherche n'est vidé que pour un objet qui y figure.
+
+**Deux bugs de données corrigés au passage.** Cargo échappe le paramètre `name` :
+25 items s'affichaient « Fisherman&#39;s Glue » (`html.unescape`, le `_pageName`
+étant propre, les `id` ne bougent pas). Et le champ `image` du Cupboard contient
+un wikilien complet `[[File:Cupboard1.png]]` au lieu d'un nom de fichier.
+
+### Section `== Locations ==` des pages item
+
+Oubli de la première implémentation : le §4 étape 2 demande « section
+`== Locations ==` avec sous-titres de zones → un `Source` par zone », et seules
+les listes des 9 pages secteur étaient lues. Or celles-ci sont très partielles :
+la page du Fire Extinguisher cite **quatre** lieux (Manufacturing West, Cascade
+Laboratories, The Train, Fragments) quand la liste de Manufacturing West n'en
+connaissait qu'un. `parse_locations` lit désormais ces sections sur les 1 622
+pages : **98 items y gagnent leur première zone**.
+
+**L'ordre des zones devient hiérarchique.** Les pages item citent des lieux hors
+des 9 secteurs (Flathill, The Train, Dunkeltaler Forest…). Plutôt que de les
+empiler en fin de liste, `build_zones` lit les champs `portalWorld1..6` de
+l'infobox de chaque secteur et insère chaque monde-portail juste après son
+parent, en renseignant `Zone.parent` du §3. Seuls 5 sous-lieux non déclarés
+(Power Services, Temple of Stone…) restent ajoutés en fin avec un warning.
+
+### Bornes de quantité des sources
+
+`Source.qty` du §3 est remplacé par **`qtyMin` / `qtyMax`**. Le wiki donne les
+deux (`Loot.amountMin/Max`, `ItemScrapingResults.amountMin/Max`) et `amountMin`
+vaut 0 sur **46 des 116 lignes de `Loot`** : une Manufacturing Wood Crate donne
+0 à 3 Box of Screws. Ne garder que le maximum effaçait du dataset la différence
+entre une source fiable et un coup de chance. 501 sources portent désormais leurs
+bornes, dont 58 non garanties.
+
+L'UI ne change pas : elle n'affiche que `qtyMax`, comme avant.
+
+**`prune_sources` perdait ces quantités.** L'élagage des sources redondantes garde
+la variante la plus précise — issue du croisement page secteur × table `Loot`,
+qui ne porte pas de quantité — et jetait la variante globale, qui elle en avait
+une. Les bornes sont maintenant reportées sur **toutes** les sources couvrantes :
+une même caisse listée dans deux secteurs les conserve dans les deux, alors qu'un
+premier jet ne les transférait qu'à la première. `where` n'est délibérément pas
+reporté, sous peine de recoller une phrase vague sur une source localisée.
+
+**Reste inutilisé :** `LootTablesItems.Chance` (216 lignes, valeurs jusqu'à 0,01)
+n'est lu par personne — la table `LootTables` n'est pas encore câblée.
+
+## Le bilan suit le dépli (renversement du §8)
+
+**Écart assumé à une contrainte écrite.** Le §8 pose « Exploser / replier ne
+change jamais le bilan » et `CLAUDE.md` la range parmi les contraintes non
+négociables. Elle est levée sur demande explicite : un nœud replié n'est plus
+décomposé, il compte comme **un objet à se procurer entier**, avec ses moyens de
+l'obtenir. Sur le hacker tier 2, tier 1 non déplié apparaît dans les requis
+comme un objet à récupérer plutôt que comme ses onze composants.
+
+`SPEC.md` §8 et la contrainte de `CLAUDE.md` sont donc désormais fausses ; elles
+n'ont pas été réécrites d'office.
+
+**`computeTotals` prend un `expanded` optionnel.** Omis, il rend le bilan complet
+— c'est ce que font les tests d'algorithme, qui n'ont pas à connaître l'UI.
+Fourni, il ne descend que dans les chemins dépliés.
+
+**Les deux parcours doivent décider pareil.** `computeTotals` reconstruit les
+mêmes chemins que `buildTree` (`keypad_hacker/controller/computation_brick`) ;
+s'ils divergeaient, la colonne de droite cesserait de décrire l'arbre du milieu.
+Un test vérifie que tout chemin produit par l'arbre est bien compris du bilan,
+et qu'un dépli complet redonne exactement le bilan d'avant.
+
+**Une feuille légitime n'est pas un nœud replié.** La ligne « à fabriquer :
+<bench>, N composants » n'apparaît que pour un craftable arrivé dans les
+ressources de base **parce qu'il est replié**. Un dual `primary: loot` reste une
+feuille : sa recette est déjà présentée par la ligne « ou craft », la doubler
+d'un « à fabriquer » se contredisait.
+
+Le titre de la colonne devient « Bilan du dépli courant » : « Bilan complet »
+n'était plus vrai.
+
+## Provenances : une ligne par obtention, en anglais
+
+Les provenances étaient jointes par des puces médianes en un bloc qui revenait à
+la ligne selon la largeur du panneau (`casser Monitor · casser Printer · tuer Lab
+Rat`) : on ne distinguait plus les méthodes, et la liste était **silencieusement
+tronquée à 4**. Désormais une `<li>` par obtention, mot-clé coloré en tête.
+
+**Toute l'interface passe en anglais.** Les noms d'items, de zones et les phrases
+`where` viennent du wiki et sont anglais ; mêler « casser Monitor » à
+« Manufacturing West » se lisait mal. Le §1 de `SPEC.md` est corrigé en
+conséquence. Le dépôt lui-même — commentaires, noms de tests, `CLAUDE.md`,
+`DECISIONS.md` — reste en français : la demande portait sur l'interface.
+
+**Couleurs prises dans les tokens du §6, sans en ajouter.** `kill` en rouge et
+`loot` en vert étaient demandés ; le rouge coïncide avec la couleur que le §6
+donne déjà aux tuiles drop. `buy` hérite du token le plus discret (`--metal`)
+parce que c'est la nature la plus rare — 41 sources sur 2 023.
+
+**Plafond à 5, révélable.** 93 % des couples (item, zone) ont 4 provenances ou
+moins ; le plafond ne se déclenche que sur 79 cas sur 1 177, presque tous dans la
+pseudo-zone « Other methods » (Bio Scrap y en cumule 24). Le bouton « + N more »
+les affiche toutes et disparaît. L'état est volontairement local au DOM : un
+re-render le remet replié, comportement attendu d'un simple dépliant.
+
+**`sourceLabel` reste une fonction texte** à côté de `sourceLine`, qui rend du
+DOM : les infobulles et les tests ont besoin d'une chaîne, et rendre du DOM là
+où l'on veut du texte compliquerait pour rien.
+
+**Vitest gagne jsdom, pour un seul dossier.** `environmentMatchGlobs` limite
+jsdom à `src/ui/**/*.test.ts` ; les tests d'algorithme restent en environnement
+`node`, plus rapide.
+
+## Emplacements : restituer la liste que le wiki structure
+
+Le texte `where` du Hose formait un pavé de 640 caractères qui noyait les lignes
+d'obtention. Ce n'était pas un cas isolé : **154 des 383 entrées de zone issues
+des sections de localisation contenaient plusieurs puces**, toutes aplaties par
+`" ".join(details)`, et 62 avaient en plus une hiérarchie perdue.
+
+**La structure existait dans la source.** Le wiki liste sur deux niveaux : `*`
+désigne une sous-zone (« Level 2 », « Cloud Reactor »), `**` un emplacement
+précis. D'où le texte qui s'ouvrait sur « Level 2 Area under the Data Farm… » :
+l'en-tête collé au premier lieu. `Source.where` devient donc **`string[]`**, une
+entrée par emplacement, la sous-zone conservée en préfixe (`Level 2 › Bio Lab
+D.`). Écart au §3 du même ordre que `qty` → `qtyMin`/`qtyMax`.
+
+**Trois bugs voisins, trouvés en mesurant :**
+
+`zone_sections()` cherche les sous-titres de zone sous `== Locations ==` **et**
+sous `== Sources ==`. Cinq pages (Cooking Pot, Frying Pan, Nachos, Canned Peas,
+Military M.R.E.) utilisent la seconde forme : le parseur de prose avalait le bloc
+et affichait « ===Office Sector=== Level 2 * Kitchen » à l'écran, en ne retenant
+qu'une zone sur sept. Cooking Pot en a désormais huit.
+
+Le découpage en phrases coupait après une abréviation : « trading with
+[[Dr. Riggs]] » devenait « …trading with [[Dr. », lien tronqué compris. Des
+lookbehind de longueur fixe couvrent `Dr.`, `St.`, `Sgt.` et les initiales
+isolées (`M.O.P.`).
+
+`strip_links` ne connaissait qu'`itemIcon` ; `{{spoiler|Dr. Riggs}}` passait tel
+quel. Tout template est maintenant réduit à son dernier argument.
+
+**Effet de bord vérifié :** les lootables passent de 533 à 520. Ce n'est pas une
+perte mais une correction — les 13 items concernés sont les armures à initiales
+(A.E.G.I.S., F.O.R.G.E., A.T.O.M.S.). Leur unique source était un fragment
+fabriqué par le découpage : « A.E.G.I.S. Helmet can only be obtained through
+Upgrading. » se scindait après « A.E.G.I.S. », et ce fragment de 10 caractères,
+au-dessus du seuil et sans mot-clé de rejet, devenait une source fantôme. Les
+« phrases à relire » baissent de 332 à 315 pour la même raison.
+
+**Résultat mesuré :** plus aucun balisage wiki dans les données (16 textes
+fautifs avant), le plus long emplacement passe de 977 à 386 caractères, et 1 286
+emplacements sont désormais distincts.
+
+**Affichage : réutilisation du dépliant.** Aucun nouveau vocabulaire visuel — le
+`sourceList` déjà en place gagne un plafond paramétrable, 5 pour les provenances
+et 3 pour les emplacements, plus verbeux.
+
+
+## Fenêtres de détail : contenants, créatures, items
+
+Le bilan ne disait qu'un nom — « break Manufacturing Wood Crate », « kill Pest ».
+On ne savait ni à quoi la caisse ressemble, ni ce qu'elle contient d'autre, ni si
+elle vaut le détour. Trois tables Cargo portaient déjà la réponse et n'étaient
+jamais lues : `LootTables` + `LootTablesItems` (47 tables, 216 lignes, **seule
+source de `Chance`**, jusqu'à 0.001) et `Objects` (la nature de chaque objet).
+
+### Une entité nouvelle plutôt qu'un item bricolé
+`Provider` n'est pas un `Item` : une Manufacturing Wood Crate n'a ni recette, ni
+poids, ni place dans l'inventaire. Elle a une image, des zones et un contenu. La
+mettre dans `items` aurait pollué la liste de gauche, le bilan et les totaux.
+
+### Les zones ne sont pas recalculées
+Elles sont extraites de l'index des sources d'items, relu à l'envers : une source
+`{kind: break, target: X, zone: Z}` situe X en Z. Une fenêtre ne peut donc pas
+contredire le bilan qui l'a ouverte. Le `== Locations ==` de la page de l'objet
+vient s'y ajouter, jamais s'y substituer.
+
+### `targetId` est posé par le scraper
+Rapprocher `target` d'un provider par son nom au runtime confondrait l'item
+« Toolbox » et le contenant « Toolbox », qui n'ont ni le même contenu ni la même
+image. Le scraper, lui, sait de quelle table vient la ligne. 1 034 sources sont
+liées ; 546 cibles restent sans fenêtre — du bruit de prose (« Fishing »,
+« Traits ») ou des objets que le wiki ne documente pas. Un lien n'est posé que
+là où il mène quelque part.
+
+### L'image a coûté un élargissement du scraping
+`data/icons/` ne contenait que des icônes d'items ; une caisse n'a pas de ligne
+dans `Items`, donc pas de champ `image`. L'étape 2 télécharge désormais aussi les
+pages d'objets et de créatures (+157 titres, **3 requêtes**). Trois sources
+d'image en cascade, dans cet ordre : l'`image =` de l'infobox, l'icône de l'item
+homonyme (Trash Bin, Toolbox, Office Chair sont aussi des items), puis les
+`{{destroyableObject}}` de la page « Destroyable Objects » — huit caisses, dont
+la Wooden Crate elle-même, n'ont pour page qu'une redirection vers cette liste.
+Résultat : 157 des 164 contenants ont une image. Les sept restants sont les sets
+génériques de `Data:ContainerLoot` (Filing Cabinet, Office Locker…), qui n'ont ni
+page ni item ; leur fenêtre montre quand même leur contenu.
+
+### Le tableau `== Drops ==` complète Cargo, il ne le corrige pas
+Onze caisses (Office Wood Crate, Reactors Wood Crate…) n'ont aucune ligne Cargo :
+leur contenu n'existe que dans le tableau de leur page. Ce tableau porte en outre
+une chance que `Loot` ne donne jamais — mais parfois sous forme de phrase
+(« 100% of 2<br>50% of 2-3 »). En tirer un nombre serait inventer : elle est
+conservée telle quelle dans `chanceText`. Les `<ref>` de la cellule sont retirés,
+l'un d'eux faisant 255 caractères d'explication éditoriale. Fusion par (objet,
+item), première valeur gagnante — donc Cargo, structuré, avant la prose. Le
+dédoublonnage n'est pas cosmétique : `LootTables` déclare le set `Refrigerator`
+sur deux pages, ce qui faisait arriver ses quatre lignes en double.
+
+### Le contenu des caisses entre dans le périmètre du dataset
+Une fenêtre lie chaque item de son contenu ; un lien vers un item absent
+n'irait nulle part. `scope` gagne donc les items des contenus : 1 100 → 1 153
+items, 520 → 573 lootables. Ce n'est pas une régression mais l'entrée dans le
+dataset d'items réels (Money, Magazines, Stapler) que rien n'y amenait.
+
+### Le clic droit, règle unique
+Décidé avec l'utilisateur : le clic droit ouvre une fenêtre sur ce qu'il désigne,
+partout — item ou contenant. Le clic gauche ne change nulle part, sauf sur un nom
+de contenant, qui n'est pas sélectionnable comme objet courant et n'a que sa
+fenêtre à offrir. Ailleurs, le menu du navigateur reste intact.
+
+### WinBox.js plutôt qu'un `<dialog>` modal
+Première version : un `<dialog>` modal centré, avec une pile d'historique et un
+bouton « ← back ». Rejetée par l'utilisateur — il veut des fenêtres qui
+apparaissent **au curseur**, déplaçables, refermables une à une, et c'est ce tri
+qui remplace la navigation arrière. WinBox.js (13 ko, zéro dépendance, images en
+`data:` inlinées) fournit la barre de titre, le déplacement et le ✕ ; les
+boutons réduire/agrandir/plein écran sont masqués par `no-min no-max no-full`.
+Seule dépendance front du projet, embarquée dans le bundle : la contrainte
+« aucune requête réseau à l'exécution » tient.
+
+**Vérifié au navigateur :** fenêtre ouverte au point du clic (`left` = clientX +
+12), déplacement par la barre de titre effectif, deux fenêtres cohabitant,
+rouvrir un sujet ne duplique pas.

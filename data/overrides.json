@@ -1,0 +1,12 @@
+{
+  "_comment": [
+    "Corrections manuelles fusionnées par-dessus data/scraped.json au chargement.",
+    "Même schéma que scraped.json, partiel. `sources` remplace la liste entière.",
+    "scraped.json est regénéré et ne doit jamais être édité à la main."
+  ],
+  "items": {
+    "box_of_screws": {
+      "primary": "craft"
+    }
+  }
+}
