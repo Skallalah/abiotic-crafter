@@ -990,17 +990,19 @@ que Tiny Gears n'était même pas cliquable. Trois données complétées :
   `costItem` entrent au périmètre — Tiny Gears gagne sa fenêtre et sa vraie
   source (salvage Pocket Watch).
 
-## Les flèches d'ascenseur sont de vrais boutons
+## Les ascenseurs 98 étaient sabotés par une ligne de repli
 
-Chromium (ascenseurs « Fluent ») ne peint plus `::-webkit-scrollbar-button`
-— vérifié en forçant un fond rouge : rien — et Firefox n'a jamais dessiné de
-flèches. Les ▲▼ du thème win98 sont donc de vrais boutons
-(`src/ui/scrollArrows.ts`), posés aux extrémités de la colonne de
-défilement des colonnes et des fenêtres, et du coup fonctionnels : clic = un
-pas de 48 px, maintien = répétition. Ils suivent le contenu (MutationObserver
-+ ResizeObserver), disparaissent quand rien ne défile, et seuls les thèmes
-qui le veulent les peignent (Modern Slop les cache). Au passage, le repli
-Firefox `scrollbar-width/color` était gardé par `@supports not
-selector(::-webkit-scrollbar)` — toujours faux, Firefox acceptant les
-pseudo-éléments -webkit- inconnus comme valides : le discriminant est
-désormais un pseudo -moz-, vrai chez Firefox seul.
+Longue enquête pour une ligne : les ascenseurs Windows 98
+(`::-webkit-scrollbar`, trame, biseaux, flèches — la technique de 98.css)
+étaient invisibles sur Chrome. Cause réelle : depuis Chrome 121, poser les
+propriétés standard `scrollbar-width`/`scrollbar-color` débranche tout le
+dessin `::-webkit-scrollbar` — et le commit d'origine des ascenseurs posait
+ces propriétés SANS garde, en repli Firefox. Deux fausses pistes coûteuses
+avant de la trouver : un garde `@supports not selector(::-webkit-scrollbar)`
+(toujours faux — Firefox accepte les pseudo-éléments -webkit- inconnus comme
+valides ; le bon discriminant est un pseudo -moz-, vrai chez Firefox seul), et
+des boutons ▲▼ en DOM, écrits sur la foi d'un test fait sous émulation
+devtools, retirés sitôt la vraie cause corrigée : les boutons natifs
+`::-webkit-scrollbar-button` se peignent très bien une fois la ligne ôtée.
+Sur Firefox, qui ne dessine ni flèches ni trame, le repli gardé donne une
+barre pleine largeur argent — le maximum possible là-bas.

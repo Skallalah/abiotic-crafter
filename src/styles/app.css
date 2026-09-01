@@ -33,7 +33,6 @@
     min-height: 0;
   }
   .pane {
-    position: relative;              /* ancre les flèches d'ascenseur win98 */
     background: var(--panel);
     border-right: 1px solid var(--line);
     display: flex; flex-direction: column; min-height: 0;
@@ -397,14 +396,6 @@ button.censored, .censored { cursor: default; }
   text-decoration: underline; text-underline-offset: 2px;
 }
 .itemlist .beyond button:hover { color: var(--accent-ink); }
-
-/* Flèches d'ascenseur : invisibles partout sauf en win98 (le thème les peint) */
-.sb-arrow {
-  position: absolute; display: none;
-  width: 16px; height: 16px;
-  border: 0; padding: 0; margin: 0;
-  z-index: 5;
-}
 
 /* Sélecteur de thème, dans l'onglet Settings (§6). */
 .settings-panel { width: 220px; }

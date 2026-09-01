@@ -15,7 +15,6 @@ import { Canvas, type View } from "./ui/canvas";
 import { DetailsWindows } from "./ui/details";
 import { DiscoverPanel } from "./ui/discover";
 import { SettingsPanel } from "./ui/settings";
-import { armScrollArrows } from "./ui/scrollArrows";
 import { ItemList } from "./ui/list";
 import { Summary } from "./ui/summary";
 import { TreeView } from "./ui/tree-view";
@@ -31,12 +30,6 @@ interface Session {
 }
 
 new SettingsPanel(document.getElementById("settings") as HTMLButtonElement);
-
-// les flèches d'ascenseur du thème win98, sur tout ce qui défile
-for (const pane of document.querySelectorAll<HTMLElement>(".pane")) {
-  const paneBody = pane.querySelector<HTMLElement>(".pane-body");
-  if (paneBody) armScrollArrows(paneBody, pane);
-}
 
 const model = new Model(dataset);
 
