@@ -926,3 +926,7 @@ immunités. Les valeurs restent des chaînes — le wiki écrit « Immune » ou
 « 80 » dans les mêmes champs — et tout champ vide disparaît de la fenêtre.
 Pas de caviardage sur ces valeurs : les origines sont des Anteverses jamais
 présents dans la liste des zones, et les sensibilités des types de dégâts.
+La santé vit dans son propre bloc plutôt qu'en ligne de fiche : quatre
+parties du corps tenaient mal sur une ligne — une ligne par partie, avec un
+pictogramme dessiné main (buste, torse, bras, jambes) peint comme ceux des
+catégories.

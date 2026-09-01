@@ -51,6 +51,12 @@
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
   }
   .search::placeholder { color: var(--ink-2); }
+  /* bloc de santé d'une créature : une ligne par partie du corps */
+  .health { display: grid; gap: 4px; }
+  .hp { display: flex; align-items: center; gap: 8px; }
+  .hp svg { width: 16px; height: 16px; flex: none; color: var(--logo-ink); }
+  .hp .part { color: var(--ink-2); min-width: 44px; }
+
   /* barre de catégories : icônes dans l'encre du logo, All en tête, repliée
      par défaut derrière sa ligne de pli */
   .catbar { margin-top: 8px; }

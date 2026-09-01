@@ -59,6 +59,18 @@ export const CATEGORY_ICONS: Record<string, string> = {
   "Divers": MISC_ICON,
 };
 
+/**
+ * Parties du corps, pour le bloc de santé d'une créature : buste, torse,
+ * bras plié, jambes. Même famille que les catégories — dessinés main,
+ * peints en `currentColor`.
+ */
+export const BODY_ICONS = {
+  head: "M8 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM2 14c0-3 2.7-5 6-5s6 2 6 5z",
+  torso: "M5 2h6l3 3-1.5 2L11 6v8H5V6L3.5 7 2 5z",
+  arms: "M2 12h4V6c0-2 1-3 3-3h5v3H9v6a4 4 0 0 1-4 4H2z",
+  legs: "M4 1h8v2H4zM4 4h3.2v11H4zM8.8 4H12v11H8.8z",
+} as const;
+
 const NS = "http://www.w3.org/2000/svg";
 
 /** Monte le chemin en `<svg>` prêt à poser dans un bouton. */

@@ -49,11 +49,23 @@ describe("fiche d'un provider", () => {
       ["Type", "Robot"],
       ["Codename", "GATE-01"],
       ["Origin", "Anteverse 2"],
-      ["Health", "torso 80 · legs 10"],
       ["Melee", "50 — Blunt"],
       ["Weakness", "Electricity"],
       ["Immunity", "Poison"],
     ]);
+  });
+
+  it("détaille la santé dans son propre bloc, une ligne par partie", () => {
+    document.body.innerHTML = `<div data-provider="security_bot"></div>`;
+    const windows = new DetailsWindows(model, () => {}, "https://wiki/", everything);
+    instances.push(windows);
+    rightClick(document.querySelector("[data-provider]")!);
+    const rows = [...document.querySelectorAll(".winbox .health .hp")];
+    // la fixture n'a que torse et jambes : tête et bras n'ont pas de ligne
+    expect(rows.map((r) => r.textContent)).toEqual(["Torso80", "Legs10"]);
+    for (const row of rows) {
+      expect(row.querySelector("svg path")!.getAttribute("fill")).toBe("currentColor");
+    }
   });
 
   it("se contente de la nature quand la page n'a pas d'infobox", () => {

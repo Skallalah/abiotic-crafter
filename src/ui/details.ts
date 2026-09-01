@@ -3,6 +3,7 @@ import "winbox/dist/css/winbox.min.css";
 
 import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
+import { BODY_ICONS, svgIcon } from "./icons";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
@@ -253,12 +254,6 @@ export class DetailsWindows {
       if (stats.codename) props.push(["Codename", stats.codename]);
       if (stats.origin) props.push(["Origin", stats.origin]);
       if (stats.identifiedBy) props.push(["Identified by", stats.identifiedBy]);
-      if (stats.health) {
-        props.push(["Health", (["head", "torso", "arms", "legs"] as const)
-          .filter((part) => stats.health![part])
-          .map((part) => `${part} ${stats.health![part]}`)
-          .join(" · ")]);
-      }
       for (const [label, attack] of
            [["Melee", stats.melee], ["Ranged", stats.ranged]] as const) {
         if (attack) {
@@ -272,6 +267,26 @@ export class DetailsWindows {
     }
     fragment.appendChild(this.head(provider.name, propList(props),
                                    providerTile(provider)));
+
+    // la santé en bloc à part : une ligne par partie du corps, icône + valeur
+    if (stats?.health) {
+      const block = document.createElement("div");
+      block.className = "health";
+      for (const part of ["head", "torso", "arms", "legs"] as const) {
+        const value = stats.health[part];
+        if (!value) continue;
+        const row = document.createElement("div");
+        row.className = "hp";
+        const label = document.createElement("span");
+        label.className = "part";
+        label.textContent = part[0]!.toUpperCase() + part.slice(1);
+        const amount = document.createElement("b");
+        amount.textContent = value;
+        row.append(svgIcon(BODY_ICONS[part]), label, amount);
+        block.appendChild(row);
+      }
+      fragment.appendChild(this.section("Health", block));
+    }
 
     if (provider.zones.length > 0) {
       const block = document.createElement("div");
