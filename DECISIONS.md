@@ -969,3 +969,23 @@ touchées disparaissent où qu'elles soient rendues (fenêtres, bilan,
 emplacements), et un bloc de zone vidé de toutes ses lignes disparaît avec
 elles. Les comptes (« Used in 12 crafts », « + N more ») restent ceux du
 rendu complet : ils ne nomment rien, et mentir sur les nombres serait pire.
+
+## Un échange se paie, et son déblocage peut nommer une zone
+
+Signalé sur Reinforced Hose : « buy Marion — Trades for 1 Tiny Gears.
+Unlocked: Completing [REDACTED] » comptait dès Flathill, rendant le Heater
+Shield disponible, alors que le déblocage nomme The Train (non découvert) et
+que Tiny Gears n'était même pas cliquable. Trois données complétées :
+
+- le **coût** d'un échange est structuré (`costItem`/`costQty`) au lieu d'être
+  cuit dans une phrase — la monnaie devient un lien avec fenêtre, et le point
+  fixe peut l'exiger : sans la monnaie, pas d'achat (le miroir de la règle des
+  recettes). La Diode du Blacksmith, payée en Axle Grease introuvable avant
+  Hydroplant, cesse ainsi d'être « disponible » dès Manufacturing ;
+- un **déblocage** qui nomme une zone connue (« Completing The Train »,
+  « Entering Manufacturing West »… — 21 offres) pose `requiresZone` : la même
+  machinerie que delayedPresence, la ligne ne se montre ni ne prouve avant ;
+- **Tiny Gears manquait au dataset** : le périmètre d'items ne couvrait pas
+  les monnaies d'échange (aucun craft ni loot ne les référence). Les
+  `costItem` entrent au périmètre — Tiny Gears gagne sa fenêtre et sa vraie
+  source (salvage Pocket Watch).

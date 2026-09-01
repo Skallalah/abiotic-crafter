@@ -552,7 +552,32 @@ describe("découverte (§5.7), sur les vraies données", () => {
       .find((s) => s.kind === "vendor");
     expect(sale?.target).toBe("Warren Bunning");
     expect(sale?.zone).toBe("Office Sector");
-    expect(sale?.where?.[0]).toContain("1 Raw Antefish Filet");
+    // le coût est structuré (lien cliquable), plus une phrase
+    expect(sale?.costItem).toBe("raw_antefish_filet");
+    expect(sale?.costQty).toBe("1");
+    // et « Going through the Far Garden exit portal » gate l'offre
+    expect(sale?.requiresZone).toBe("Far Garden");
+    expect(sale?.where?.[0]).toContain("Unlocked:");
+  });
+
+  it("gate un échange sur sa zone de déblocage et sur sa monnaie", () => {
+    // « buy Marion — Trades for 1 Tiny Gears. Unlocked: Completing The
+    // Train. » comptait dès Flathill : le déblocage nomme une zone non
+    // découverte, et la monnaie n'était même pas un item du dataset
+    const sale = model.item("reinforced_hose").sources
+      .find((s) => s.kind === "vendor")!;
+    expect(sale.costItem).toBe("tiny_gears");
+    expect(sale.requiresZone).toBe("The Train");
+    // Tiny Gears existe désormais, avec sa vraie source
+    expect(model.item("tiny_gears").sources.some((s) => s.from === "pocket_watch"))
+      .toBe(true);
+    // Flathill découverte ne suffit pas : la ligne ne se montre ni ne prouve
+    const flathill = computeAvailability(model,
+      state("Office Sector", "Flathill"));
+    expect(flathill.source(sale)).toBe(false);
+    const train = computeAvailability(model,
+      state("Office Sector", "Flathill", "The Train"));
+    expect(train.source(sale)).toBe(true);
   });
 
   it("localise les ventes par la page du PNJ et les créatures par leur prose", () => {
@@ -566,8 +591,13 @@ describe("découverte (§5.7), sur les vraies données", () => {
     expect(office.provider("peccary_sow")).toBe(false);
     const later = computeAvailability(
       model, state("Office Sector", "Manufacturing West", "Cascade Laboratories"));
-    expect(later.item("diode")).toBe(true);
+    // le Blacksmith est là, mais la Diode se paie en Axle Grease — introuvable
+    // avant Hydroplant : sans la monnaie, l'échange ne prouve rien
+    expect(later.item("diode")).toBe(false);
     expect(later.provider("peccary_sow")).toBe(true);
+    const hydro = computeAvailability(model, state(
+      "Office Sector", "Manufacturing West", "Cascade Laboratories", "Hydroplant"));
+    expect(hydro.item("diode")).toBe(true);
   });
 
   it("toutes zones découvertes = l'app entière, par construction", () => {

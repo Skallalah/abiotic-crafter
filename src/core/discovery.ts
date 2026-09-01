@@ -90,6 +90,9 @@ const EVERYTHING: Omit<Availability, "enabled" | "spoilers"> = {
  *  - une source porte une zone découverte ;
  *  - une source sans zone dérive (`from`) d'un item disponible — et, si cet
  *    item est une caisse verrouillée (`unlockedBy`), sa clé l'est aussi ;
+ *  - un échange de marchand exige en plus sa monnaie (`costItem`) disponible
+ *    et sa zone de déblocage (`requiresZone`) découverte — « Trades for 1
+ *    Tiny Gears. Unlocked: Completing The Train. » ne prouve rien à Flathill ;
  *  - une source sans zone vise (`targetId`) un contenant disponible ;
  *  - une source n'a aucune géographie du tout (prose, marchand sans lieu) ;
  *  - un contenant ou une créature disponible le lâche (`drops`) ;
@@ -205,6 +208,9 @@ function reachable(
       const ok =
         item.sources.some((s) =>
           s.conditional || (s.requiresZone && !discovered.has(s.requiresZone))
+            // un échange se paie : sans la monnaie, pas d'achat — le miroir
+            // de la règle des recettes
+            || (s.costItem && !available.has(s.costItem))
             ? false
             : s.zone
             ? discovered.has(s.zone)

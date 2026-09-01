@@ -292,11 +292,29 @@ export function sourceLines(
 ): HTMLLIElement[] {
   return sources.map((source) => {
     const li = sourceLine(model, source, availability, onSelect);
-    const spots = [...new Set(source.where ?? [])];
-    if (spots.length > 0) {
-      li.appendChild(sourceList(
-        spots.map((spot) => spotLine(spot, model, availability)),
-        MAX_SPOTS, "spots"));
+    const details: HTMLLIElement[] = [];
+    // la monnaie d'un échange, en lien : « Trades for 1 Tiny Gears » était de
+    // la prose morte alors que Tiny Gears a sa fenêtre comme un autre
+    if (source.costItem && model.has(source.costItem)) {
+      const cost = document.createElement("li");
+      cost.append(`Trades for ${source.costQty ?? "1"} `);
+      const name = onSelect
+        ? itemLink(model, source.costItem, onSelect)
+        : (() => {
+            const span = document.createElement("span");
+            span.textContent = model.item(source.costItem!).name;
+            span.dataset.item = source.costItem!;
+            return span;
+          })();
+      if (availability) veilName(availability, source.costItem, name);
+      cost.append(name, ".");
+      details.push(cost);
+    }
+    for (const spot of new Set(source.where ?? [])) {
+      details.push(spotLine(spot, model, availability));
+    }
+    if (details.length > 0) {
+      li.appendChild(sourceList(details, MAX_SPOTS, "spots"));
     }
     return li;
   });

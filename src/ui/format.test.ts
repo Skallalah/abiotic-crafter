@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  abbreviation, fold, KIND_KEYWORD, redactor, sourceLabel, sourceLine, spotLine,
-  zoneTag,
+  abbreviation, fold, KIND_KEYWORD, redactor, sourceLabel, sourceLine, sourceLines,
+  spotLine, zoneTag,
 } from "./format";
 import type { SourceKind } from "../data/types";
 import { computeAvailability } from "../core/discovery";
@@ -142,6 +142,22 @@ describe("origine d'un salvage", () => {
   });
 });
 
+
+describe("monnaie d'un échange", () => {
+  const model = new Model(dataset);
+
+  it("rend la monnaie cliquable sous la ligne buy", () => {
+    // « Trades for 1 Tiny Gears » était de la prose morte
+    const sale = model.item("reinforced_hose").sources
+      .find((s) => s.kind === "vendor")!;
+    const picked: string[] = [];
+    const [li] = sourceLines(model, [sale], undefined, (id) => picked.push(id));
+    const cost = li!.querySelector("li")!;
+    expect(cost.textContent).toBe("Trades for 1 Tiny Gears.");
+    cost.querySelector("button")!.click();
+    expect(picked).toEqual(["tiny_gears"]);
+  });
+});
 
 describe("caviardage des phrases d'obtention", () => {
   const world = new Model(discoveryDataset());

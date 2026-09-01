@@ -433,12 +433,29 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
                 item_id = resolver.get(offer["item"])
                 if not item_id:
                     continue
-                sentence = f"Trades for {offer['cost']}." if offer.get("cost") else ""
-                if offer.get("unlock"):
-                    sentence += f" Unlocked: {offer['unlock']}."
                 source = {"kind": "vendor", "target": npc}
                 if npc_zones:
                     source["zone"] = npc_zones[0]
+                # le coût structuré quand la monnaie résout vers un item : la
+                # ligne devient un lien, et le point fixe peut l'exiger
+                sentence = ""
+                cost_id = resolver.get(offer["costItem"]) if offer.get("costItem") else None
+                if cost_id:
+                    source["costItem"] = cost_id
+                    source["costQty"] = offer.get("costQty") or "1"
+                elif offer.get("costItem"):
+                    sentence = f"Trades for {offer['costQty']} {offer['costItem']}."
+                    report.bump("monnaies d'échange non résolues, en prose")
+                if offer.get("unlock"):
+                    sentence += f" Unlocked: {offer['unlock']}."
+                    # « Completing The Train. » : un déblocage qui nomme une
+                    # zone connue est une présence retardée, même machinerie
+                    hits = [(offer["unlock"].find(z), z)
+                            for z in origins.zones.values()
+                            if z in offer["unlock"]]
+                    if hits:
+                        source["requiresZone"] = canonical_zone(min(hits)[1])
+                        report.bump("déblocages d'échange liés à une zone")
                 if sentence:
                     source["where"] = [sentence.strip()]
                 add(item_id, source)
@@ -1109,6 +1126,10 @@ def main() -> None:
     # Idem pour le contenu d'une caisse : sa fenêtre lie chaque item, et un lien
     # vers un item absent du dataset n'irait nulle part.
     scope |= {d["item"] for p in providers.values() for d in p["drops"]}
+    # Et pour les monnaies d'échange : « Trades for 1 Tiny Gears » doit pouvoir
+    # lier Tiny Gears, même si aucun craft ni loot ne le référence.
+    scope |= {s["costItem"] for bucket in sources.values() for s in bucket
+              if s.get("costItem")}
     items = build_items(resolver, scope, recipes, sources, locks, report)
 
 

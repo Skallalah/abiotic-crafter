@@ -43,9 +43,13 @@ export interface Source {
    * les autres, mais il ne prouve jamais une disponibilité (§5.7).
    */
   conditional?: boolean;
-  /** Présence retardée (delayedPresence) : la source ne prouve et ne montre
-   *  rien tant que cette zone n'est pas découverte. */
+  /** Présence retardée (delayedPresence) ou déblocage d'échange nommant une
+   *  zone : la source ne prouve et ne montre rien tant que cette zone n'est
+   *  pas découverte. */
   requiresZone?: string;
+  /** Monnaie d'un échange de marchand, résolue vers un item du dataset. */
+  costItem?: ItemId;
+  costQty?: string;
 }
 
 export interface Item {

@@ -639,8 +639,10 @@ def parse_trade_offers(wikitext: str) -> list[dict]:
         offer: dict = {"item": slots[0][0].strip()}
         text = _SLOT_TEXT.search(slots[1][1] or "") if len(slots) > 1 else None
         if len(slots) > 1:
-            qty = text.group(1).strip() if text else "1"
-            offer["cost"] = f"{qty} {slots[1][0].strip()}"
+            # coût en deux champs : l'item-monnaie doit rester reliable au
+            # dataset (Tiny Gears a une fenêtre, pas juste trois mots de prose)
+            offer["costItem"] = slots[1][0].strip()
+            offer["costQty"] = text.group(1).strip() if text else "1"
 
         # la cellule de déblocage : la dernière, en prose, sans itemSlot
         unlock = None

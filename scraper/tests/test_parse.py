@@ -426,10 +426,11 @@ def test_parse_trade_offers_reads_a_merchant_inventory():
 |-
 |}"""
     assert parse_trade_offers(page) == [
-        {"item": "Stapler", "cost": "1 Raw Antefish Filet",
+        {"item": "Stapler", "costItem": "Raw Antefish Filet", "costQty": "1",
          "unlock": "Going through the Far Garden exit portal"},
-        {"item": "Canned Peas", "cost": "1 Rootbear", "unlock": "Speaking with Warren"},
-        {"item": "Employee Locator", "cost": "1 Peccary Skull",
+        {"item": "Canned Peas", "costItem": "Rootbear", "costQty": "1",
+         "unlock": "Speaking with Warren"},
+        {"item": "Employee Locator", "costItem": "Peccary Skull", "costQty": "1",
          "unlock": "Speaking with Warren"},
     ]
 
