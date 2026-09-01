@@ -483,3 +483,17 @@ def test_parse_enemy_stats_splits_lists_and_inline_fields():
 def test_parse_enemy_stats_without_infobox():
     from parse import parse_enemy_stats
     assert parse_enemy_stats("{{item\n| name = Truc\n}}") is None
+
+
+def test_parse_unlocked_by_reads_the_lock_sentence():
+    from parse import parse_unlocked_by
+    assert parse_unlocked_by(
+        "A [[Porcelain Key]] is required to unlock and open the crate."
+    ) == "Porcelain Key"
+    # l'article s'accorde, le lien peut porter une étiquette
+    assert parse_unlocked_by(
+        "An [[Inquisitor's Key|key]] is required to unlock and open the crate."
+    ) == "Inquisitor's Key"
+    # une porte à keypad n'est pas une caisse à clé
+    assert parse_unlocked_by(
+        "A [[Keypad Hacker (Tier 2)]] is required to open the door.") is None

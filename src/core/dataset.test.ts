@@ -509,6 +509,29 @@ describe("découverte (§5.7), sur les vraies données", () => {
     expect(later.source(gunk!)).toBe(true);
   });
 
+  it("verrouille le contenu des caisses à clé sur la clé elle-même", () => {
+    // la Cacophonous Crate est posée dans Office, mais « A Porcelain Key is
+    // required to unlock and open the crate » — et la clé tombe des
+    // Symphonists de Flathill. Sans le verrou, Organ et Porcelain Shards
+    // « prouvaient » les armures Maestro dès le début du jeu
+    expect(model.item("cacophonous_crate").unlockedBy).toBe("porcelain_key");
+    const office = computeAvailability(model, state("Office Sector"));
+    expect(office.item("cacophonous_crate")).toBe(true);   // la caisse se voit
+    for (const id of ["organ", "porcelain_shards", "maestro_adornments",
+                      "maestro_greaves", "maestro_vambraces", "maestro_casque"]) {
+      expect(office.item(id), id).toBe(false);
+    }
+    const flathill = computeAvailability(model, state("Office Sector", "Flathill"));
+    expect(flathill.item("porcelain_key")).toBe(true);
+    expect(flathill.item("organ")).toBe(true);
+    expect(flathill.item("maestro_casque")).toBe(true);
+    // les cinq caisses verrouillées du jeu sont toutes détectées
+    const locked = Object.values(dataset.items)
+      .filter((i) => i.unlockedBy).map((i) => i.id).sort();
+    expect(locked).toEqual(["cacophonous_crate", "gate_security_crate",
+      "inquisitor_crate", "ornate_crate", "runic_crate"]);
+  });
+
   it("ne cultive jamais une créature : récolter un cadavre est un kill", () => {
     // « harvesting the remains of an Exor » donnait un mot-clé GROW sur un
     // ennemi ; la table Enemies elle-même range ça en harvest

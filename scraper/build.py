@@ -21,6 +21,7 @@ from colors import dominant_color, shrink_icon
 from parse import (
     link_targets, normalize_name, parse_drop_table, parse_enemy_stats,
     parse_infobox_image, parse_locations,
+    parse_unlocked_by,
     parse_object_images, parse_person_zones, parse_sector, parse_sector_enemies,
     parse_sector_links, parse_sector_portal_worlds, parse_sources,
     parse_trade_offers, parse_unlock, parse_zone_icon, parse_zone_items, slugify,
@@ -251,10 +252,16 @@ def source_key(source: dict) -> tuple:
 
 
 def build_sources(resolver: Resolver, origins: OriginResolver,
-                  report: Report) -> tuple[dict[str, list[dict]], list[str]]:
-    """Assemble les sources par item : salvage, loot, drops, zones, prose."""
+                  report: Report,
+                  ) -> tuple[dict[str, list[dict]], list[str], dict[str, str]]:
+    """Assemble les sources par item : salvage, loot, drops, zones, prose.
+
+    Renvoie aussi `locks` : les caisses verrouillées par une clé, lues sur
+    leur page pendant la même passe (item_id → nom wiki de la clé).
+    """
     sources: dict[str, list[dict]] = defaultdict(list)
     review: list[str] = []
+    locks: dict[str, str] = {}
 
     def add(item_id: str | None, source: dict) -> None:
         if not item_id:
@@ -452,6 +459,11 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
             add(item_id, entry)
             report.bump("lieux lus dans == Locations ==")
 
+        key = parse_unlocked_by(wikitext)
+        if key:
+            locks[item_id] = key
+            report.bump("caisses verrouillées par une clé")
+
         prose, unknown = parse_sources(wikitext, title)
         review += [f"{title} :: {line}" for line in unknown]
 
@@ -490,7 +502,7 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
 
     prune_sources(sources)
     report.counts["zones lues"] = len(zones_seen)
-    return sources, review
+    return sources, review, locks
 
 
 def pretty(link: str) -> str:
@@ -887,7 +899,8 @@ def attach_unlocks(recipes: list[dict], resolver: Resolver, report: Report) -> N
 
 
 def build_items(resolver: Resolver, scope: set[str], recipes: list[dict],
-                sources: dict[str, list[dict]], report: Report) -> dict[str, dict]:
+                sources: dict[str, list[dict]], locks: dict[str, str],
+                report: Report) -> dict[str, dict]:
     fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     craftable = {r["output"]["item"] for r in recipes if r["kind"] == "craft"}
     items: dict[str, dict] = {}
@@ -908,6 +921,14 @@ def build_items(resolver: Resolver, scope: set[str], recipes: list[dict],
             "sources": sources.get(item_id, []),
             "meta": {"fetchedAt": fetched_at, "verified": False},
         }
+        if item_id in locks:
+            key_id = resolver.get(locks[item_id])
+            if key_id:
+                # la caisse existe où elle est posée ; son CONTENU n'existe
+                # que pour qui tient la clé — la disponibilité suit la clé
+                item["unlockedBy"] = key_id
+            else:
+                report.bump("clés de caisse non résolues vers un item")
         if row.get("image"):
             item["icon"] = icon_filename(row["image"])
         else:
@@ -1073,7 +1094,7 @@ def main() -> None:
     for sector in ZONE_ORDER:
         all_zones += parse_sector_portal_worlds(fetch_wikitext.read_page(sector) or "")
     origins = OriginResolver(resolver, all_zones, benches)
-    sources, review = build_sources(resolver, origins, report)
+    sources, review, locks = build_sources(resolver, origins, report)
 
     providers = build_providers(resolver, sources, all_zones, report)
     link_targets_to_providers(sources, providers, report)
@@ -1088,7 +1109,7 @@ def main() -> None:
     # Idem pour le contenu d'une caisse : sa fenêtre lie chaque item, et un lien
     # vers un item absent du dataset n'irait nulle part.
     scope |= {d["item"] for p in providers.values() for d in p["drops"]}
-    items = build_items(resolver, scope, recipes, sources, report)
+    items = build_items(resolver, scope, recipes, sources, locks, report)
 
 
     # compté après le téléchargement : une icône introuvable sur le wiki est

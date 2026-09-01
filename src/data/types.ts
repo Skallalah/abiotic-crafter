@@ -54,6 +54,9 @@ export interface Item {
   wikiTitle: string;
   icon?: string;
   category: string;
+  /** Caisse verrouillée : son contenu n'est disponible que si cette clé
+   *  l'est. « A [[Porcelain Key]] is required to unlock and open the crate. » */
+  unlockedBy?: ItemId;
   description?: string;
   stack: number;
   weight?: number;

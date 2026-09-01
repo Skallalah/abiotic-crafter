@@ -88,7 +88,8 @@ const EVERYTHING: Omit<Availability, "enabled" | "spoilers"> = {
  * Le point fixe de disponibilité — la sémantique a été mesurée avant d'être
  * écrite (cf. DECISIONS.md). Un item est disponible si :
  *  - une source porte une zone découverte ;
- *  - une source sans zone dérive (`from`) d'un item disponible ;
+ *  - une source sans zone dérive (`from`) d'un item disponible — et, si cet
+ *    item est une caisse verrouillée (`unlockedBy`), sa clé l'est aussi ;
  *  - une source sans zone vise (`targetId`) un contenant disponible ;
  *  - une source n'a aucune géographie du tout (prose, marchand sans lieu) ;
  *  - un contenant ou une créature disponible le lâche (`drops`) ;
@@ -208,7 +209,12 @@ function reachable(
             : s.zone
             ? discovered.has(s.zone)
             : s.from
+              // le contenu d'une caisse verrouillée n'existe que pour qui
+              // tient la clé : la Cacophonous Crate est posée dans Office,
+              // mais son Organ attend la Porcelain Key des Symphonists
               ? available.has(s.from)
+                && (!model.ds.items[s.from]?.unlockedBy
+                    || available.has(model.ds.items[s.from]!.unlockedBy!))
               : s.targetId
                 ? providers.has(s.targetId)
                 // une cible nommée mais jamais résolue (« kill Order ») vit

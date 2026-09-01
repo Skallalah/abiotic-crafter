@@ -942,3 +942,18 @@ retombent sur un losange neutre. Au passage, le parseur d'infobox découpait
 mal les pages posant plusieurs champs sur une ligne (« | weakness = Fire
 | immunity = … ») : la valeur s'arrête désormais au champ suivant, et les
 sensibilités sont des listes, pas des chaînes à virgules.
+
+## Le contenu d'une caisse à clé suit la clé
+
+Signalé : Office seul, les armures Maestro restaient visibles. Leur chaîne :
+Organ et Porcelain Shards « prouvés » par la Cacophonous Crate — posée dans
+Office, donc disponible — alors que « A [[Porcelain Key]] is required to
+unlock and open the crate », et que la clé tombe des Symphonists de Flathill.
+Voir la caisse n'est pas pouvoir l'ouvrir.
+
+Encore une donnée à compléter, pas une clôture à élargir : la phrase du verrou
+est stable sur les cinq caisses à clé du jeu (Cacophonous, GATE Security,
+Inquisitor, Ornate, Runic) — `parse_unlocked_by` la lit, `Item.unlockedBy`
+porte la clé, et le point fixe n'accepte une source `from: caisse` que si la
+clé est elle-même disponible. La caisse, elle, reste visible : elle existe où
+elle est posée.

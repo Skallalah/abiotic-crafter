@@ -256,6 +256,23 @@ def parse_enemy_stats(wikitext: str) -> dict | None:
     return stats or None
 
 
+_UNLOCKED_BY = re.compile(
+    r"An?\s+\[\[([^\]|]+)(?:\|[^\]]*)?\]\]\s+is required to unlock and open", re.I)
+
+
+def parse_unlocked_by(wikitext: str) -> str | None:
+    """La clé d'une caisse verrouillée, quand la page la nomme.
+
+    « A [[Porcelain Key]] is required to unlock and open the crate. » — cinq
+    caisses du jeu portent cette phrase, mot pour mot au choix de l'article
+    près. La caisse peut être posée dans une zone de début de jeu : sans le
+    verrou, son contenu « prouvait » une disponibilité que seul le porteur de
+    la clé a vraiment.
+    """
+    match = _UNLOCKED_BY.search(wikitext)
+    return match.group(1).split("#")[0].strip() if match else None
+
+
 _INFOBOX_IMAGE = re.compile(r"\|\s*image\s*=\s*([^\n|}]+)")
 _FILE_LINK = re.compile(r"\[\[\s*(?:File|Image)\s*:\s*([^\]|]+)", re.I)
 
