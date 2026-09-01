@@ -11,7 +11,7 @@
   },
   "delayedPresence": [
     {
-      "_pourquoi": "l'infobox d'Office les déclare, mais ils n'y apparaissent qu'une fois Manufacturing West atteint — le wiki ne le dit qu'en prose floue",
+      "_apparition_condition": "Lab Rats only start spawning in the Office Sector once Manufacturing West has been reached; the wiki states their presence in the sector infobox and the timing only in loose prose",
       "target": "Lab Rat",
       "zone": "Office Sector"
     }
