@@ -11,6 +11,14 @@
   .topbar h1 {
     margin: 0; font-size: 15px; font-weight: 600;
     font-stretch: 80%; letter-spacing: .02em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  /* l'arche GATE, silhouette unique recolorée par le thème via --logo-ink */
+  .topbar h1::before {
+    content: ""; flex: none; width: 20px; height: 20px;
+    background: var(--logo-ink);
+    -webkit-mask: var(--gate-logo) center / contain no-repeat;
+    mask: var(--gate-logo) center / contain no-repeat;
   }
   .topbar .current { color: var(--ink-2); }
   .topbar .current b { color: var(--accent-ink); font-weight: 600; }

@@ -84,6 +84,8 @@
   --title-ink: var(--ink);
   /* pointillé du plan de travail : lisible sur --bg, quel qu'il soit */
   --grid: var(--line);
+  /* l'arche GATE devant le titre : ambre ici, noire sur l'argent du rétro */
+  --logo-ink: var(--accent);
 }
 
 * { box-sizing: border-box; }

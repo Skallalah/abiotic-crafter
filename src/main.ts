@@ -1,6 +1,11 @@
 import "./styles/tokens.css";
 import "./styles/app.css";
 import "./styles/themes/win98.css";
+import gateLogo from "./assets/gate-logo.png";
+
+// l'arche GATE devant le titre : une seule silhouette, recolorée par masque
+// CSS — ambre en Modern Slop, noire en Windows 98 (token --logo-ink)
+document.documentElement.style.setProperty("--gate-logo", `url(${gateLogo})`);
 
 import { dataset } from "./data/load";
 import { computeAvailability, type Availability } from "./core/discovery";
