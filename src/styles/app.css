@@ -33,6 +33,7 @@
     min-height: 0;
   }
   .pane {
+    position: relative;              /* ancre les flèches d'ascenseur win98 */
     background: var(--panel);
     border-right: 1px solid var(--line);
     display: flex; flex-direction: column; min-height: 0;
@@ -397,6 +398,14 @@ button.censored, .censored { cursor: default; }
 }
 .itemlist .beyond button:hover { color: var(--accent-ink); }
 
+/* Flèches d'ascenseur : invisibles partout sauf en win98 (le thème les peint) */
+.sb-arrow {
+  position: absolute; display: none;
+  width: 16px; height: 16px;
+  border: 0; padding: 0; margin: 0;
+  z-index: 5;
+}
+
 /* Sélecteur de thème, dans l'onglet Settings (§6). */
 .settings-panel { width: 220px; }
 /* le premier intertitre n'a pas de section au-dessus à séparer */
@@ -659,8 +668,11 @@ button.open:hover { color: var(--accent-ink); }
      corps d'une fenêtre de détail. La barre native du système jurait avec les
      tokens : piste claire et pouce gris sur des panneaux sombres. */
   /* Firefox seulement : sur Chrome, poser scrollbar-width/color DÉSACTIVE
-     tout le dessin ::-webkit-scrollbar (dont les ascenseurs Windows 98) */
-  @supports not selector(::-webkit-scrollbar) {
+     tout le dessin ::-webkit-scrollbar (dont les ascenseurs Windows 98).
+     Le test « not ::-webkit-scrollbar » mentait : Firefox accepte les
+     pseudo-éléments -webkit- inconnus comme valides — un pseudo -moz-,
+     lui, n'est vrai QUE chez Firefox. */
+  @supports selector(::-moz-range-thumb) {
     .pane-body, .wb-body {
       scrollbar-width: thin;
       scrollbar-color: var(--line) transparent;

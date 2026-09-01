@@ -4,6 +4,7 @@ import "winbox/dist/css/winbox.min.css";
 import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 import { BODY_ICONS, DAMAGE_FALLBACK, DAMAGE_TYPES, svgIcon } from "./icons";
+import { armScrollArrows } from "./scrollArrows";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
@@ -155,6 +156,10 @@ export class DetailsWindows {
       mount: body,
       onclose: () => { this.open.delete(key); },
     });
+    // ▲▼ d'époque sur le corps défilant (Chromium ne peint plus les
+    // boutons de scrollbar ; ceux-ci sont de vrais boutons)
+    const scroller = body.parentElement;
+    if (scroller?.parentElement) armScrollArrows(scroller, scroller.parentElement);
     shadeOnDoubleClick(win);
     this.open.set(key, { win, body, render });
   }

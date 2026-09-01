@@ -353,10 +353,26 @@
   display: none;
 }
 
+/* Les boutons ▲▼, en relief, aux extrémités de la colonne de défilement */
+[data-theme="win98"] .sb-arrow {
+  display: block;
+  background-color: #d4d0c8;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .sb-arrow:active { box-shadow: var(--bevel-in); }
+[data-theme="win98"] .sb-up {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1z'/%3E%3C/svg%3E");
+}
+[data-theme="win98"] .sb-down {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M0 0h7v1H6v1H5v1H4v1H3V3H2V2H1V1H0z'/%3E%3C/svg%3E");
+}
+
 /* Firefox ne peut pas dessiner les flèches : au moins la bonne largeur et
    les bonnes couleurs, pouce argent sur piste claire. Jamais sur Chrome :
    ces propriétés y débrancheraient les ascenseurs dessinés ci-dessus. */
-@supports not selector(::-webkit-scrollbar) {
+@supports selector(::-moz-range-thumb) {
   [data-theme="win98"] .pane-body,
   [data-theme="win98"] .wb-body,
   [data-theme="win98"] .discover-panel {

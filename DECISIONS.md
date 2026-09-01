@@ -989,3 +989,18 @@ que Tiny Gears n'était même pas cliquable. Trois données complétées :
   les monnaies d'échange (aucun craft ni loot ne les référence). Les
   `costItem` entrent au périmètre — Tiny Gears gagne sa fenêtre et sa vraie
   source (salvage Pocket Watch).
+
+## Les flèches d'ascenseur sont de vrais boutons
+
+Chromium (ascenseurs « Fluent ») ne peint plus `::-webkit-scrollbar-button`
+— vérifié en forçant un fond rouge : rien — et Firefox n'a jamais dessiné de
+flèches. Les ▲▼ du thème win98 sont donc de vrais boutons
+(`src/ui/scrollArrows.ts`), posés aux extrémités de la colonne de
+défilement des colonnes et des fenêtres, et du coup fonctionnels : clic = un
+pas de 48 px, maintien = répétition. Ils suivent le contenu (MutationObserver
++ ResizeObserver), disparaissent quand rien ne défile, et seuls les thèmes
+qui le veulent les peignent (Modern Slop les cache). Au passage, le repli
+Firefox `scrollbar-width/color` était gardé par `@supports not
+selector(::-webkit-scrollbar)` — toujours faux, Firefox acceptant les
+pseudo-éléments -webkit- inconnus comme valides : le discriminant est
+désormais un pseudo -moz-, vrai chez Firefox seul.
