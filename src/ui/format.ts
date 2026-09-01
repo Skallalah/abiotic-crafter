@@ -111,6 +111,7 @@ export function sourceLine(
   model: Model,
   source: Source,
   availability?: Availability,
+  onSelect?: (id: string) => void,
 ): HTMLLIElement {
   const li = document.createElement("li");
   const keyword = document.createElement("span");
@@ -127,9 +128,17 @@ export function sourceLine(
     const link = providerLink(source.targetId, object);
     if (availability && !availability.provider(source.targetId)) spoil(link);
     li.append(" ", link);
+  } else if (source.from && model.has(source.from) && onSelect) {
+    // « salvage Pocket Watch (1) » : l'origine est un item, aussi vivant qu'un
+    // contenant — clic gauche le sélectionne, clic droit ouvre sa fenêtre, où
+    // l'on découvre par exemple que le coffre à montres existe aussi à Flathill
+    const link = itemLink(model, source.from, onSelect, object);
+    if (availability && !availability.item(source.from)) spoil(link);
+    li.append(" ", link);
   } else {
     const text = document.createElement("span");
     text.textContent = object;
+    if (source.from && model.has(source.from)) text.dataset.item = source.from;
     // « salvage Fire Extinguisher (2) » ne doit pas nommer une origine qu'on
     // n'a pas encore croisée
     if (availability && source.from && !availability.item(source.from)) spoil(text);
@@ -226,6 +235,7 @@ export function originLines(
   origin: string,
   sources: Source[],
   availability?: Availability,
+  onSelect?: (id: string) => void,
 ): HTMLLIElement[] {
   if (availability) sources = sources.filter((s) => availability.source(s));
   const localised = sources.filter((s) => s.zone);
@@ -240,7 +250,7 @@ export function originLines(
   };
 
   for (const source of localised) {
-    const li = sourceLine(model, source);
+    const li = sourceLine(model, source, availability, onSelect);
     // le nom de la zone d'abord : c'est l'information qu'on cherche ici
     const zone = document.createElement("b");
     zone.textContent = source.zone!;
@@ -249,7 +259,7 @@ export function originLines(
   }
   if (lines.length > 0) return lines;
 
-  for (const source of sources) push(sourceLine(model, source));
+  for (const source of sources) push(sourceLine(model, source, availability, onSelect));
   if (lines.length > 0) return lines;
 
   const fallback = document.createElement("li");

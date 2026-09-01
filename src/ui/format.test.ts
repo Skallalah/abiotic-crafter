@@ -131,3 +131,28 @@ describe("zoneTag", () => {
     expect(tag.style.getPropertyValue("--zone")).toBe("");
   });
 });
+
+
+describe("origine d'un salvage", () => {
+  const model = new Model(dataset);
+
+  it("est un lien : sélection au clic, fenêtre au clic droit", () => {
+    // « salvage Pocket Watch (1) » était du texte mort, alors que « break
+    // Manufacturing Wood Crate » était cliquable sur la même ligne
+    const picked: string[] = [];
+    const li = sourceLine(model,
+      { kind: "salvage", from: "pocket_watch", qtyMax: 1 },
+      undefined, (id) => picked.push(id));
+    const link = li.querySelector<HTMLButtonElement>("button.link")!;
+    expect(link.dataset.item).toBe("pocket_watch");
+    expect(link.textContent).toContain("Pocket Watch");
+    link.click();
+    expect(picked).toEqual(["pocket_watch"]);
+  });
+
+  it("reste au moins ciblable au clic droit sans rappel de sélection", () => {
+    const li = sourceLine(model, { kind: "salvage", from: "pocket_watch" });
+    expect(li.querySelector("button")).toBeNull();
+    expect(li.querySelector<HTMLElement>("[data-item]")!.dataset.item).toBe("pocket_watch");
+  });
+});

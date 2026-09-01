@@ -736,3 +736,19 @@ et disparaît quand un drop zoné du même monstre la couvre déjà — 47 élag
 1 requalifiée. Un test interdit désormais toute culture de créature dans le
 dataset. Effet collatéral sain : l'Exor Quill perd sa source sans zone et se
 gate correctement — les Exor ne rôdent pas dans les zones du début.
+
+
+### « Exquisite Chain disponible ? Et je ne vois pas le lien »
+Deux réponses. La disponibilité était **juste** : la page du Vintage Storage
+Chest le place aussi à **Flathill** (« dans le petit bâtiment au bord du
+terrain de jeu »), et il contient une Pocket Watch à 100 % — coffre → montre →
+salvage → chaîne, tout dans les zones découvertes. L'app savait quelque chose
+que le joueur ignorait… sans lui donner le moyen de le vérifier : « salvage
+Pocket Watch (1) » était du texte mort, alors que « break Manufacturing Wood
+Crate » est cliquable sur la même ligne.
+
+L'asymétrie est levée : l'origine d'un salvage (`Source.from`) devient un lien
+d'item — clic gauche le sélectionne, clic droit ouvre sa fenêtre, flou s'il est
+hors zones. Le chemin se remonte désormais à la main : la chaîne → la montre →
+le coffre → Flathill et son emplacement précis. Sans rappel de sélection
+disponible, le nom reste au moins marqué `data-item` pour le clic droit.

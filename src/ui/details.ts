@@ -169,7 +169,8 @@ export class DetailsWindows {
         }
         block.appendChild(this.zoneBlock(
           zone,
-          sourceList(sources.map((source) => sourceLine(this.model, source, this.availability))),
+          sourceList(sources.map((source) =>
+            sourceLine(this.model, source, this.availability, this.onSelect))),
           sources.flatMap((source) => source.where ?? []),
         ));
       }

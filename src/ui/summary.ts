@@ -132,7 +132,7 @@ export class Summary {
       head.append(" :");
       block.appendChild(head);
       block.appendChild(this.sourceList(
-        originLines(this.model, origin, sources, this.availability),
+        originLines(this.model, origin, sources, this.availability, this.onOpen),
       ));
       return block;
     });
@@ -220,7 +220,7 @@ export class Summary {
       return [li];
     }
     return sources.map((source) => {
-      const li = sourceLine(this.model, source, this.availability);
+      const li = sourceLine(this.model, source, this.availability, this.onOpen);
       if (source.zone) {
         const zone = document.createElement("b");
         zone.textContent = source.zone;
@@ -279,8 +279,8 @@ export class Summary {
       label.appendChild(head);
     }
     if (entry.sources.length > 0) {
-      label.appendChild(
-        this.sourceList(entry.sources.map((s) => sourceLine(this.model, s, this.availability))),
+      label.appendChild(this.sourceList(entry.sources.map(
+        (s) => sourceLine(this.model, s, this.availability, this.onOpen))),
       );
     }
 
