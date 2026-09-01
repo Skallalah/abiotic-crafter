@@ -391,3 +391,17 @@ def test_zone_mentions_reads_prose_locations():
     # « Rise » ne doit pas matcher « surprise », et rien hors de == Locations ==
     assert zone_mentions(page, zones) == ["Cascade Laboratories", "Hydroplant"]
     assert zone_mentions("Du lore qui cite [[Rise]] hors section.", zones) == []
+
+
+def test_prose_restating_the_craft_is_not_a_source():
+    """« can only be obtained through mixing » reformule la Chemistry Station :
+    la garder fabriquait une source sans géographie, disponible partout."""
+    page = ("== Sources ==\n"
+            "Acid Coating can only be obtained through mixing. "
+            "Alien Distillation can only be obtained through distilling. "
+            "It can only be obtained from crafting. "
+            "Stun Baton can only be obtained by upgrading. "
+            "It is obtained by adding water to a pot, then adding things. "
+            "Can also be obtained from breaking [[Computer]].")
+    sources, _ = parse_sources(page, "Acid Coating")
+    assert [s["kind"] for s in sources] == ["break"]

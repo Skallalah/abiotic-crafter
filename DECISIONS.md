@@ -686,3 +686,21 @@ petit ensemble. L'Electro Pest suit donc son Capacitor : caché avec trois
 zones, visible à découverte totale. Les deux invariants tiennent — le test
 « toutes zones = tout » le garantit, et détecterait le jour où un cycle de
 purs crafts morts apparaîtrait dans la donnée.
+
+
+### « Et les coatings ? » — la prose qui reformule le craft n'est pas une source
+Giganto Tincture restait listé avec un Anteverse Cheese et un Glow Eye cachés.
+Cause : « can only be obtained through **mixing**. » Le parseur écartait déjà
+les phrases « through crafting / upgrading / cooking » (SKIP_KEYWORDS), mais
+pas leurs sœurs — *mixing* est la Chemistry Station, *distilling* la
+Distillation Station, « adding water to a pot » l'amorce de toutes les soupes,
+et les variantes « by / from » passaient aussi. Ces phrases devenaient des
+sources sans géographie, donc « disponibles partout », alors qu'elles ne font
+que reformuler des recettes que les tables Cargo portent déjà.
+
+SKIP_KEYWORDS s'élargit ; 31 tinctures et coatings perdent leur source
+fantôme, deviennent de purs crafts, et la clôture raffinée du signalement
+précédent les juge par leur recette. Giganto Tincture suit son fromage ;
+Alien Distillation, elle, reste visible *à bon droit* — sa recette de
+distillation n'utilise que du poisson pêchable dès les premières zones.
+Invariant toutes-zones vérifié, le cas au test de non-régression.

@@ -287,8 +287,17 @@ SOURCE_KEYWORDS: list[tuple[str, str]] = [
 ]
 
 # phrases qui ne décrivent pas une source de loot
-SKIP_KEYWORDS = ("through crafting", "only be obtained through crafting",
-                 "through upgrading", "through cooking")
+# Une phrase qui reformule le craft n'est pas une source : les recettes des
+# tables Cargo la portent déjà, et la garder fabriquait une fausse « source
+# sans géographie » qui rendait tinctures et coatings disponibles partout.
+# « mixing » est la Chemistry Station, « distilling » la Distillation Station,
+# « adding water to a pot » l'amorce de toutes les soupes.
+SKIP_KEYWORDS = ("through crafting", "from crafting", "by crafting",
+                 "through upgrading", "by upgrading",
+                 "through cooking", "by cooking",
+                 "through mixing", "by mixing",
+                 "through distilling", "by distilling",
+                 "adding water to a pot")
 
 # On ne coupe pas après une abréviation : « trading with [[Dr. Riggs]] » se
 # scindait en « …trading with [[Dr. » et laissait un lien tronqué à l'écran.

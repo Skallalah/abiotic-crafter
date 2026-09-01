@@ -413,7 +413,8 @@ describe("découverte (§5.7), sur les vraies données", () => {
       model, state("Office Sector", "Flathill", "Far Garden"));
     for (const id of ["energy_pistol", "capacitor", "night_essence",
                       "military_electronics", "magbow", "carapace_helm",
-                      "raw_stuffed_mushroom_tray", "electro_pest_item"]) {
+                      "raw_stuffed_mushroom_tray", "electro_pest_item",
+                      "giganto_tincture", "acid_coating"]) {
       expect(availability.item(id), id).toBe(false);
     }
     // la feuille inconnue de la même chaîne reste visible : « Pest (Pet) »
