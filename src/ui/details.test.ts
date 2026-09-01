@@ -213,4 +213,19 @@ describe("découverte dans les fenêtres", () => {
     expect(censored.disabled).toBe(true);
     expect(censored.dataset.provider).toBeUndefined();
   });
+
+  it("mode Hide : une ligne [REDACTED] tait aussi son contexte", () => {
+    // la condition « Completing Canaan… » nommerait ce qu'on vient de taire
+    document.body.innerHTML = `<div data-provider="mfg_crate"></div>`;
+    instances.push(new DetailsWindows(world, () => {}, "https://wiki/",
+      computeAvailability(world,
+        { ...state("Office Sector", "Manufacturing West"), spoilers: "hide" })));
+    document.querySelector<HTMLElement>("[data-provider]")!
+      .dispatchEvent(new window.MouseEvent("contextmenu",
+        { bubbles: true, cancelable: true }));
+    const box = boxes()[0]!;
+    expect(box.textContent).not.toContain("Completing");
+    const row = box.querySelector(".censored")!.closest(".row")!;
+    expect(row.querySelector(".stack")!.textContent).toBe("");
+  });
 });

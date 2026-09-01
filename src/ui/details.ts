@@ -406,7 +406,11 @@ export class DetailsWindows {
 
       const note = document.createElement("span");
       note.className = "stack";
-      note.textContent = entry.note;
+      // une ligne [REDACTED] ne dit rien d'autre : sa quantité ou sa condition
+      // (« Completing Canaan… ») nommerait ce qu'on vient de taire
+      const censored = this.availability.spoilers === "hide"
+        && !this.availability.item(entry.id);
+      if (!censored) note.textContent = entry.note;
 
       const thumb = tile(this.model, item);
       veilTile(this.availability, entry.id, thumb);
