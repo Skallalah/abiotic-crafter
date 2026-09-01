@@ -11,7 +11,7 @@
   },
   "delayedPresence": [
     {
-      "_apparition_condition": "Lab Rats only start spawning in the Office Sector once Manufacturing West has been reached; the wiki states their presence in the sector infobox and the timing only in loose prose",
+      "_condition": "Lab Rats only start spawning in the Office Sector once Manufacturing West has been reached; the wiki states their presence in the sector infobox and the timing only in loose prose",
       "target": "Lab Rat",
       "zone": "Office Sector"
     }
