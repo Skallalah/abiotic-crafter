@@ -302,7 +302,7 @@ Un **double-clic sur la barre de titre enroule** la fenêtre sur elle-même : il
 
 **Fenêtre d'un item** : image, catégorie, poids, stack, matériau de recherche, description ; où le trouver, dans le même ordre de zones que le bilan et avec la pseudo-zone « Other methods » en dernier ; ses recettes avec bench, unlock et ingrédients ; ce qui le consomme ; un bouton « Observe this item » qui en fait l'objet courant.
 
-Chaque item cité dans une fenêtre est un lien : le clic gauche le **sélectionne** comme objet courant — le même chemin que la liste de gauche — et le clic droit ouvre sa propre fenêtre.
+Chaque item cité dans une fenêtre est un lien : le clic gauche le **sélectionne** comme objet courant — le même chemin que la liste de gauche — et le clic droit ouvre sa propre fenêtre. La même règle vaut dans les lignes de provenance : la cible d'un `break`/`kill` est un lien de contenant, et **l'origine d'un salvage** (`Source.from`) un lien d'item — « salvage Pocket Watch (1) » se remonte à la main jusqu'au coffre qui contient la montre.
 
 ### 5.7 Découverte des zones
 Configuration locale, pas donnée : le joueur coche en haut à droite les zones
