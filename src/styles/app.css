@@ -549,6 +549,13 @@ button.open:hover { color: var(--accent-ink); }
     margin: 0; font-size: 16px; font-weight: 600; font-stretch: 85%;
   }
   .details-head .sub { color: var(--ink-2); font-size: 12px; font-stretch: 85%; }
+  /* propriétés façon wiki : étiquette discrète, valeur en clair, une par ligne */
+  .props {
+    display: grid; grid-template-columns: auto 1fr; gap: 2px 12px;
+    margin: 6px 0 0; font-size: 12px;
+  }
+  .props dt { color: var(--ink-2); font-stretch: 85%; }
+  .props dd { margin: 0; color: var(--ink); font-weight: 600; }
 
   /* l'image du contenant : « à quoi ça ressemble » est la première question */
   .tile.big { width: 76px; height: 76px; border-radius: 6px; font-size: 22px; }

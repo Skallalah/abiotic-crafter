@@ -164,12 +164,14 @@ export class DetailsWindows {
     const item = this.model.item(id);
     const fragment = document.createDocumentFragment();
 
-    const meta: string[] = [item.category];
-    if (item.weight) meta.push(`${item.weight} kg`);
-    if (item.stack > 1) meta.push(`stacks to ${item.stack}`);
-    if (item.researchMaterial) meta.push(`${item.researchMaterial} research`);
-    if (item.gearSlot) meta.push(item.gearSlot);
-    fragment.appendChild(this.head(item.name, meta.join(" · "), tile(this.model, item),
+    // les propriétés comme un wiki : une par ligne, étiquette + valeur —
+    // la ligne unique à séparateurs se lisait comme une énigme
+    const props: [string, string][] = [["Category", item.category]];
+    if (item.weight) props.push(["Weight", `${item.weight} kg`]);
+    if (item.stack > 1) props.push(["Stacks to", String(item.stack)]);
+    if (item.researchMaterial) props.push(["Research", item.researchMaterial]);
+    if (item.gearSlot) props.push(["Gear slot", item.gearSlot]);
+    fragment.appendChild(this.head(item.name, propList(props), tile(this.model, item),
                                    badges(this.model, id)));
 
     if (item.description) {
@@ -286,8 +288,8 @@ export class DetailsWindows {
 
   // ---------------------------------------------------------------- commun
 
-  private head(name: string, subtitle: string, illustration: HTMLElement,
-               extra?: HTMLElement): HTMLElement {
+  private head(name: string, subtitle: string | HTMLElement,
+               illustration: HTMLElement, extra?: HTMLElement): HTMLElement {
     const head = document.createElement("div");
     head.className = "details-head";
 
@@ -295,10 +297,15 @@ export class DetailsWindows {
     const title = document.createElement("h3");
     title.append(name);
     if (extra) title.append(" ", extra);
-    const sub = document.createElement("div");
-    sub.className = "sub";
-    sub.textContent = subtitle;
-    text.append(title, sub);
+    text.append(title);
+    if (typeof subtitle === "string") {
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      sub.textContent = subtitle;
+      text.appendChild(sub);
+    } else {
+      text.appendChild(subtitle);
+    }
 
     head.append(illustration, text);
     return head;
@@ -425,6 +432,20 @@ export class DetailsWindows {
 function shadeOnDoubleClick(win: WinBox): void {
   const header = win.dom.querySelector(".wb-header");
   header?.addEventListener("dblclick", () => win.toggleClass("shaded"));
+}
+
+/** Propriétés façon wiki : étiquette discrète, valeur en clair, une par ligne. */
+function propList(props: [string, string][]): HTMLElement {
+  const dl = document.createElement("dl");
+  dl.className = "props";
+  for (const [label, value] of props) {
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+    const dd = document.createElement("dd");
+    dd.textContent = value;
+    dl.append(dt, dd);
+  }
+  return dl;
 }
 
 /** « + N zones not yet discovered » — le compte, jamais les noms. */
