@@ -1,11 +1,13 @@
 import WinBox from "winbox/src/js/winbox.js";
 import "winbox/dist/css/winbox.min.css";
 
+import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
-  badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spotLine, tile, zoneTag,
+  badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spoil, spotLine, tile,
+  zoneTag,
 } from "./format";
 
 const KIND_LABEL: Record<Provider["kind"], string> = {
@@ -32,15 +34,33 @@ const HEIGHT = 440;
  * le tri qui remplace un historique. Le déplacement vient de WinBox.js, seule
  * dépendance front du projet, embarquée dans le bundle comme le reste.
  */
+interface OpenWindow {
+  win: WinBox;
+  body: HTMLElement;
+  render: () => DocumentFragment;
+}
+
 export class DetailsWindows {
-  private readonly open = new Map<string, WinBox>();
+  private readonly open = new Map<string, OpenWindow>();
 
   constructor(
     private readonly model: Model,
     private readonly onSelect: (id: ItemId) => void,
     private readonly wikiBase: string,
+    private availability: Availability,
   ) {
     this.bindContextMenu();
+  }
+
+  /**
+   * La découverte a changé : les fenêtres ouvertes doivent raconter la même
+   * géographie que le reste de l'app, sans être fermées ni déplacées.
+   */
+  setAvailability(availability: Availability): void {
+    this.availability = availability;
+    for (const { body, render } of this.open.values()) {
+      body.replaceChildren(render());
+    }
   }
 
   /**
@@ -84,7 +104,7 @@ export class DetailsWindows {
 
   /** Ferme tout — utile aux tests et à un futur raccourci. */
   closeAll(): void {
-    for (const win of [...this.open.values()]) win.close(true);
+    for (const { win } of [...this.open.values()]) win.close(true);
     this.open.clear();
   }
 
@@ -93,7 +113,7 @@ export class DetailsWindows {
     const existing = this.open.get(key);
     if (existing) {
       // rouvrir le même sujet le ramène devant plutôt que d'empiler un doublon
-      existing.focus();
+      existing.win.focus();
       return;
     }
 
@@ -114,7 +134,7 @@ export class DetailsWindows {
       onclose: () => { this.open.delete(key); },
     });
     shadeOnDoubleClick(win);
-    this.open.set(key, win);
+    this.open.set(key, { win, body, render });
   }
 
   // ------------------------------------------------------------------ item
@@ -141,14 +161,22 @@ export class DetailsWindows {
     if (item.sources.length > 0) {
       const zones = this.byZone(item.sources);
       const block = document.createElement("div");
+      let hidden = 0;
       for (const [zone, sources] of zones) {
+        if (!this.availability.zone(zone)) {
+          hidden += 1;              // le compte, jamais les noms
+          continue;
+        }
         block.appendChild(this.zoneBlock(
           zone,
-          sourceList(sources.map((source) => sourceLine(this.model, source))),
+          sourceList(sources.map((source) => sourceLine(this.model, source, this.availability))),
           sources.flatMap((source) => source.where ?? []),
         ));
       }
-      fragment.appendChild(this.section("Where to find", block));
+      if (hidden > 0) block.appendChild(undiscoveredNote(hidden));
+      if (block.childElementCount > 0) {
+        fragment.appendChild(this.section("Where to find", block));
+      }
     }
 
     const recipes = this.model.recipesFor(id);
@@ -197,9 +225,15 @@ export class DetailsWindows {
 
     if (provider.zones.length > 0) {
       const block = document.createElement("div");
+      let hidden = 0;
       for (const entry of provider.zones) {
+        if (!this.availability.zone(entry.zone)) {
+          hidden += 1;
+          continue;
+        }
         block.appendChild(this.zoneBlock(entry.zone, null, entry.where ?? []));
       }
+      if (hidden > 0) block.appendChild(undiscoveredNote(hidden));
       fragment.appendChild(this.section("Where to find it", block));
     }
 
@@ -335,8 +369,9 @@ export class DetailsWindows {
       row.dataset.item = entry.id;
 
       const label = document.createElement("span");
-      label.append(itemLink(this.model, entry.id, (id) => this.onSelect(id)),
-                   " ", badges(this.model, entry.id));
+      const link = itemLink(this.model, entry.id, (id) => this.onSelect(id));
+      if (!this.availability.item(entry.id)) spoil(link);
+      label.append(link, " ", badges(this.model, entry.id));
 
       const note = document.createElement("span");
       note.className = "stack";
@@ -361,6 +396,16 @@ export class DetailsWindows {
 function shadeOnDoubleClick(win: WinBox): void {
   const header = win.dom.querySelector(".wb-header");
   header?.addEventListener("dblclick", () => win.toggleClass("shaded"));
+}
+
+/** « + N zones not yet discovered » — le compte, jamais les noms. */
+function undiscoveredNote(count: number): HTMLElement {
+  const note = document.createElement("div");
+  note.className = "flavor";
+  note.textContent = count === 1
+    ? "+ 1 zone not yet discovered"
+    : `+ ${count} zones not yet discovered`;
+  return note;
 }
 
 /** Coin haut-gauche de la fenêtre : au curseur, sans déborder de l'écran. */

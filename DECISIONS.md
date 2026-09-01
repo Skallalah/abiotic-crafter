@@ -543,3 +543,54 @@ pastille, jamais de couleur de texte : elle vient d'une image et rien ne garanti
 son contraste sur les deux thèmes. Un filet, lui, n'a qu'à être visible.
 
 `pillow` rejoint les dépendances du scraper.
+
+
+## Découverte des zones : la sémantique a été mesurée avant d'être écrite
+
+Filtrer « tout ce qui est lié aux zones découvertes » semble simple jusqu'aux
+items dont la donnée ne dit pas où ils sont : 101 n'ont que des sources sans
+zone, 92 n'ont ni source ni recette. Trois règles ont été mesurées sur les
+vraies données avant de choisir :
+
+- **stricte** (prouver un chemin) : même toutes zones cochées, 82 craftables
+  disparaissaient — leurs chaînes `from` aboutissent sur un poisson ou une
+  créature dont la prose n'a pas de zone ;
+- **stricte + providers** : le Gutfish Eel et la ruche connaissent leurs zones,
+  et leurs `drops` nomment ce qu'on en tire — suivre les contenants referme la
+  plupart des chaînes ; il restait 54 craftables bloqués par 17 ingrédients
+  terminaux (œufs, riz, marchands sans lieu) ;
+- **retenue** : stricte + providers, **plus une clôture** — ce que la donnée ne
+  sait localiser nulle part (∉ disponible(toutes zones), précalculé une fois
+  par dataset) n'est jamais caché. Les deux invariants — *désactivé = app
+  entière*, *tout coché = app entière* — tiennent alors **par construction**,
+  et sont testés sur les vraies données. Office seul → ~350 craftables sur 597.
+
+Le point fixe traverse : zone directe, chaîne `from`, contenant visé
+(`targetId`), contenant qui lâche (`drops`), recette complète. Un contenant
+sans zone déclarée existe partout (les casiers génériques). Un marchand sans
+lieu ne bloque rien : inconnu n'est pas spoiler.
+
+### Le bug trouvé par la mesure
+`OriginResolver` ne connaissait que les 9 secteurs de `ZONE_ORDER` : « found in
+[[Rise]] » rangeait Rise en **cible** au lieu de zone, et Egg restait sans
+géographie. Il reçoit désormais secteurs + mondes-portails ; un test verrouille
+qu'aucune source n'a plus une zone dans `target`.
+
+### La frontière vient du wiki, lue dans les deux sens
+`sector1..6` de l'infobox {{Sector}} — jamais parsé jusqu'ici — donne le graphe
+d'adjacence ; il est parfois déclaré en sens unique (The Encroachment cite
+Manufacturing West, pas l'inverse), donc lu bidirectionnel. Mondes-portails par
+`parent`, dans les deux sens aussi. Les cinq zones que rien ne relie sont
+toujours proposées sous « Uncharted » : les cacher à jamais serait pire
+qu'avouer que la donnée ne sait pas.
+
+### Ce qui se floute et ce qui se filtre
+Décidé avec l'utilisateur : le voile est un **flou révélé au survol** — rien ne
+disparaît d'une recette, on sait qu'il faut *quelque chose*, pas quoi. La racine
+de l'arbre n'est jamais floutée : l'ouvrir est déjà une révélation délibérée.
+Les listes, elles, filtrent vraiment (liste de gauche, groupes de zones du
+bilan, blocs de zones des fenêtres — qui ne donnent que le **compte** des zones
+tues). `computeTotals` n'est pas touché : le bilan chiffre la recette, la
+découverte n'en change pas les besoins. Décidé aussi : suivi **actif par
+défaut** (Office Sector coché), et décocher une zone ne cascade pas — revenir
+en arrière est un droit, l'app ne décide pas à la place du joueur.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { dataset } from "../data/load";
 import { Model, type RecipeChoice } from "./tree";
 import { computeTotals, craftOrder } from "./totals";
+import { computeAvailability, frontier } from "./discovery";
 import { groupByZone } from "./zones";
 import { fold } from "../ui/format";
 
@@ -362,5 +363,68 @@ describe("zones", () => {
   it("couvre presque toutes les zones", () => {
     const withIcon = dataset.zones.filter((z) => z.icon).length;
     expect(withIcon).toBeGreaterThanOrEqual(dataset.zones.length - 3);
+  });
+});
+
+
+describe("découverte (§5.7), sur les vraies données", () => {
+  const state = (...zones: string[]) => ({ enabled: true, zones: new Set(zones) });
+
+  it("relie Office Sector à ses six secteurs", () => {
+    expect(model.zone("Office Sector")!.links).toEqual([
+      "Manufacturing West", "Cascade Laboratories", "Security Sector",
+      "Hydroplant", "Reactors", "Residence Sector",
+    ]);
+  });
+
+  it("ouvre la bonne frontière depuis le début du jeu", () => {
+    const entries = frontier(model, state("Office Sector"));
+    const named = entries.filter((f) => !f.uncharted).map((f) => f.zone).sort();
+    expect(named).toEqual([
+      "Cascade Laboratories", "Far Garden", "Flathill", "Hydroplant",
+      "Manufacturing West", "Reactors", "Residence Sector", "Security Sector",
+    ]);
+    // les cinq lieux que rien ne relie restent proposés, à part
+    expect(entries.filter((f) => f.uncharted).map((f) => f.zone).sort()).toEqual([
+      "Divarication", "Mycofields", "North Pole", "Power Services", "Temple of Stone",
+    ]);
+  });
+
+  it("atteint The Encroachment malgré son lien déclaré en sens unique", () => {
+    const entries = frontier(model, state("Manufacturing West"));
+    expect(entries.map((f) => f.zone)).toContain("The Encroachment");
+  });
+
+  it("filtre vraiment avec Office seul, sans vider l'app", () => {
+    const availability = computeAvailability(model, state("Office Sector"));
+    const craftables = Object.keys(dataset.items).filter((id) => model.isCraftable(id));
+    const visible = craftables.filter((id) => availability.item(id)).length;
+    // mesuré à 397 pendant la planification ; on borne sans figer le chiffre
+    expect(visible).toBeGreaterThan(300);
+    expect(visible).toBeLessThan(500);
+    expect(visible).toBeLessThan(craftables.length);
+  });
+
+  it("toutes zones découvertes = l'app entière, par construction", () => {
+    const all = computeAvailability(model, state(...dataset.zones.map((z) => z.name)));
+    const hidden = Object.keys(dataset.items).filter((id) => !all.item(id));
+    expect(hidden).toEqual([]);
+  });
+
+  it("ne range plus un monde-portail dans la cible d'une source", () => {
+    // le bug qui laissait Egg sans géographie : « found in [[Rise]] » donnait
+    // target=Rise au lieu de zone=Rise, faute de connaître les mondes-portails
+    const zoned = new Set(dataset.zones
+      .filter((z) => z.parent || z.links).map((z) => z.name));
+    const wrong: string[] = [];
+    for (const item of Object.values(dataset.items)) {
+      for (const source of item.sources) {
+        if (!source.zone && source.target && zoned.has(source.target)) {
+          wrong.push(`${item.id} → ${source.target}`);
+        }
+      }
+    }
+    expect(wrong).toEqual([]);
+    expect(model.item("egg").sources.some((s) => s.zone === "Rise")).toBe(true);
   });
 });

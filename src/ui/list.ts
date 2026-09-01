@@ -1,3 +1,4 @@
+import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 import type { ItemId } from "../data/types";
 import { badges, fold, tile } from "./format";
@@ -13,10 +14,12 @@ export class ItemList {
   private readonly input: HTMLInputElement;
   private readonly craftables: ItemId[];
   private current: ItemId | null = null;
+  private availability!: Availability;
 
   constructor(
     private readonly model: Model,
     private readonly onPick: (id: ItemId) => void,
+    private readonly onBeyondClick: () => void,
   ) {
     this.ul = document.getElementById("itemlist") as HTMLUListElement;
     this.input = document.getElementById("search") as HTMLInputElement;
@@ -61,11 +64,21 @@ export class ItemList {
     if (listed) this.ul.querySelector("button.active")?.scrollIntoView({ block: "nearest" });
   }
 
+  /** La découverte a changé : la liste ne montre que le disponible (§5.7). */
+  setAvailability(availability: Availability): void {
+    this.availability = availability;
+    this.render();
+  }
+
   render(): void {
     const query = fold(this.input.value.trim());
+    // le filtre de découverte passe avant la recherche : on ne fouille pas ce
+    // qu'on n'a pas encore atteint
+    const reachable = this.craftables.filter((id) => this.availability.item(id));
     const matches = query
-      ? this.craftables.filter((id) => this.haystack(id).includes(query))
-      : this.craftables;
+      ? reachable.filter((id) => this.haystack(id).includes(query))
+      : reachable;
+    const beyond = this.craftables.length - reachable.length;
 
     this.ul.replaceChildren();
 
@@ -74,6 +87,7 @@ export class ItemList {
       li.className = "empty";
       li.textContent = `No craftable item matches "${this.input.value.trim()}".`;
       this.ul.appendChild(li);
+      if (beyond > 0) this.ul.appendChild(this.beyondNote(beyond));
       return;
     }
 
@@ -97,6 +111,20 @@ export class ItemList {
       for (const id of byCategory.get(category)!) fragment.appendChild(this.entry(id));
     }
     this.ul.appendChild(fragment);
+    if (beyond > 0) this.ul.appendChild(this.beyondNote(beyond));
+  }
+
+  /** « N items beyond your zones » — cliquer ouvre le panneau de découverte. */
+  private beyondNote(count: number): HTMLLIElement {
+    const li = document.createElement("li");
+    li.className = "beyond";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = `${count} item${count > 1 ? "s" : ""} beyond your zones`;
+    button.title = "Open the discovery panel";
+    button.addEventListener("click", () => this.onBeyondClick());
+    li.appendChild(button);
+    return li;
   }
 
   /**

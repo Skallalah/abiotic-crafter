@@ -1,4 +1,5 @@
 import type { Item, Source } from "../data/types";
+import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 
 /** Abréviation 3 lettres affichée quand l'icône manque (§6). */
@@ -106,7 +107,11 @@ export function sourceLabel(model: Model, source: Source): string {
  * qui revenait à la ligne selon la largeur du panneau : on ne distinguait plus
  * les méthodes les unes des autres.
  */
-export function sourceLine(model: Model, source: Source): HTMLLIElement {
+export function sourceLine(
+  model: Model,
+  source: Source,
+  availability?: Availability,
+): HTMLLIElement {
   const li = document.createElement("li");
   const keyword = document.createElement("span");
   keyword.className = `kw kw-${source.kind}`;
@@ -119,9 +124,16 @@ export function sourceLine(model: Model, source: Source): HTMLLIElement {
   // « break Manufacturing Wood Crate » : la caisse a sa propre fenêtre, on la
   // rend cliquable ici plutôt que chez les quatre appelants de sourceLine.
   if (source.targetId && model.hasProvider(source.targetId)) {
-    li.append(" ", providerLink(source.targetId, object));
+    const link = providerLink(source.targetId, object);
+    if (availability && !availability.provider(source.targetId)) spoil(link);
+    li.append(" ", link);
   } else {
-    li.append(` ${object}`);
+    const text = document.createElement("span");
+    text.textContent = object;
+    // « salvage Fire Extinguisher (2) » ne doit pas nommer une origine qu'on
+    // n'a pas encore croisée
+    if (availability && source.from && !availability.item(source.from)) spoil(text);
+    li.append(" ", text);
   }
   return li;
 }
@@ -182,6 +194,18 @@ export function zoneTag(model: Model, name: string): HTMLElement {
   return tag;
 }
 
+/**
+ * Voile anti-spoil (§5.7) : grisé et flouté, le survol révèle.
+ *
+ * Rien ne disparaît — une recette garde tous ses ingrédients — mais un item
+ * hors des zones découvertes ne se lit pas sans un geste délibéré.
+ */
+export function spoil(el: HTMLElement): HTMLElement {
+  el.classList.add("spoiler");
+  el.title = "Beyond your discovered zones — hover to reveal";
+  return el;
+}
+
 /** Mot-clé coloré isolé, pour les lignes qui n'ont pas de source à décrire. */
 export function keyword(text: string, kind: string): HTMLElement {
   const span = document.createElement("span");
@@ -197,7 +221,13 @@ export function keyword(text: string, kind: string): HTMLElement {
  * pas où trouver l'extincteur. On rend donc ses propres sources, zone comprise,
  * et à défaut on dit au moins qu'il faut le fabriquer.
  */
-export function originLines(model: Model, origin: string, sources: Source[]): HTMLLIElement[] {
+export function originLines(
+  model: Model,
+  origin: string,
+  sources: Source[],
+  availability?: Availability,
+): HTMLLIElement[] {
+  if (availability) sources = sources.filter((s) => availability.source(s));
   const localised = sources.filter((s) => s.zone);
   const lines: HTMLLIElement[] = [];
   const seen = new Set<string>();
@@ -224,7 +254,9 @@ export function originLines(model: Model, origin: string, sources: Source[]): HT
 
   const fallback = document.createElement("li");
   if (model.isCraftable(origin)) fallback.appendChild(keyword("craft", "craft"));
-  else fallback.textContent = "no known location";
+  else if (availability && !availability.item(origin)) {
+    fallback.textContent = "in undiscovered zones";
+  } else fallback.textContent = "no known location";
   return [fallback];
 }
 

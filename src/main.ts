@@ -3,10 +3,12 @@ import "./styles/app.css";
 import "./styles/themes/win98.css";
 
 import { dataset } from "./data/load";
+import { computeAvailability, type Availability } from "./core/discovery";
 import { Model } from "./core/tree";
 import type { ItemId } from "./data/types";
 import { Canvas, type View } from "./ui/canvas";
 import { DetailsWindows } from "./ui/details";
+import { DiscoverPanel } from "./ui/discover";
 import { mountThemePicker } from "./ui/theme";
 import { ItemList } from "./ui/list";
 import { Summary } from "./ui/summary";
@@ -36,10 +38,26 @@ let choice = new Map<ItemId, number>();
 let highlighted: ItemId | null = null;
 
 const canvas = new Canvas(() => save());
+
+// la découverte filtre toute l'app : l'état vit dans le panneau, la
+// disponibilité est recalculée à chaque changement et redistribuée partout
+const discover = new DiscoverPanel(
+  model,
+  document.getElementById("discover") as HTMLButtonElement,
+  (state) => {
+    availability = computeAvailability(model, state);
+    list.setAvailability(availability);
+    details.setAvailability(availability);
+    renderAll();
+  },
+);
+let availability: Availability = computeAvailability(model, discover.current());
+
 // le clic droit ouvre la fenêtre de détail ; elle sélectionne par le même
 // chemin que la liste de gauche, pour que « ça change l'objet vu » soit vrai
-new DetailsWindows(model, (id) => setRoot(id), WIKI);
-const list = new ItemList(model, (id) => setRoot(id));
+const details = new DetailsWindows(model, (id) => setRoot(id), WIKI, availability);
+const list = new ItemList(model, (id) => setRoot(id), () => discover.open());
+list.setAvailability(availability);
 const summary = new Summary(model, (id) => setHighlight(id), (id) => setRoot(id));
 const tree = new TreeView(model, canvas.stage, {
   toggle: (path) => {
@@ -64,12 +82,12 @@ const tree = new TreeView(model, canvas.stage, {
 // ------------------------------------------------------------------- rendu
 
 function renderTree(): void {
-  tree.render({ root, expanded, choice, highlighted });
+  tree.render({ root, expanded, choice, highlighted, availability });
 }
 
 function renderAll(): void {
   renderTree();
-  summary.render(root, choice, highlighted, expanded);
+  summary.render(root, choice, highlighted, expanded, availability);
 }
 
 function setRoot(id: ItemId): void {
@@ -99,7 +117,7 @@ function updateHeader(): void {
 // ---------------------------------------------------------------- actions
 
 document.getElementById("expandAll")!.addEventListener("click", () => {
-  expanded = new Set(tree.expandablePaths({ root, expanded, choice, highlighted }));
+  expanded = new Set(tree.expandablePaths({ root, expanded, choice, highlighted, availability }));
   renderAll();
   canvas.recenter();
   save();

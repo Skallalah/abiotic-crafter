@@ -168,6 +168,16 @@ def parse_sector_portal_worlds(wikitext: str) -> list[str]:
     return _infobox_list(wikitext, "portalWorld")
 
 
+def parse_sector_links(wikitext: str) -> list[str]:
+    """Champs sector1..N de l'infobox {{Sector}} : les secteurs adjacents.
+
+    C'est le graphe de découverte du jeu. Les liens peuvent être déclarés en
+    sens unique (The Encroachment cite Manufacturing West, pas l'inverse) :
+    l'app les traite comme bidirectionnels.
+    """
+    return _infobox_list(wikitext, "sector")
+
+
 def _infobox_list(wikitext: str, prefix: str) -> list[str]:
     out: list[str] = []
     for _n, value in re.findall(rf"\|\s*{prefix}(\d+)\s*=\s*([^\n|}}]*)", wikitext):

@@ -157,3 +157,55 @@ export function cycleDataset(): Dataset {
     providers: {},
   };
 }
+
+/**
+ * Petit monde pour la découverte : deux secteurs liés en sens unique, un monde-
+ * portail, une zone orpheline, et un item par règle du point fixe.
+ */
+export function discoveryDataset(): Dataset {
+  const items: Record<string, Item> = {};
+  const add = (it: Item) => { items[it.id] = it; };
+
+  add(item("looted_office", "Looted Office", 8,
+      [{ kind: "pickup", zone: "Office Sector" }]));
+  add(item("looted_mfg", "Looted Mfg", 8,
+      [{ kind: "pickup", zone: "Manufacturing West" }]));
+  // dérive d'un item : disponible quand son origine l'est
+  add(item("derived", "Derived", 8, [{ kind: "salvage", from: "looted_mfg" }]));
+  // vise un contenant sans porter de zone : suit le contenant
+  add(item("via_crate", "Via Crate", 8,
+      [{ kind: "break", target: "Mfg Crate", targetId: "mfg_crate" }]));
+  // aucune source : uniquement lâché par le contenant
+  add(item("dropped", "Dropped", 8));
+  // prose sans la moindre géographie : jamais caché
+  add(item("unknown", "Unknown", 8, [{ kind: "vendor", target: "A Vendor" }]));
+  // craftable : disponible quand TOUS ses ingrédients le sont
+  add(item("crafted", "Crafted", 1));
+  // ni source, ni recette, ni drop : la donnée ne sait rien, jamais caché
+  add(item("nowhere", "Nowhere", 1));
+
+  const providers: Record<string, Provider> = {
+    mfg_crate: {
+      id: "mfg_crate", name: "Mfg Crate", kind: "destroyable",
+      zones: [{ zone: "Manufacturing West" }],
+      drops: [{ item: "dropped" }],
+    },
+    // aucun lieu déclaré : les casiers génériques existent partout
+    generic: { id: "generic", name: "Generic", kind: "container", zones: [], drops: [] },
+  };
+
+  return {
+    items,
+    recipes: [recipe("crafted", [["looted_office", 1], ["looted_mfg", 1]])],
+    zones: [
+      // lien déclaré en sens unique, comme The Encroachment sur le wiki
+      { name: "Office Sector", order: 0, links: ["Manufacturing West"] },
+      { name: "Manufacturing West", order: 1 },
+      { name: "Far Garden", order: 2, parent: "Office Sector" },
+      { name: "Uncharted Place", order: 3 },
+      // accessible seulement via Manufacturing : teste le « rien au-delà »
+      { name: "The Deep", order: 4, links: ["Manufacturing West"] },
+    ],
+    providers,
+  };
+}

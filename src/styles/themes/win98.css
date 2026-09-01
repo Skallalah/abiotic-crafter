@@ -95,6 +95,14 @@
 
 /* ------------------------------------------------------------------ chrome */
 
+[data-theme="win98"] .discover-panel {
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .dz { border-radius: 0; }
+
+
 [data-theme="win98"] .topbar {
   border-bottom: 0;
   box-shadow: var(--bevel-out);
@@ -119,7 +127,8 @@
 /* un bouton est en relief et s'enfonce quand on appuie dessus */
 [data-theme="win98"] .canvas-tools button,
 [data-theme="win98"] .details-foot button,
-[data-theme="win98"] .theme {
+[data-theme="win98"] .theme,
+[data-theme="win98"] .topbar .discover {
   background: var(--panel);
   color: var(--ink);
   border: 0;

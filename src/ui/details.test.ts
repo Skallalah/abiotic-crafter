@@ -1,14 +1,17 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { DetailsWindows } from "./details";
+import { computeAvailability } from "../core/discovery";
 import { Model } from "../core/tree";
-import { mockupDataset } from "../core/fixtures";
+import { discoveryDataset, mockupDataset } from "../core/fixtures";
 
 const model = new Model(mockupDataset());
+const everything = computeAvailability(model, { enabled: false, zones: new Set() });
 
 function mount(): { windows: DetailsWindows; selected: string[] } {
   document.body.innerHTML = `<div class="row" data-item="circuit_board">Circuit Board</div>`;
   const selected: string[] = [];
-  const windows = new DetailsWindows(model, (id) => selected.push(id), "https://wiki/");
+  const windows = new DetailsWindows(model, (id) => selected.push(id), "https://wiki/",
+                                     everything);
   return { windows, selected };
 }
 
@@ -140,5 +143,45 @@ describe("fenêtre d'un item", () => {
       .find((b) => b.textContent === "Observe this item")!;
     observe.click();
     expect(selected).toEqual(["circuit_board"]);
+  });
+});
+
+
+describe("découverte dans les fenêtres", () => {
+  const world = new Model(discoveryDataset());
+  const state = (...zones: string[]) => ({ enabled: true, zones: new Set(zones) });
+
+  function mountWorld() {
+    document.body.innerHTML = `<div data-item="looted_mfg"></div>`;
+    const windows = new DetailsWindows(world, () => {}, "https://wiki/",
+                                       computeAvailability(world, state("Office Sector")));
+    return windows;
+  }
+
+  it("tait les zones non découvertes, mais en donne le compte", () => {
+    mountWorld();
+    rightClick(document.querySelector("[data-item]")!);
+    const box = boxes()[0]!;
+    expect(box.textContent).not.toContain("Manufacturing West");
+    expect(box.textContent).toContain("+ 1 zone not yet discovered");
+  });
+
+  it("re-rend les fenêtres ouvertes quand la découverte change", () => {
+    const windows = mountWorld();
+    rightClick(document.querySelector("[data-item]")!);
+    windows.setAvailability(
+      computeAvailability(world, state("Office Sector", "Manufacturing West")));
+    const box = boxes()[0]!;
+    expect(box.textContent).toContain("Manufacturing West");
+    expect(box.textContent).not.toContain("not yet discovered");
+  });
+
+  it("floute un lien vers un contenant hors zones", () => {
+    document.body.innerHTML = `<div data-item="via_crate"></div>`;
+    new DetailsWindows(world, () => {}, "https://wiki/",
+                       computeAvailability(world, state("Office Sector")));
+    rightClick(document.querySelector("[data-item]")!);
+    const link = boxes()[0]!.querySelector("[data-provider]")!;
+    expect(link.classList.contains("spoiler")).toBe(true);
   });
 });

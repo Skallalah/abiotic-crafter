@@ -255,6 +255,62 @@
 /* le filet reprend la couleur de la zone : on la retrouve d'un coup d'œil */
 .zone { border-left: 3px solid var(--zone, transparent); padding-left: 8px; }
 
+/* ------------------------------------------------------------------
+   Découverte des zones (§5.7) : le voile anti-spoil et le panneau.
+   ------------------------------------------------------------------ */
+/* Rien ne disparaît d'une recette : l'entrée reste à sa place, floutée,
+   et le survol la révèle — regarder est un geste délibéré. */
+.spoiler {
+  filter: blur(4px) grayscale(.6);
+  opacity: .65;
+  transition: filter .15s, opacity .15s;
+}
+.spoiler:hover, .spoiler:focus-visible, .spoiler:focus-within {
+  filter: none;
+  opacity: 1;
+}
+
+.topbar .discover {
+  background: var(--bg); color: var(--ink-2);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  font-size: 12px; padding: 3px 8px;
+}
+.topbar .discover:hover { color: var(--ink); border-color: var(--ink-2); }
+
+.discover-panel {
+  position: fixed; top: 44px; right: 12px; z-index: 100;
+  width: 280px; max-height: calc(100vh - 60px); overflow: auto;
+  padding: 10px 12px 12px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.discover-head { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.discover-panel .note { margin: 6px 0 8px; }
+.discover-title {
+  margin: 10px 0 2px; padding-top: 8px; border-top: 1px solid var(--line);
+  font-size: 11px; font-weight: 700; font-stretch: 80%;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+}
+.discover-list { display: flex; flex-direction: column; }
+.dz {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 6px; background: none; border: 0; border-radius: 4px;
+  text-align: left; color: var(--ink-2);
+}
+.dz:hover { background: var(--panel-2); }
+.dz.sub { padding-left: 26px; }
+.dz .mark { flex: none; width: 14px; color: var(--accent-ink); font-weight: 700; }
+.dz.on { color: var(--ink); }
+
+/* pied de la liste de gauche : ce que la découverte cache */
+.itemlist .beyond { padding: 10px 14px 12px; border-top: 1px solid var(--line); }
+.itemlist .beyond button {
+  background: none; border: 0; padding: 0;
+  color: var(--ink-2); font-size: 12px; font-stretch: 85%;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.itemlist .beyond button:hover { color: var(--accent-ink); }
+
 /* Sélecteur de thème (§6). */
 .topbar .theme {
   background: var(--bg); color: var(--ink-2);

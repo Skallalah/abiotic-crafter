@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from parse import (  # noqa: E402
     link_targets, list_entries, normalize_name, parse_drop_table,
     parse_infobox_image, parse_locations, parse_object_images, parse_sector,
-    parse_sector_enemies, parse_zone_icon,
+    parse_sector_enemies, parse_sector_links, parse_zone_icon,
     parse_sources, parse_unlock, sections, slugify, strip_links,
 )
 
@@ -359,3 +359,11 @@ def test_parse_zone_icon_falls_back_to_whatever_image_exists():
     page = "{{PortalWorld\n| image = Temple of Stone homeworld.jpg\n}}"
     assert parse_zone_icon(page) == "Temple of Stone homeworld.jpg"
     assert parse_zone_icon("Une page sans la moindre image.") is None
+
+
+def test_parse_sector_links_reads_the_adjacency_fields():
+    page = ("{{Sector\n| image = Icon office sector.png\n"
+            "| sector1 = Manufacturing West\n| sector2 = [[Cascade Laboratories]]\n"
+            "| sector3 = \n| portalWorld1 = Flathill\n}}")
+    assert parse_sector_links(page) == ["Manufacturing West", "Cascade Laboratories"]
+    assert parse_sector_links("{{PortalWorld\n| image = x.png\n}}") == []

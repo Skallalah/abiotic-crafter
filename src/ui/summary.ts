@@ -1,10 +1,11 @@
+import type { Availability } from "../core/discovery";
 import { chosenRecipe, type Model, type RecipeChoice } from "../core/tree";
 import { computeTotals, craftOrder, type Totals } from "../core/totals";
-import { groupByZone, type ZoneEntry } from "../core/zones";
+import { BEYOND, groupByZone, type ZoneEntry } from "../core/zones";
 import type { ItemId, Source } from "../data/types";
 import {
   badges, keyword, KIND_KEYWORD, MAX_SPOTS, originLines, sourceLine, sourceList,
-  spotLine, stackText, tile, zoneTag,
+  spoil, spotLine, stackText, tile, zoneTag,
 } from "./format";
 
 /**
@@ -27,12 +28,16 @@ export class Summary {
     private readonly onOpen: (id: ItemId) => void,
   ) {}
 
+  private availability!: Availability;
+
   render(
     root: ItemId,
     choice: RecipeChoice,
     highlighted: ItemId | null,
     expanded: ReadonlySet<string>,
+    availability: Availability,
   ): Totals {
+    this.availability = availability;
     const totals = computeTotals(this.model, root, choice, 1, expanded);
     this.renderBase(totals, highlighted);
     this.renderSteps(totals, choice, highlighted);
@@ -54,7 +59,10 @@ export class Summary {
       const row = this.row(id, highlighted);
 
       const label = document.createElement("span");
-      label.append(`${item.name} `, badges(this.model, id));
+      const name = document.createElement("span");
+      name.textContent = `${item.name} `;
+      if (!this.availability.item(id)) spoil(name);
+      label.append(name, badges(this.model, id));
       const craft = this.craftLine(id);
       if (craft) label.appendChild(craft);
       for (const line of this.collectLines(id)) label.appendChild(line);
@@ -118,10 +126,14 @@ export class Summary {
       block.className = "alt collect";
       const head = document.createElement("div");
       head.append("collect ");
-      head.appendChild(this.openLink(origin));
+      const link = this.openLink(origin);
+      if (!this.availability.item(origin)) spoil(link);
+      head.appendChild(link);
       head.append(" :");
       block.appendChild(head);
-      block.appendChild(this.sourceList(originLines(this.model, origin, sources)));
+      block.appendChild(this.sourceList(
+        originLines(this.model, origin, sources, this.availability),
+      ));
       return block;
     });
   }
@@ -169,7 +181,10 @@ export class Summary {
       n.textContent = `×${qty}`;
 
       const label = document.createElement("span");
-      label.append(`${item.name} `, badges(this.model, id));
+      const name = document.createElement("span");
+      name.textContent = `${item.name} `;
+      if (!this.availability.item(id)) spoil(name);
+      label.append(name, badges(this.model, id));
       if (this.model.isDual(id)) {
         const alt = document.createElement("div");
         alt.className = "alt";
@@ -196,11 +211,16 @@ export class Summary {
    * que la liste des objets à démonter pour l'obtenir.
    */
   private lootLines(id: ItemId): HTMLLIElement[] {
-    const sources = [...this.model.item(id).sources].sort(
-      (a, b) => rankSource(a) - rankSource(b),
-    );
+    const sources = [...this.model.item(id).sources]
+      .filter((s) => this.availability.source(s))
+      .sort((a, b) => rankSource(a) - rankSource(b));
+    if (sources.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "in undiscovered zones";
+      return [li];
+    }
     return sources.map((source) => {
-      const li = sourceLine(this.model, source);
+      const li = sourceLine(this.model, source, this.availability);
       if (source.zone) {
         const zone = document.createElement("b");
         zone.textContent = source.zone;
@@ -215,7 +235,7 @@ export class Summary {
   private renderZones(totals: Totals, choice: RecipeChoice, highlighted: ItemId | null): void {
     const fragment = document.createDocumentFragment();
 
-    for (const group of groupByZone(this.model, totals)) {
+    for (const group of groupByZone(this.model, totals, this.availability)) {
       const block = document.createElement("div");
       block.className = "zone";
       const color = this.model.zone(group.name)?.color;
@@ -228,7 +248,7 @@ export class Summary {
       block.appendChild(title);
 
       for (const entry of group.entries) {
-        block.appendChild(this.zoneRow(entry, choice, highlighted));
+        block.appendChild(this.zoneRow(entry, choice, highlighted, group.name === BEYOND));
       }
       fragment.appendChild(block);
     }
@@ -236,13 +256,18 @@ export class Summary {
     this.zones.replaceChildren(fragment);
   }
 
-  private zoneRow(entry: ZoneEntry, choice: RecipeChoice, highlighted: ItemId | null): HTMLElement {
+  private zoneRow(entry: ZoneEntry, choice: RecipeChoice, highlighted: ItemId | null,
+                  beyond = false): HTMLElement {
     const item = this.model.item(entry.id);
     const row = this.row(entry.id, highlighted);
     if (entry.optional) row.classList.add("optional");
 
     const label = document.createElement("span");
-    label.append(`${item.name} `, badges(this.model, entry.id));
+    const name = document.createElement("span");
+    name.textContent = `${item.name} `;
+    // dans « Beyond known zones », même le nom est un spoiler
+    if (beyond || !this.availability.item(entry.id)) spoil(name);
+    label.append(name, badges(this.model, entry.id));
 
     if (entry.via) {
       // c'est l'origine qu'on ramasse ici, pas l'objet dérivé
@@ -253,9 +278,11 @@ export class Summary {
       head.append(" :");
       label.appendChild(head);
     }
-    label.appendChild(
-      this.sourceList(entry.sources.map((s) => sourceLine(this.model, s))),
-    );
+    if (entry.sources.length > 0) {
+      label.appendChild(
+        this.sourceList(entry.sources.map((s) => sourceLine(this.model, s, this.availability))),
+      );
+    }
 
     if (entry.via) {
       const how = document.createElement("div");

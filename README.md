@@ -9,6 +9,10 @@ complète dans `SPEC.md`, choix d'implémentation dans `DECISIONS.md`.
 Deux habillages, au choix dans la barre du haut : « GATE terminal » et
 « Windows 98 » — argent, biseaux, fonte pixel.
 
+Anti-spoil : cochez les zones découvertes (bouton « Zones » en haut à droite)
+et l'app ne montre que l'atteignable ; la frontière apparaît floutée, le survol
+révèle, le clic découvre. Désactivable d'un interrupteur.
+
 ## Lancer l'app
 
 ```sh

@@ -137,6 +137,12 @@ export interface Zone {
    * à la main : les deux ne peuvent donc pas se contredire.
    */
   color?: string;
+  /**
+   * Secteurs adjacents, champs `sector1..6` de l'infobox `{{Sector}}`. Le wiki
+   * les déclare parfois en sens unique (The Encroachment cite Manufacturing
+   * West, pas l'inverse) : la découverte les traite bidirectionnels.
+   */
+  links?: string[];
 }
 
 export interface Dataset {

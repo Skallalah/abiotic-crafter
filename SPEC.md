@@ -140,6 +140,8 @@ interface Zone {
                                // lu dans les champs portalWorld1..6 de l'infobox {{Sector}}
   icon?: string;               // pastille ronde du wiki, fichier de data/icons/
   color?: string;              // "#rrggbb", EXTRAITE de la pastille
+  links?: string[];            // secteurs adjacents (sector1..6 de {{Sector}}),
+                               // parfois déclarés en sens unique : lus dans les deux
 }
 
 interface Dataset {
@@ -298,6 +300,40 @@ Un **double-clic sur la barre de titre enroule** la fenêtre sur elle-même : il
 
 Chaque item cité dans une fenêtre est un lien : le clic gauche le **sélectionne** comme objet courant — le même chemin que la liste de gauche — et le clic droit ouvre sa propre fenêtre.
 
+### 5.7 Découverte des zones
+Configuration locale, pas donnée : le joueur coche en haut à droite les zones
+qu'il a explorées, et **toute l'app se filtre** sur ce qu'il peut réellement
+atteindre. Par défaut le suivi est **actif, Office Sector coché** — l'app
+s'ouvre sans spoiler ; l'interrupteur « Track discovery » rend tout d'un clic.
+État sous sa propre clé `localStorage`, distincte de la session et du thème.
+
+**Le panneau.** Trois états par zone : découverte (cochée, re-cliquable pour
+revenir en arrière — sans cascade) ; en **frontière** (grisée, nom et pastille
+floutés, le survol révèle, le clic découvre) ; au-delà, **pas rendue du tout**.
+La frontière vient du graphe du wiki : `links` lus dans les deux sens, mondes-
+portails du secteur découvert et réciproquement. Les cinq zones que rien ne
+relie vivent sous « Uncharted », toujours proposées, floutées.
+
+**La disponibilité** est un point fixe, mesuré avant d'être écrit (cf.
+DECISIONS.md) : zone directe d'une source ; chaîne `from` jusqu'à une origine
+disponible ; contenant disponible, par sa cible (`targetId`) comme par ses
+`drops` ; recette dont tous les ingrédients sont disponibles. Un contenant sans
+zone déclarée existe partout. Clôture : **ce que la donnée ne sait localiser
+nulle part n'est jamais caché** — d'où deux invariants testés, *suivi désactivé
+= app entière* et *toutes zones cochées = app entière*. Mesure : Office seul →
+~350 craftables sur 597.
+
+**Le voile.** Un item indisponible qui apparaît quand même (ingrédient d'une
+recette affichée, contenu d'une caisse, lien montant) est **flouté, le survol
+révèle** : rien ne disparaît d'une recette, regarder est un geste délibéré. La
+racine de l'arbre n'est jamais floutée — l'ouvrir est déjà une révélation. Les
+listes, elles, filtrent : la liste de gauche ne montre que l'atteignable (avec
+« N items beyond your zones » qui ouvre le panneau), le bilan ne groupe que les
+zones découvertes (un requis sans source visible tombe sous « Beyond known
+zones », nom flouté), les fenêtres taisent les zones non découvertes et n'en
+donnent que le compte. `computeTotals` n'est **pas** filtré : une recette a
+besoin de ce qu'elle a besoin.
+
 ---
 
 ## 6. Design tokens
@@ -430,6 +466,9 @@ groupByZone(base, steps, ds) → ZoneGroup[]   // cf. §5.4.3
 - [ ] Tout `targetId` résout vers un `Provider`, et tout `Drop.item` vers un item du dataset : aucune fenêtre ni aucun lien ne mène nulle part.
 - [ ] Aucun `Provider` conservé n'est vide : chacun a au moins un contenu, une image ou une zone.
 - [ ] Les zones d'un contenant ne contredisent jamais le bilan : elles en sont extraites, pas recalculées.
+- [ ] Suivi de découverte désactivé, ou toutes zones cochées : l'app est identique à l'app sans la fonctionnalité — les deux invariants sont testés sur les vraies données.
+- [ ] Avec Office Sector seul, la frontière propose exactement ses six secteurs et ses deux mondes-portails, plus les cinq « Uncharted » ; rien d'autre n'est rendu dans le panneau.
+- [ ] Un ingrédient hors zones reste dans sa recette, flouté, révélé au survol ; la liste de gauche et la recherche ne montrent que l'atteignable.
 - [ ] Tests §7 verts.
 
 ---

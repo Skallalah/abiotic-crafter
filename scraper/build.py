@@ -20,7 +20,7 @@ from fetch_cargo import load
 from colors import dominant_color
 from parse import (
     normalize_name, parse_drop_table, parse_infobox_image, parse_locations,
-    parse_object_images, parse_sector, parse_sector_enemies,
+    parse_object_images, parse_sector, parse_sector_enemies, parse_sector_links,
     parse_sector_portal_worlds, parse_sources, parse_unlock, parse_zone_icon,
     slugify, strip_links,
 )
@@ -784,11 +784,16 @@ def build_zones(known: set[str], report: Report) -> list[dict]:
         zone: dict = {"name": name, "order": len(ordered)}
         if parent:
             zone["parent"] = parent
-        icon = parse_zone_icon(fetch_wikitext.read_page(name) or "")
+        wikitext = fetch_wikitext.read_page(name) or ""
+        icon = parse_zone_icon(wikitext)
         if icon:
             zone["icon"] = icon_filename(icon)
         else:
             report.bump("zones sans pastille")
+        links = parse_sector_links(wikitext)
+        if links:
+            zone["links"] = links
+            report.bump("zones avec liens")
         ordered.append(zone)
 
     for sector in ZONE_ORDER:
@@ -837,7 +842,13 @@ def main() -> None:
     recipes, unresolved = build_recipes(resolver, report)
     attach_unlocks(recipes, resolver, report)
     benches = {r["bench"] for r in recipes} | {"Repair and Salvage Station"}
-    origins = OriginResolver(resolver, ZONE_ORDER, benches)
+    # les mondes-portails sont des zones au même titre que les secteurs : sans
+    # eux, « found in [[Rise]] » rangeait Rise en cible au lieu de zone, et la
+    # source restait sans géographie (Egg, Corrupted Corn…)
+    all_zones = list(ZONE_ORDER)
+    for sector in ZONE_ORDER:
+        all_zones += parse_sector_portal_worlds(fetch_wikitext.read_page(sector) or "")
+    origins = OriginResolver(resolver, all_zones, benches)
     sources, review = build_sources(resolver, origins, report)
 
     providers = build_providers(resolver, sources, report)
@@ -913,7 +924,8 @@ def main() -> None:
     with_icon = sum(1 for z in zones if z.get("icon"))
     print(f"  zones                        {len(zones)}"
           f" ({with_icon} avec pastille, "
-          f"{report.counts.get('zones avec couleur', 0)} avec couleur)")
+          f"{report.counts.get('zones avec couleur', 0)} avec couleur, "
+          f"{report.counts.get('zones avec liens', 0)} avec liens)")
     print(f"  contenants et créatures      {len(providers)}"
           f" ({report.counts.get('providers avec contenu', 0)} avec contenu, "
           f"{report.counts.get('providers avec image', 0)} avec image, "
