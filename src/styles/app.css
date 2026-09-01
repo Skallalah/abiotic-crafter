@@ -270,6 +270,16 @@
   opacity: 1;
 }
 
+/* [REDACTED] : caviardage littéral des phrases d'obtention, comme les
+   documents GATE du jeu. Un remplacement, pas un voile — rien à survoler. */
+.redacted {
+  padding: 0 4px;
+  background: var(--ink);
+  color: var(--panel);
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+  border-radius: 2px;
+}
+
 .topbar .discover {
   background: var(--bg); color: var(--ink-2);
   border: 1px solid var(--line); border-radius: var(--radius);

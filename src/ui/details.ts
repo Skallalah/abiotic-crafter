@@ -344,7 +344,9 @@ export class DetailsWindows {
 
     if (ways) block.appendChild(ways);
     if (spots.length > 0) {
-      block.appendChild(sourceList(unique(spots).map(spotLine), MAX_SPOTS, "spots"));
+      block.appendChild(sourceList(
+        unique(spots).map((spot) => spotLine(spot, this.model, this.availability)),
+        MAX_SPOTS, "spots"));
     }
     return block;
   }

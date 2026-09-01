@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  abbreviation, fold, KIND_KEYWORD, sourceLabel, sourceLine, spotLine, stackText,
-  zoneTag,
+  abbreviation, fold, KIND_KEYWORD, redactor, sourceLabel, sourceLine, spotLine,
+  stackText, zoneTag,
 } from "./format";
 import type { Item, SourceKind } from "../data/types";
+import { computeAvailability } from "../core/discovery";
 import { Model } from "../core/tree";
-import { mockupDataset } from "../core/fixtures";
+import { discoveryDataset, mockupDataset } from "../core/fixtures";
 import { dataset } from "../data/load";
 
 const item = (stack: number): Item => ({
@@ -154,5 +155,63 @@ describe("origine d'un salvage", () => {
     const li = sourceLine(model, { kind: "salvage", from: "pocket_watch" });
     expect(li.querySelector("button")).toBeNull();
     expect(li.querySelector<HTMLElement>("[data-item]")!.dataset.item).toBe("pocket_watch");
+  });
+});
+
+
+describe("caviardage des phrases d'obtention", () => {
+  const world = new Model(discoveryDataset());
+  const office = computeAvailability(world,
+    { enabled: true, zones: new Set(["Office Sector"]) });
+
+  const text = (parts: (string | Node)[]) => parts
+    .map((p) => typeof p === "string" ? p : (p as HTMLElement).outerHTML).join("");
+
+  it("remplace les noms d'items indisponibles et de zones non découvertes", () => {
+    // « salvaging a Pocket Watch or Witch Skull » : le flou ne peut rien pour
+    // de la prose, le nom y est en toutes lettres
+    const redact = redactor(world, office);
+    expect(text(redact("Salvage a Looted Mfg near Manufacturing West.")))
+      .toBe('Salvage a <span class="redacted">[REDACTED]</span> near '
+          + '<span class="redacted">[REDACTED]</span>.');
+    // un nom disponible reste en clair
+    expect(text(redact("A Looted Office sits in Office Sector.")))
+      .toBe("A Looted Office sits in Office Sector.");
+  });
+
+  it("ne caviarde rien quand le suivi est désactivé", () => {
+    const off = computeAvailability(world, { enabled: false, zones: new Set() });
+    expect(text(redactor(world, off)("A Looted Mfg."))).toBe("A Looted Mfg.");
+  });
+
+  it("caviarde aussi dans les lignes d'emplacement", () => {
+    const li = spotLine("Level 2 › Behind the Looted Mfg pile.", world, office);
+    expect(li.querySelector("b")!.textContent).toBe("Level 2");
+    expect(li.querySelector(".redacted")).toBeTruthy();
+    expect(li.textContent).toBe("Level 2 » Behind the [REDACTED] pile.");
+  });
+
+  it("laisse en clair un nom disponible qui en contient un caché", () => {
+    // sur les vraies données : « Chain » (à Manufacturing, caché) matchait à
+    // l'intérieur d'« Exquisite Chain » (disponible via le coffre de Flathill),
+    // donnant « Exquisite [REDACTED] » dans la fenêtre de l'item lui-même
+    const real = new Model(dataset);
+    const threeZones = computeAvailability(real, {
+      enabled: true,
+      zones: new Set(["Office Sector", "Flathill", "Far Garden"]),
+    });
+    expect(threeZones.item("exquisite_chain")).toBe(true);
+    expect(threeZones.item("chain")).toBe(false);
+    const out = text(redactor(real, threeZones)(
+      "Exquisite Chain can be obtained through salvaging a Pocket Watch or Witch Skull."));
+    expect(out).toBe("Exquisite Chain can be obtained through salvaging a "
+      + 'Pocket Watch or <span class="redacted">[REDACTED]</span>.');
+  });
+
+  it("ne coupe pas un mot au milieu", () => {
+    // « Uncharted Place » est une zone non découverte ; « Unchartedish » n'est
+    // pas elle
+    const redact = redactor(world, office);
+    expect(text(redact("The Deepest part."))).toBe("The Deepest part.");
   });
 });

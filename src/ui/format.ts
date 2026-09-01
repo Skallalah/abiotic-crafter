@@ -317,6 +317,65 @@ export function sourceList(
   return ul;
 }
 
+/**
+ * Caviardage des phrases d'obtention (§5.7).
+ *
+ * « …salvaging a Pocket Watch or Witch Skull » : le flou ne peut rien pour de
+ * la prose, le nom y est en toutes lettres. Tout nom d'item indisponible ou de
+ * zone non découverte devient un littéral [REDACTED] — les documents GATE du
+ * jeu sont eux-mêmes caviardés, on parle la langue de l'univers. Remplacement
+ * réel, pas un voile : rien à survoler, rien à copier.
+ *
+ * Le motif (≈ 700 noms) est compilé une fois par état de découverte.
+ */
+const REDACTORS = new WeakMap<Availability, (text: string) => (string | Node)[]>();
+
+export function redactor(model: Model, availability?: Availability) {
+  if (!availability || !availability.enabled) return (text: string) => [text];
+  let apply = REDACTORS.get(availability);
+  if (apply) return apply;
+
+  // TOUS les noms entrent dans le motif, pas seulement les cachés : « Chain »
+  // (indisponible) matchait à l'intérieur d'« Exquisite Chain » (disponible).
+  // Les plus longs d'abord, le nom disponible protège ainsi sa sous-chaîne —
+  // et seuls les cachés sont remplacés.
+  const hidden = new Set<string>();
+  const names: string[] = [];
+  for (const item of Object.values(model.ds.items)) {
+    names.push(item.name);
+    if (!availability.item(item.id)) hidden.add(item.name);
+  }
+  for (const zone of model.ds.zones) {
+    names.push(zone.name);
+    if (!availability.zone(zone.name)) hidden.add(zone.name);
+  }
+  names.sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(
+    `(?<![A-Za-z])(?:${names.map(escapeRegExp).join("|")})(?![a-z])`, "g");
+
+  apply = (text: string) => {
+    const parts: (string | Node)[] = [];
+    let cursor = 0;
+    for (const match of text.matchAll(pattern)) {
+      if (!hidden.has(match[0])) continue;      // un nom disponible reste en clair
+      if (match.index! > cursor) parts.push(text.slice(cursor, match.index));
+      const bar = document.createElement("span");
+      bar.className = "redacted";
+      bar.textContent = "[REDACTED]";
+      parts.push(bar);
+      cursor = match.index! + match[0].length;
+    }
+    if (cursor < text.length) parts.push(text.slice(cursor));
+    return parts;
+  };
+  REDACTORS.set(availability, apply);
+  return apply;
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /** Délimiteur posé par le scraper entre une sous-zone et son emplacement. */
 export const SPOT_SEP = " › ";
 
@@ -335,15 +394,20 @@ const SHOWN_SEP = " » ";
  * le tirait du CSS, et tout ce qu'on copiait depuis la page revenait collé —
  * « Level 2Data Farms. ».
  */
-export function spotLine(spot: string): HTMLLIElement {
+export function spotLine(
+  spot: string,
+  model?: Model,
+  availability?: Availability,
+): HTMLLIElement {
+  const redact = model ? redactor(model, availability) : (t: string) => [t];
   const li = document.createElement("li");
   const cut = spot.indexOf(SPOT_SEP);
   if (cut > 0) {
     const area = document.createElement("b");
     area.textContent = spot.slice(0, cut);
-    li.append(area, SHOWN_SEP + spot.slice(cut + SPOT_SEP.length));
+    li.append(area, SHOWN_SEP, ...redact(spot.slice(cut + SPOT_SEP.length)));
   } else {
-    li.textContent = spot;
+    li.append(...redact(spot));
   }
   return li;
 }

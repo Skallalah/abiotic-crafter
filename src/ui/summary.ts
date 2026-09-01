@@ -297,7 +297,9 @@ export class Summary {
     // formaient jusqu'ici un pavé de texte noyant les lignes d'obtention.
     const spots = entry.sources.flatMap((s) => s.where ?? []);
     if (spots.length > 0) {
-      label.appendChild(this.sourceList(unique(spots).map(spotLine), MAX_SPOTS, "spots"));
+      label.appendChild(this.sourceList(
+        unique(spots).map((spot) => spotLine(spot, this.model, this.availability)),
+        MAX_SPOTS, "spots"));
     }
 
     if (entry.optional) {

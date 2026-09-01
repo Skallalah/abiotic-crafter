@@ -333,6 +333,8 @@ décrite, seule une recette dont tous les ingrédients sont visibles le montre.
 D'où deux invariants testés, *suivi désactivé = app entière* et *toutes zones
 cochées = app entière*. Mesure : Office seul → ~240 craftables sur 597.
 
+**Le caviardage.** Le flou ne peut rien pour la prose : dans les lignes d'emplacement, tout nom d'item indisponible ou de zone non découverte devient un littéral **[REDACTED]** — la langue des documents GATE du jeu. Remplacement réel, rien à survoler ; le motif connaît tous les noms, les plus longs d'abord, pour qu'un nom disponible protège ses sous-chaînes (« Exquisite Chain » ne perd pas son « Chain »).
+
 **Le voile.** Un item indisponible qui apparaît quand même (ingrédient d'une
 recette affichée, contenu d'une caisse, lien montant) est **flouté, le survol
 révèle** : rien ne disparaît d'une recette, regarder est un geste délibéré. La

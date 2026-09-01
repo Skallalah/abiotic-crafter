@@ -752,3 +752,19 @@ d'item — clic gauche le sélectionne, clic droit ouvre sa fenêtre, flou s'il 
 hors zones. Le chemin se remonte désormais à la main : la chaîne → la montre →
 le coffre → Flathill et son emplacement précis. Sans rappel de sélection
 disponible, le nom reste au moins marqué `data-item` pour le clic droit.
+
+
+### [REDACTED] : la prose se caviarde, elle ne se floute pas
+Le flou ne peut rien pour une phrase d'obtention : « …salvaging a Pocket Watch
+or Witch Skull » écrit le nom en toutes lettres. Demandé par l'utilisateur, et
+dans la langue de l'univers — les documents GATE du jeu sont eux-mêmes
+caviardés : tout nom d'item indisponible ou de zone non découverte devient un
+littéral **[REDACTED]** dans les lignes d'emplacement. Un vrai remplacement,
+pas un voile : rien à survoler, rien à copier.
+
+Le piège d'implémentation : ne mettre dans le motif que les noms cachés
+caviardait « Exquisite [REDACTED] » — l'item « Chain », indisponible, matchait
+à l'intérieur du nom disponible « Exquisite Chain ». Le motif contient donc
+**tous** les noms (≈ 1 300, compilé une fois par état de découverte), les plus
+longs d'abord : un nom disponible protège ses sous-chaînes, et seuls les cachés
+sont remplacés. Verrouillé sur les vraies données par le cas rapporté.
