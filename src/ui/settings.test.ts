@@ -18,6 +18,9 @@ describe("l'onglet Settings", () => {
     expect(select.value).toBe("win98");
     expect(document.documentElement.dataset.theme).toBe("win98");
     expect(THEMES[0]!.id).toBe("win98");
+    // deux sections titrées : Style (le thème), Misc. (le reste)
+    expect([...document.querySelectorAll(".settings-panel .discover-title")]
+      .map((t) => t.textContent)).toEqual(["Style", "Misc."]);
   });
 
   it("cache les lignes [REDACTED] sur demande, et s'en souvient", () => {

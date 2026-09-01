@@ -399,10 +399,25 @@ button.censored, .censored { cursor: default; }
 
 /* Sélecteur de thème, dans l'onglet Settings (§6). */
 .settings-panel { width: 220px; }
+/* le premier intertitre n'a pas de section au-dessus à séparer */
+.settings-panel .discover-title:first-child {
+  margin-top: 0; padding-top: 0; border-top: 0;
+}
 .settings-row {
   display: flex; align-items: center; justify-content: space-between;
   gap: 10px; font-weight: 600;
 }
+.settings-row input[type="checkbox"] { margin-right: auto; }
+/* les cases des panneaux, dessinées : la case native ignore les thèmes */
+.discover-panel input[type="checkbox"] {
+  appearance: none; margin: 0; flex: none;
+  width: 15px; height: 15px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 3px;
+  display: inline-grid; place-content: center;
+  color: var(--accent); font-size: 11px; line-height: 1;
+}
+.discover-panel input[type="checkbox"]:checked { border-color: var(--accent); }
+.discover-panel input[type="checkbox"]:checked::before { content: "✓"; font-weight: 700; }
 .theme {
   background: var(--bg); color: var(--ink-2);
   border: 1px solid var(--line); border-radius: var(--radius);

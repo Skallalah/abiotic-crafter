@@ -42,13 +42,20 @@ export class SettingsPanel {
     this.panel.className = "discover-panel settings-panel";
     this.panel.hidden = true;
 
+    const title = (text: string) => {
+      const heading = document.createElement("div");
+      heading.className = "discover-title";
+      heading.textContent = text;
+      return heading;
+    };
+
     const row = document.createElement("label");
     row.className = "settings-row";
     const select = document.createElement("select");
     select.className = "theme";
     select.title = "Interface theme";
     row.append("Theme ", select);
-    this.panel.appendChild(row);
+    this.panel.append(title("Style"), row);
     document.body.appendChild(this.panel);
 
     mountThemePicker(select);
@@ -63,7 +70,7 @@ export class SettingsPanel {
     censor.title = "Redacted lines disappear instead of showing [REDACTED]";
     censor.addEventListener("change", () => applyCensor(censor.checked));
     censorRow.append(censor, " Hide [REDACTED] lines");
-    this.panel.appendChild(censorRow);
+    this.panel.append(title("Misc."), censorRow);
     applyCensor(censor.checked);   // remet l'attribut d'aplomb au chargement
 
     // panneau et bouton vont ensemble : ouvert = bouton enfoncé (`.open`)
