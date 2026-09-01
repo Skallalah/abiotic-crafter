@@ -35,6 +35,38 @@ function rightClick(el: Element, x = 0, y = 0): MouseEvent {
 
 beforeEach(() => { document.body.innerHTML = ""; });
 
+describe("fiche d'un provider", () => {
+  it("liste les propriétés de l'infobox {{enemy}} façon wiki, une par ligne", () => {
+    // même traitement que la fenêtre d'item : dl.props, étiquette + valeur
+    document.body.innerHTML = `<div data-provider="security_bot"></div>`;
+    const windows = new DetailsWindows(model, () => {}, "https://wiki/", everything);
+    instances.push(windows);
+    rightClick(document.querySelector("[data-provider]")!);
+    const dl = document.querySelector(".winbox dl.props")!;
+    const rows = [...dl.querySelectorAll("dt")].map((dt) =>
+      [dt.textContent, dt.nextElementSibling!.textContent]);
+    expect(rows).toEqual([
+      ["Type", "Robot"],
+      ["Codename", "GATE-01"],
+      ["Origin", "Anteverse 2"],
+      ["Health", "torso 80 · legs 10"],
+      ["Melee", "50 — Blunt"],
+      ["Weakness", "Electricity"],
+      ["Immunity", "Poison"],
+    ]);
+  });
+
+  it("se contente de la nature quand la page n'a pas d'infobox", () => {
+    document.body.innerHTML = `<div data-provider="computer"></div>`;
+    const windows = new DetailsWindows(model, () => {}, "https://wiki/", everything);
+    instances.push(windows);
+    rightClick(document.querySelector("[data-provider]")!);
+    const rows = [...document.querySelectorAll(".winbox dl.props dt")]
+      .map((dt) => [dt.textContent, dt.nextElementSibling!.textContent]);
+    expect(rows).toEqual([["Type", "Destroyable object — break it"]]);
+  });
+});
+
 describe("clic droit", () => {
   it("ouvre une fenêtre sur l'item et retient le menu du navigateur", () => {
     mount();

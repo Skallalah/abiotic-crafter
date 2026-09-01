@@ -914,3 +914,15 @@ autre catégorie, comme la recherche le fait déjà.
 La rangée vit repliée par défaut derrière une ligne de pli — treize boutons
 prenaient trois lignes du panneau — qui nomme la catégorie active pour que le
 filtre reste lisible barre fermée ; replier ne défait pas le filtre.
+
+## La fenêtre de créature a sa fiche wiki
+
+Même traitement que la fenêtre d'item : des propriétés une par ligne plutôt
+qu'un simple libellé de nature. Cargo `Enemies` ne connaissant que `type` et
+`origin`, la fiche vient de l'infobox `{{enemy}}` du wikitext
+(`parse_enemy_stats`), présente sur les 85 créatures : codename, origine,
+identification, santé par partie du corps, attaques, faiblesses/résistances/
+immunités. Les valeurs restent des chaînes — le wiki écrit « Immune » ou
+« 80 » dans les mêmes champs — et tout champ vide disparaît de la fenêtre.
+Pas de caviardage sur ces valeurs : les origines sont des Anteverses jamais
+présents dans la liste des zones, et les sensibilités des types de dégâts.

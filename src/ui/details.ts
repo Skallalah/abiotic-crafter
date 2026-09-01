@@ -243,7 +243,34 @@ export class DetailsWindows {
   private providerView(id: ProviderId): DocumentFragment {
     const provider = this.model.provider(id)!;
     const fragment = document.createDocumentFragment();
-    fragment.appendChild(this.head(provider.name, KIND_LABEL[provider.kind],
+    // les propriétés comme un wiki, une par ligne — même traitement que la
+    // fenêtre d'item. L'infobox {{enemy}} de la page fournit la fiche ; ses
+    // champs sont tous optionnels, on n'affiche que ce que le wiki sait.
+    const stats = provider.enemy;
+    const props: [string, string][] =
+      [["Type", stats?.type ?? KIND_LABEL[provider.kind]]];
+    if (stats) {
+      if (stats.codename) props.push(["Codename", stats.codename]);
+      if (stats.origin) props.push(["Origin", stats.origin]);
+      if (stats.identifiedBy) props.push(["Identified by", stats.identifiedBy]);
+      if (stats.health) {
+        props.push(["Health", (["head", "torso", "arms", "legs"] as const)
+          .filter((part) => stats.health![part])
+          .map((part) => `${part} ${stats.health![part]}`)
+          .join(" · ")]);
+      }
+      for (const [label, attack] of
+           [["Melee", stats.melee], ["Ranged", stats.ranged]] as const) {
+        if (attack) {
+          props.push([label, [attack.damage, attack.type]
+            .filter(Boolean).join(" — ")]);
+        }
+      }
+      if (stats.weakness) props.push(["Weakness", stats.weakness]);
+      if (stats.resistance) props.push(["Resistance", stats.resistance]);
+      if (stats.immunity) props.push(["Immunity", stats.immunity]);
+    }
+    fragment.appendChild(this.head(provider.name, propList(props),
                                    providerTile(provider)));
 
     if (provider.zones.length > 0) {

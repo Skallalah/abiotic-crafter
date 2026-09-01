@@ -122,6 +122,24 @@ export interface ProviderZone {
   where?: string[];
 }
 
+/**
+ * Fiche de l'infobox {{enemy}} du wiki — tout est optionnel, la fenêtre
+ * n'affiche que ce que la page sait. Les valeurs restent des chaînes : le
+ * wiki écrit « Immune » ou « 80 » dans les mêmes champs.
+ */
+export interface EnemyStats {
+  type?: string;
+  codename?: string;
+  origin?: string;
+  identifiedBy?: string;
+  weakness?: string;
+  resistance?: string;
+  immunity?: string;
+  health?: { head?: string; torso?: string; arms?: string; legs?: string };
+  melee?: { damage?: string; type?: string };
+  ranged?: { damage?: string; type?: string };
+}
+
 export interface Provider {
   id: ProviderId;
   name: string;
@@ -130,6 +148,8 @@ export interface Provider {
   icon?: string;
   zones: ProviderZone[];
   drops: Drop[];
+  /** Présent sur les créatures dont la page porte l'infobox {{enemy}}. */
+  enemy?: EnemyStats;
 }
 
 export interface Zone {

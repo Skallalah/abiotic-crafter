@@ -207,6 +207,46 @@ def _infobox_list(wikitext: str, prefix: str) -> list[str]:
     return out
 
 
+_ENEMY_BOX = re.compile(r"\{\{\s*enemy\b(.*?)\n\}\}", re.S | re.I)
+_ENEMY_FIELD = re.compile(r"\|\s*(\w+)\s*=\s*([^\n]*)")
+
+
+def parse_enemy_stats(wikitext: str) -> dict | None:
+    """Fiche de l'infobox {{enemy}}, pour la fenêtre de créature.
+
+    Cargo `Enemies` ne connaît que `type` et `origin` : le codename, la santé
+    par partie du corps, les attaques et les sensibilités ne vivent que dans
+    l'infobox de la page (présente sur les 85 créatures). Les champs vides ou
+    absents ne produisent pas de clé — la fenêtre n'affiche que ce qu'on sait.
+    """
+    match = _ENEMY_BOX.search(wikitext)
+    if not match:
+        return None
+    raw: dict[str, str] = {}
+    for key, value in _ENEMY_FIELD.findall(match.group(1)):
+        value = strip_links(value).strip().rstrip("}")
+        if value:
+            raw[key] = value
+
+    stats: dict = {}
+    for key in ("type", "codename", "origin", "identifiedBy",
+                "weakness", "resistance", "immunity"):
+        if raw.get(key):
+            stats[key] = raw[key]
+    health = {part: raw[f"health{part.capitalize()}"]
+              for part in ("head", "torso", "arms", "legs")
+              if raw.get(f"health{part.capitalize()}")}
+    if health:
+        stats["health"] = health
+    for attack in ("melee", "ranged"):
+        entry = {k: raw[f"attack{attack.capitalize()}{k.capitalize()}"]
+                 for k in ("damage", "type")
+                 if raw.get(f"attack{attack.capitalize()}{k.capitalize()}")}
+        if entry:
+            stats[attack] = entry
+    return stats or None
+
+
 _INFOBOX_IMAGE = re.compile(r"\|\s*image\s*=\s*([^\n|}]+)")
 _FILE_LINK = re.compile(r"\[\[\s*(?:File|Image)\s*:\s*([^\]|]+)", re.I)
 

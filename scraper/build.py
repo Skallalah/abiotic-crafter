@@ -19,7 +19,8 @@ import fetch_wikitext
 from fetch_cargo import load
 from colors import dominant_color, shrink_icon
 from parse import (
-    link_targets, normalize_name, parse_drop_table, parse_infobox_image, parse_locations,
+    link_targets, normalize_name, parse_drop_table, parse_enemy_stats,
+    parse_infobox_image, parse_locations,
     parse_object_images, parse_person_zones, parse_sector, parse_sector_enemies,
     parse_sector_links, parse_sector_portal_worlds, parse_sources,
     parse_trade_offers, parse_unlock, parse_zone_icon, parse_zone_items, slugify,
@@ -730,6 +731,11 @@ def build_providers(resolver: Resolver, sources: dict[str, list[dict]],
         page, wikitext = pages.get(name), wikitexts.get(name)
         if page and wikitext:
             provider["wikiTitle"] = page.replace(" ", "_")
+            if provider["kind"] == "enemy":
+                stats = parse_enemy_stats(wikitext)
+                if stats:
+                    provider["enemy"] = stats
+                    report.bump("fiches d'ennemi lues dans l'infobox")
             image = parse_infobox_image(wikitext, page)
             if image:
                 provider["icon"] = icon_filename(image)

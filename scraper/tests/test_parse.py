@@ -432,3 +432,38 @@ def test_parse_trade_offers_reads_a_merchant_inventory():
         {"item": "Employee Locator", "cost": "1 Peccary Skull",
          "unlock": "Speaking with Warren"},
     ]
+
+
+def test_parse_enemy_stats_reads_the_infobox():
+    from parse import parse_enemy_stats
+    wikitext = """{{enemy
+| name = {{PAGENAME}}
+| image = {{PAGENAME}}.PNG
+| type = Creature
+| codename = IS-0178-A
+| identifiedBy = [[Katherine Pendleton|Dr. Kathy "KP" Pendleton]]
+| origin = Anteverse 2
+| healthHead = 80
+| healthTorso = 80
+| attackMeleeDamage = 50
+| attackMeleeType = Blunt
+| weakness = Fire
+| resistance =
+}}
+Du texte ensuite."""
+    stats = parse_enemy_stats(wikitext)
+    assert stats == {
+        "type": "Creature",
+        "codename": "IS-0178-A",
+        "origin": "Anteverse 2",
+        "identifiedBy": 'Dr. Kathy "KP" Pendleton',
+        "weakness": "Fire",
+        "health": {"head": "80", "torso": "80"},
+        "melee": {"damage": "50", "type": "Blunt"},
+    }
+    # name/image ({{PAGENAME}}) et resistance vide ne produisent pas de clé
+
+
+def test_parse_enemy_stats_without_infobox():
+    from parse import parse_enemy_stats
+    assert parse_enemy_stats("{{item\n| name = Truc\n}}") is None

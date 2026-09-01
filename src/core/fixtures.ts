@@ -71,6 +71,18 @@ export function mockupDataset(circuitBoardPrimary: "craft" | "loot" = "loot"): D
   ];
 
   const providers: Record<string, Provider> = {
+    security_bot: {
+      id: "security_bot", name: "Security Bot", kind: "enemy",
+      wikiTitle: "Security_Bot",
+      zones: [{ zone: "Office Sector" }],
+      drops: [{ item: "security_bot_cpu", qtyMin: 1, qtyMax: 1, chance: 1 }],
+      enemy: {
+        type: "Robot", codename: "GATE-01", origin: "Anteverse 2",
+        health: { torso: "80", legs: "10" },
+        melee: { damage: "50", type: "Blunt" },
+        weakness: "Electricity", immunity: "Poison",
+      },
+    },
     computer: {
       id: "computer", name: "Computer", kind: "destroyable",
       wikiTitle: "Computer",
