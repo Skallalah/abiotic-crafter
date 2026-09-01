@@ -67,3 +67,29 @@ def test_enemy_contents_separates_drops_from_harvest():
         # Bio Scrap est déjà listé en drop : on ne le compte pas deux fois
         {"item": "Raw Pest", "via": "harvest"},
     ]}
+
+
+def test_harvesting_a_corpse_is_a_kill_not_a_grow():
+    """« Harvesting the remains of an Exor » : récolte de cadavre, pas culture."""
+    from build import Report, fix_harvest_kinds
+
+    providers = {"exor": {"kind": "enemy"}, "aloe": {"kind": "container"}}
+    sources = {
+        "quill": [
+            {"kind": "drop", "zone": "Hydroplant", "target": "Exor", "targetId": "exor"},
+            # déjà couverte par le drop zoné : élaguée
+            {"kind": "grow", "target": "Exor", "targetId": "exor"},
+        ],
+        "skull": [
+            # pas de drop zoné : requalifiée en drop
+            {"kind": "grow", "target": "Exor", "targetId": "exor"},
+        ],
+        "leaf": [
+            # une vraie plante reste une culture
+            {"kind": "grow", "target": "Aloe", "targetId": "aloe"},
+        ],
+    }
+    fix_harvest_kinds(sources, providers, Report())
+    assert [s["kind"] for s in sources["quill"]] == ["drop"]
+    assert sources["skull"][0]["kind"] == "drop"
+    assert sources["leaf"][0]["kind"] == "grow"

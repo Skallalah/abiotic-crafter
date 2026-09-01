@@ -725,6 +725,35 @@ def link_targets_to_providers(sources: dict[str, list[dict]],
     report.counts["cibles sans fenêtre"] = orphan
 
 
+def fix_harvest_kinds(sources: dict[str, list[dict]],
+                      providers: dict[str, dict], report: Report) -> None:
+    """« Harvesting the remains of an Exor » n'est pas de la culture.
+
+    Le mot-clé `harvesting` vaut `grow` pour les plantes ; quand la cible est
+    une créature, la récolte passe par un kill — la table Enemies elle-même
+    range ça en `harvest1..10`. La source devient un drop, et disparaît si un
+    drop zoné du même monstre la couvre déjà.
+    """
+    for item_id, bucket in sources.items():
+        keep: list[dict] = []
+        for source in bucket:
+            if source["kind"] == "grow" and source.get("targetId"):
+                kind = providers.get(source["targetId"], {}).get("kind")
+                if kind in ("enemy", "butcher"):
+                    target = normalize_name(source.get("target") or "")
+                    covered = any(
+                        other["kind"] == "drop" and other.get("zone")
+                        and normalize_name(other.get("target") or "") == target
+                        for other in bucket)
+                    if covered:
+                        report.bump("récoltes de cadavre déjà couvertes")
+                        continue
+                    source["kind"] = "drop"
+                    report.bump("récoltes de cadavre requalifiées")
+            keep.append(source)
+        sources[item_id] = keep
+
+
 def flag_conditional_drops(sources: dict[str, list[dict]],
                            providers: dict[str, dict], report: Report) -> None:
     """Marque les drops soumis à une condition de progression.
@@ -966,6 +995,7 @@ def main() -> None:
 
     providers = build_providers(resolver, sources, all_zones, report)
     link_targets_to_providers(sources, providers, report)
+    fix_harvest_kinds(sources, providers, report)
     flag_conditional_drops(sources, providers, report)
 
     scope = {r["output"]["item"] for r in recipes}
@@ -1037,6 +1067,9 @@ def main() -> None:
     print(f"  ventes localisées (PNJ)      {report.counts.get('ventes localisées par la page du PNJ', 0)}")
     print(f"  dérivations de cuisine       {report.counts.get('dérivations cuisson/découpe/décomposition', 0)}")
     print(f"  drops conditionnels          {report.counts.get('drops conditionnels marqués', 0)}")
+    print(f"  récoltes de cadavre          "
+          f"{report.counts.get('récoltes de cadavre requalifiées', 0)} requalifiées, "
+          f"{report.counts.get('récoltes de cadavre déjà couvertes', 0)} élaguées")
     print(f"  sources dérivées résolues    {report.counts.get('sources dérivées résolues', 0)}")
     print(f"  items purement dérivés       {len(derives)}")
     with_icon = sum(1 for z in zones if z.get("icon"))

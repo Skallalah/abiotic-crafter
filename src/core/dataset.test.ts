@@ -454,6 +454,19 @@ describe("découverte (§5.7), sur les vraies données", () => {
       .toContain("Completing");
   });
 
+  it("ne cultive jamais une créature : récolter un cadavre est un kill", () => {
+    // « harvesting the remains of an Exor » donnait un mot-clé GROW sur un
+    // ennemi ; la table Enemies elle-même range ça en harvest
+    for (const item of Object.values(dataset.items)) {
+      for (const source of item.sources) {
+        if (source.kind !== "grow" || !source.targetId) continue;
+        const kind = model.provider(source.targetId)?.kind;
+        expect(kind, `${item.id} → ${source.target}`).not.toBe("enemy");
+        expect(kind, `${item.id} → ${source.target}`).not.toBe("butcher");
+      }
+    }
+  });
+
   it("localise les ventes par la page du PNJ et les créatures par leur prose", () => {
     // « trading with The Blacksmith » → Manufacturing West, via {{Person}} ;
     // la Peccary Sow → ses zones, via les puces de son == Locations ==

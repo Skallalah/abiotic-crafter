@@ -724,3 +724,15 @@ affichaient des doublons. Fusion par item, l'entrée riche gagne, `via` complét
 Contre-exemple qui valide : Charged Distillation reste visible via Black Gunk,
 drop *ordinaire* (« ×2 », sans condition) du même rat. Le cas au test de
 non-régression, l'invariant toutes-zones intact, 169 craftables à trois zones.
+
+
+### « GROW Exor ? » — récolter un cadavre est un kill
+Le mot-clé `harvesting` du parseur de prose vaut `grow` — juste pour les
+plantes, faux pour « harvesting the remains of an Exor ». 48 sources
+« cultivaient » des créatures. La table `Enemies` elle-même range ces butins en
+`harvest1..10`, côté kill. Une passe post-providers requalifie : une source
+`grow` dont la cible est une créature (`enemy`, `butcher`) devient un `drop`,
+et disparaît quand un drop zoné du même monstre la couvre déjà — 47 élaguées,
+1 requalifiée. Un test interdit désormais toute culture de créature dans le
+dataset. Effet collatéral sain : l'Exor Quill perd sa source sans zone et se
+gate correctement — les Exor ne rôdent pas dans les zones du début.
