@@ -409,13 +409,20 @@ button.censored, .censored { cursor: default; }
 @media (prefers-reduced-motion: no-preference) {
   .node.parent { transition: opacity .12s, border-color .12s; }
 }
-/* l'aide vit dans l'encart d'exploration, pas dans la barre du haut */
+/* l'aide vit dans l'encart d'exploration, pas dans la barre du haut.
+   Sur pastille de panneau : posée à même le fond gris du thème rétro, elle
+   était illisible (~2,5:1). */
 .canvas-hint {
-  position: absolute; bottom: 10px; left: 12px; right: 12px; z-index: 2;
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  z-index: 2; max-width: calc(100% - 24px); width: max-content;
+  padding: 5px 12px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius);
   text-align: center; color: var(--ink-2); font-size: 12px;
   pointer-events: none;
 }
 .canvas-hint .up { color: var(--teal-ink); }
+.canvas-hint b, .canvas-hint kbd { color: var(--ink); }
 
 /* ------------------------------------------------------------------
    Objets dérivés : l'origine est ce qu'on va réellement ramasser.
