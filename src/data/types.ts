@@ -43,6 +43,9 @@ export interface Source {
    * les autres, mais il ne prouve jamais une disponibilité (§5.7).
    */
   conditional?: boolean;
+  /** Présence retardée (delayedPresence) : la source ne prouve et ne montre
+   *  rien tant que cette zone n'est pas découverte. */
+  requiresZone?: string;
 }
 
 export interface Item {
@@ -120,6 +123,8 @@ export interface ProviderZone {
   zone: string;
   /** Emplacements précis dans cette zone, même convention que `Source.where`. */
   where?: string[];
+  /** Présence retardée : la zone ne compte qu'une fois celle-ci découverte. */
+  requires?: string;
 }
 
 /**
@@ -192,6 +197,10 @@ export type ItemOverride = Partial<Omit<Item, "id" | "meta">>;
 export interface DelayedPresence {
   target: string;
   zone: string;
+  /** La zone dont la découverte lève le retard : le Symphonist de Flathill
+   *  apparaît « après avoir complété Flathill » — au mieux de ce que le suivi
+   *  sait mesurer, une fois Flathill découverte. */
+  until: string;
 }
 
 export interface Overrides {

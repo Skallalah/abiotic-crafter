@@ -13,12 +13,14 @@
     {
       "_condition": "Lab Rats only start spawning in the Office Sector once Manufacturing West has been reached; the wiki states their presence in the sector infobox and the timing only in loose prose",
       "target": "Lab Rat",
-      "zone": "Office Sector"
+      "zone": "Office Sector",
+      "until": "Manufacturing West"
     },
     {
       "_condition": "Symphonists can only spawn after fully completing Flathill, per their own page; the Flathill infobox lists them without that timing",
       "target": "Symphonist",
-      "zone": "Flathill"
+      "zone": "Flathill",
+      "until": "Flathill"
     }
   ]
 }

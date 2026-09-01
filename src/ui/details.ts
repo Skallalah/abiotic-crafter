@@ -317,8 +317,9 @@ export class DetailsWindows {
       const block = document.createElement("div");
       let hidden = 0;
       for (const entry of provider.zones) {
-        if (!this.availability.zone(entry.zone)) {
-          hidden += 1;
+        if (!this.availability.zone(entry.zone)
+            || (entry.requires && !this.availability.zone(entry.requires))) {
+          hidden += 1;              // présence retardée : compter, pas nommer
           continue;
         }
         block.appendChild(this.zoneBlock(entry.zone, null, entry.where ?? []));

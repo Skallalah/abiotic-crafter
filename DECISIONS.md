@@ -857,10 +857,13 @@ parser, même la table de drops n'en dit rien.
 
 C'est le cas d'école de `data/overrides.json` : une correction humaine
 par-dessus la donnée régénérée. Nouveau levier générique **`delayedPresence`**
-(cible + zone) : les sources de drop du couple deviennent `conditional` —
-affichées, mais ne prouvant aucune disponibilité, la machinerie des
-« Completing Canaan » resservie telle quelle — et la zone quitte le provider,
-dont la disponibilité passe par les zones où on le rencontre vraiment d'abord.
+(cible + zone + `until`) : sources de drop et zone du provider portent la
+zone-condition, et ne comptent — ni ne s'affichent — qu'une fois `until`
+découverte. Le calcul reste dynamique dans `computeAvailability`, la donnée
+n'est pas mutilée. Une première version posait un `conditional` définitif et
+retirait la zone du provider : signalé sur Porcelain Shards, le « kill
+Symphonist » de Flathill restait introuvable même Flathill découverte, alors
+que sa condition était acquise au mieux de ce que le suivi sait mesurer.
 Effet mesuré : Rat Scanner et Rat Pack cessent d'être « disponibles » à Office
 seul, et reviennent avec Manufacturing — exactement la réalité du jeu.
 
@@ -872,9 +875,9 @@ phrases de progression de sa page (« begin to appear », « after completing »
 
 - **Symphonist** : « They can only spawn after fully completing Flathill » —
   l'infobox de Flathill le liste sans ce timing. Deuxième entrée
-  `delayedPresence`, sa seule zone tombe : introuvable tant que la donnée ne
-  sait pas modéliser « Flathill complété », comme les drops « Completing
-  Canaan » ;
+  `delayedPresence`, avec `until: Flathill` : le suivi ne sait pas mesurer
+  « complété », découvrir la zone est la meilleure borne — il apparaît donc
+  dès Flathill découverte, et jamais avant ;
 - **Peccary Sow** : son « Furniture Store » venait d'une sous-puce parlant de
   zombies (« ** After completing the Furniture Store multiple Zombies
   spawn… »). `zone_mentions` ignore désormais les sous-puces — elles décrivent

@@ -471,27 +471,42 @@ describe("découverte (§5.7), sur les vraies données", () => {
   });
 
   it("retarde le Symphonist : il n'apparaît qu'après avoir complété Flathill", () => {
-    // sa propre page le dit ; l'infobox de Flathill le liste sans ce timing
-    expect(model.provider("symphonist")!.zones).toEqual([]);
+    // sa propre page le dit ; l'infobox de Flathill le liste sans ce timing.
+    // Le retard se lève à la découverte de Flathill (`until`) — le suivi ne
+    // sait pas mesurer « complété », découvrir la zone est la meilleure borne
+    expect(model.provider("symphonist")!.zones)
+      .toEqual([{ zone: "Flathill", requires: "Flathill" }]);
+    const before = computeAvailability(model, state("Office Sector"));
+    expect(before.provider("symphonist")).toBe(false);
     const flathill = computeAvailability(model,
       state("Office Sector", "Flathill", "Far Garden"));
-    expect(flathill.provider("symphonist")).toBe(false);
+    expect(flathill.provider("symphonist")).toBe(true);
+    // la régression vécue : la ligne « kill Symphonist » de Porcelain Shards
+    // redevient visible une fois Flathill découverte
+    const kill = model.item("porcelain_shards").sources.find(
+      (s) => s.kind === "drop" && s.target === "Symphonist")!;
+    expect(before.source(kill)).toBe(false);
+    expect(flathill.source(kill)).toBe(true);
   });
 
   it("retarde la présence du Lab Rat à Office : l'override delayedPresence", () => {
     // l'infobox d'Office le déclare, mais les rats n'y apparaissent qu'une
     // fois Manufacturing atteint — le wiki ne le dit qu'en prose floue
     const rat = model.provider("lab_rat")!;
-    expect(rat.zones.some((z) => z.zone === "Office Sector")).toBe(false);
+    expect(rat.zones.find((z) => z.zone === "Office Sector")!.requires)
+      .toBe("Manufacturing West");
     const office = computeAvailability(model, state("Office Sector"));
     expect(office.item("rat_scanner")).toBe(false);
     expect(office.provider("lab_rat")).toBe(false);
     const later = computeAvailability(model, state("Office Sector", "Manufacturing West"));
     expect(later.item("rat_scanner")).toBe(true);
-    // la ligne « KILL Lab Rat » d'Office reste affichée, marquée conditionnelle
+    expect(later.provider("lab_rat")).toBe(true);
+    // la ligne « KILL Lab Rat » d'Office attend Manufacturing pour s'afficher
     const gunk = model.item("black_gunk").sources.find(
       (s) => s.kind === "drop" && s.target === "Lab Rat" && s.zone === "Office Sector");
-    expect(gunk?.conditional).toBe(true);
+    expect(gunk?.requiresZone).toBe("Manufacturing West");
+    expect(office.source(gunk!)).toBe(false);
+    expect(later.source(gunk!)).toBe(true);
   });
 
   it("ne cultive jamais une créature : récolter un cadavre est un kill", () => {

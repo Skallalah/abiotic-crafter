@@ -139,7 +139,9 @@ export function computeAvailability(model: Model, state: DiscoveryState): Availa
     item: (id) => items.has(id),
     provider: (id) => providers.has(id),
     zone: (name) => name === OTHER_METHODS || discovered.has(name),
-    source: (source) => !source.zone || discovered.has(source.zone),
+    source: (source) =>
+      (!source.zone || discovered.has(source.zone))
+      && (!source.requiresZone || discovered.has(source.requiresZone)),
   };
 }
 
@@ -150,7 +152,9 @@ function availableProviders(
   const out = new Set<ProviderId>();
   for (const provider of Object.values(model.ds.providers)) {
     const zones = provider.zones;
-    if (zones.some((z) => discovered.has(z.zone))
+    // une zone à présence retardée ne compte qu'une fois sa condition levée
+    if (zones.some((z) => discovered.has(z.zone)
+                          && (!z.requires || discovered.has(z.requires)))
         || (zones.length === 0 && GENERIC_KINDS.has(provider.kind))) {
       out.add(provider.id);
     }
@@ -199,7 +203,7 @@ function reachable(
       if (available.has(item.id)) continue;
       const ok =
         item.sources.some((s) =>
-          s.conditional
+          s.conditional || (s.requiresZone && !discovered.has(s.requiresZone))
             ? false
             : s.zone
             ? discovered.has(s.zone)

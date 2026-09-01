@@ -37,23 +37,27 @@ export function mergeOverrides(scraped: Dataset, overrides: Overrides): Dataset 
 /**
  * « Le Lab Rat n'apparaît dans Office Sector que plus tard. » Le wiki
  * l'affirme présent (infobox du secteur) et ne date l'arrivée qu'en prose
- * floue : la correction est humaine. Les drops du couple deviennent
- * `conditional` — affichés, mais ne prouvant aucune disponibilité — et la
- * zone quitte le provider, dont la disponibilité passe par les zones où on
- * le rencontre vraiment d'abord.
+ * floue : la correction est humaine. Le retard est **dynamique** : sources et
+ * zone du provider portent `until`, et ne comptent — ni ne s'affichent —
+ * qu'une fois cette zone découverte. Une première version posait un
+ * `conditional` définitif : le Symphonist restait introuvable même Flathill
+ * découverte, alors que sa condition (« compléter Flathill ») était acquise
+ * au mieux de ce que le suivi sait mesurer.
  */
 function applyDelay(dataset: Dataset, late: DelayedPresence): void {
   for (const item of Object.values(dataset.items)) {
     for (const source of item.sources) {
       if (source.kind === "drop" && source.target === late.target
           && source.zone === late.zone) {
-        source.conditional = true;
+        source.requiresZone = late.until;
       }
     }
   }
   for (const provider of Object.values(dataset.providers)) {
     if (provider.name === late.target) {
-      provider.zones = provider.zones.filter((z) => z.zone !== late.zone);
+      for (const zone of provider.zones) {
+        if (zone.zone === late.zone) zone.requires = late.until;
+      }
     }
   }
 }
