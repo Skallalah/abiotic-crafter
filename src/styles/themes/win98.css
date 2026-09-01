@@ -62,8 +62,9 @@
 
   --logo-ink: #000000;
   --frame: #d4d0c8;
-  --title-bg: linear-gradient(90deg, #694700, #f0b641);
-  --title-ink: #000000;
+  /* la barre de titre d'époque : bleu dégradé au focus, grise sinon */
+  --title-bg: linear-gradient(90deg, #808080, #b5b5b5);
+  --title-ink: #ffffff;
 }
 
 /* -------------------------------------------------------------------- fonte
@@ -246,7 +247,10 @@
   height: 22px;
   line-height: 22px;
 }
-[data-theme="win98"] .winbox.app .wb-title { padding-left: 4px; }
+[data-theme="win98"] .winbox.app .wb-title { padding-left: 4px; font-weight: 700; }
+[data-theme="win98"] .winbox.app.focus .wb-header {
+  background: linear-gradient(90deg, #000080, #1084d0);
+}
 [data-theme="win98"] .winbox.app .wb-body {
   top: 28px;
   left: 3px;
