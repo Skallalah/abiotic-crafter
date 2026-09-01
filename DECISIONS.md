@@ -930,3 +930,12 @@ La santé vit dans son propre bloc plutôt qu'en ligne de fiche : quatre
 parties du corps tenaient mal sur une ligne — une ligne par partie, avec un
 pictogramme dessiné main (buste, torse, bras, jambes) peint comme ceux des
 catégories.
+Les sensibilités (weakness/resistance/immunity) vivent en colonne à droite
+des PV : une ligne par type de dégât, icône dessinée main teintée d'une
+couleur **choisie main** — contrairement aux zones, il n'y a aucun visuel du
+wiki d'où l'extraire — posée en style inline comme les couleurs de zones,
+jamais dans le CSS. Douze types dessinés ; « Door Bash » et « Shotgun »
+retombent sur un losange neutre. Au passage, le parseur d'infobox découpait
+mal les pages posant plusieurs champs sur une ligne (« | weakness = Fire
+| immunity = … ») : la valeur s'arrête désormais au champ suivant, et les
+sensibilités sont des listes, pas des chaînes à virgules.

@@ -3,7 +3,7 @@ import "winbox/dist/css/winbox.min.css";
 
 import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
-import { BODY_ICONS, svgIcon } from "./icons";
+import { BODY_ICONS, DAMAGE_FALLBACK, DAMAGE_TYPES, svgIcon } from "./icons";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
@@ -261,14 +261,14 @@ export class DetailsWindows {
             .filter(Boolean).join(" — ")]);
         }
       }
-      if (stats.weakness) props.push(["Weakness", stats.weakness]);
-      if (stats.resistance) props.push(["Resistance", stats.resistance]);
-      if (stats.immunity) props.push(["Immunity", stats.immunity]);
     }
     fragment.appendChild(this.head(provider.name, propList(props),
                                    providerTile(provider)));
 
-    // la santé en bloc à part : une ligne par partie du corps, icône + valeur
+    // la santé et les sensibilités côte à côte : à gauche une ligne par
+    // partie du corps, à droite les types de dégâts iconés et colorés
+    const vitals = document.createElement("div");
+    vitals.className = "vitals";
     if (stats?.health) {
       const block = document.createElement("div");
       block.className = "health";
@@ -285,8 +285,33 @@ export class DetailsWindows {
         row.append(svgIcon(BODY_ICONS[part]), label, amount);
         block.appendChild(row);
       }
-      fragment.appendChild(this.section("Health", block));
+      vitals.appendChild(this.section("Health", block));
     }
+    const senscol = document.createElement("div");
+    senscol.className = "senscol";
+    for (const [label, list] of [
+      ["Weakness", stats?.weakness],
+      ["Resistance", stats?.resistance],
+      ["Immunity", stats?.immunity],
+    ] as const) {
+      if (!list?.length) continue;
+      const block = document.createElement("div");
+      block.className = "sens";
+      for (const type of list) {
+        const damage = DAMAGE_TYPES[type] ?? DAMAGE_FALLBACK;
+        const row = document.createElement("div");
+        row.className = "hp";
+        const icon = svgIcon(damage.icon);
+        icon.style.color = damage.color;
+        const name = document.createElement("span");
+        name.textContent = type;
+        row.append(icon, name);
+        block.appendChild(row);
+      }
+      senscol.appendChild(this.section(label, block));
+    }
+    if (senscol.childElementCount > 0) vitals.appendChild(senscol);
+    if (vitals.childElementCount > 0) fragment.appendChild(vitals);
 
     if (provider.zones.length > 0) {
       const block = document.createElement("div");

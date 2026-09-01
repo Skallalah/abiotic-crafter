@@ -51,7 +51,11 @@
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
   }
   .search::placeholder { color: var(--ink-2); }
-  /* bloc de santé d'une créature : une ligne par partie du corps */
+  /* santé et sensibilités d'une créature, côte à côte */
+  .vitals { display: flex; gap: 20px; align-items: flex-start; }
+  .vitals > * { flex: 1; min-width: 0; }
+  .senscol { display: grid; gap: 2px; }
+  .sens { display: grid; gap: 4px; }
   .health { display: grid; gap: 4px; }
   .hp { display: flex; align-items: center; gap: 8px; }
   .hp svg { width: 16px; height: 16px; flex: none; color: var(--logo-ink); }

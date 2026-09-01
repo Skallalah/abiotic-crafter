@@ -71,6 +71,56 @@ export const BODY_ICONS = {
   legs: "M4 1h8v2H4zM4 4h3.2v11H4zM8.8 4H12v11H8.8z",
 } as const;
 
+/**
+ * Types de dégâts, pour les sensibilités d'une créature (weakness /
+ * resistance / immunity). Clé = intitulé du wiki. Les couleurs sont choisies
+ * main — aucun visuel du wiki à extraire ici, contrairement aux zones — et
+ * posées en style inline comme les couleurs de zones, jamais dans le CSS ;
+ * elles doivent rester lisibles sur l'argent Windows 98 comme sur le sombre.
+ */
+export const DAMAGE_TYPES: Record<string, { icon: string; color: string }> = {
+  "Fire": {
+    color: "#d9642b",
+    icon: "M8 1c3 3 5 5.5 5 8.5A5 5 0 0 1 3 9.5C3 8 4 6.5 5 5c0 1.5 1 2.5 "
+      + "2 3-.5-2.5 0-5 1-7z",
+  },
+  "Electricity": { color: "#dfa815", icon: "M9.5 1L3 9h3.5L6 15l6.5-8H9z" },
+  "Acid": { color: "#8bba26", icon: "M8 1C5.5 5 4 7.5 4 10a4 4 0 0 0 8 0c0-2.5-1.5-5-4-9z" },
+  "Cold": {
+    color: "#45a8dd",
+    icon: "M7 1h2v14H7zM2.3 3.7l1.4-1.4 10 10-1.4 1.4zM13.7 3.7l-1.4-1.4-10 "
+      + "10 1.4 1.4z",
+  },
+  "Holy": { color: "#8e7cc3", icon: "M6.5 1h3v4H14v3H9.5V15h-3V8H2V5h4.5z" },
+  "Plasma": {
+    color: "#3ec6b8",
+    icon: "M8 3a5 5 0 1 1 0 10A5 5 0 0 1 8 3zm0 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
+  },
+  "Laser": { color: "#d63a6a", icon: "M1 13L13 1l2 2L3 15z" },
+  "Bullet": {
+    color: "#8d6e63",
+    icon: "M8 1C6.9 1 6 2.6 6 4.2V8h4V4.2C10 2.6 9.1 1 8 1zM6 9h4v3.5H6zM5 13.5h6V15H5z",
+  },
+  "Explosive": {
+    color: "#c94f4f",
+    icon: "M8 1l1.5 4L14 3l-2.5 3.5L15 8l-3.5 1.5L14 13l-4.5-2L8 15l-1.5-4L2 "
+      + "13l2.5-3.5L1 8l3.5-1.5L2 3l4.5 2z",
+  },
+  "Sharp": { color: "#7f8fa6", icon: "M13 1l2 2-8 9-4 2 2-4z" },
+  "Blunt": { color: "#99917f", icon: "M4 2h8v4H4zM7 6h2v8H7z" },
+  "X-Ray Field": {
+    color: "#46c288",
+    icon: "M8 7a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM6.5 1h3L9 6H7zM1.8 12.5l1.5-2.6L7 "
+      + "11l-1.5 2.6zM14.2 12.5l-1.5-2.6L9 11l1.5 2.6z",
+  },
+};
+
+/** Type inconnu du dessin (« Door Bash », « Shotgun ») : losange, encre neutre. */
+export const DAMAGE_FALLBACK = {
+  icon: "M8 2l6 6-6 6-6-6z",
+  color: "var(--ink-2)",
+};
+
 const NS = "http://www.w3.org/2000/svg";
 
 /** Monte le chemin en `<svg>` prêt à poser dans un bouton. */

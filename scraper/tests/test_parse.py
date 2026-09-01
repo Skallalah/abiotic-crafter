@@ -457,11 +457,27 @@ Du texte ensuite."""
         "codename": "IS-0178-A",
         "origin": "Anteverse 2",
         "identifiedBy": 'Dr. Kathy "KP" Pendleton',
-        "weakness": "Fire",
+        "weakness": ["Fire"],
         "health": {"head": "80", "torso": "80"},
         "melee": {"damage": "50", "type": "Blunt"},
     }
     # name/image ({{PAGENAME}}) et resistance vide ne produisent pas de clé
+
+
+def test_parse_enemy_stats_splits_lists_and_inline_fields():
+    from parse import parse_enemy_stats
+    # certaines pages posent plusieurs champs sur la même ligne : la valeur
+    # s'arrête au champ suivant, elle ne l'avale pas
+    wikitext = """{{enemy
+| type = Robot
+| weakness = Acid,Blunt, Sharp | immunity = Electricity
+}}"""
+    stats = parse_enemy_stats(wikitext)
+    assert stats == {
+        "type": "Robot",
+        "weakness": ["Acid", "Blunt", "Sharp"],
+        "immunity": ["Electricity"],
+    }
 
 
 def test_parse_enemy_stats_without_infobox():

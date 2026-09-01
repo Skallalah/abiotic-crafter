@@ -132,9 +132,9 @@ export interface EnemyStats {
   codename?: string;
   origin?: string;
   identifiedBy?: string;
-  weakness?: string;
-  resistance?: string;
-  immunity?: string;
+  weakness?: string[];
+  resistance?: string[];
+  immunity?: string[];
   health?: { head?: string; torso?: string; arms?: string; legs?: string };
   melee?: { damage?: string; type?: string };
   ranged?: { damage?: string; type?: string };

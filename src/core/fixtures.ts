@@ -80,7 +80,7 @@ export function mockupDataset(circuitBoardPrimary: "craft" | "loot" = "loot"): D
         type: "Robot", codename: "GATE-01", origin: "Anteverse 2",
         health: { torso: "80", legs: "10" },
         melee: { damage: "50", type: "Blunt" },
-        weakness: "Electricity", immunity: "Poison",
+        weakness: ["Electricity", "Door Bash"], immunity: ["Fire"],
       },
     },
     computer: {

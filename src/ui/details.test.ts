@@ -50,9 +50,28 @@ describe("fiche d'un provider", () => {
       ["Codename", "GATE-01"],
       ["Origin", "Anteverse 2"],
       ["Melee", "50 — Blunt"],
-      ["Weakness", "Electricity"],
-      ["Immunity", "Poison"],
     ]);
+  });
+
+  it("icône et couleur pour chaque sensibilité, en colonne à côté des PV", () => {
+    document.body.innerHTML = `<div data-provider="security_bot"></div>`;
+    const windows = new DetailsWindows(model, () => {}, "https://wiki/", everything);
+    instances.push(windows);
+    rightClick(document.querySelector("[data-provider]")!);
+    const vitals = document.querySelector(".winbox .vitals")!;
+    // les deux blocs vivent côte à côte dans le même rang
+    expect(vitals.querySelector(".health")).toBeTruthy();
+    const groups = [...vitals.querySelectorAll(".senscol .details-section h4")]
+      .map((h) => h.textContent);
+    expect(groups).toEqual(["Weakness", "Immunity"]);
+    const rows = [...vitals.querySelectorAll(".sens .hp")];
+    expect(rows.map((r) => r.textContent)).toEqual(["Electricity", "Door Bash", "Fire"]);
+    // chaque type porte son icône teintée ; un type inconnu retombe sur le
+    // losange en encre neutre
+    const colors = rows.map((r) => r.querySelector("svg")!.style.color);
+    expect(colors[0]).not.toBe("");
+    expect(colors[1]).toBe("var(--ink-2)");
+    expect(colors[2]).not.toBe(colors[0]);
   });
 
   it("détaille la santé dans son propre bloc, une ligne par partie", () => {

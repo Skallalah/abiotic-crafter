@@ -208,7 +208,9 @@ def _infobox_list(wikitext: str, prefix: str) -> list[str]:
 
 
 _ENEMY_BOX = re.compile(r"\{\{\s*enemy\b(.*?)\n\}\}", re.S | re.I)
-_ENEMY_FIELD = re.compile(r"\|\s*(\w+)\s*=\s*([^\n]*)")
+# le début d'un champ ; la valeur court jusqu'au champ suivant, car certaines
+# pages en mettent plusieurs par ligne (« | weakness = Fire | immunity = … »)
+_ENEMY_FIELD = re.compile(r"\|\s*(\w+)\s*=")
 
 
 def parse_enemy_stats(wikitext: str) -> dict | None:
@@ -222,17 +224,24 @@ def parse_enemy_stats(wikitext: str) -> dict | None:
     match = _ENEMY_BOX.search(wikitext)
     if not match:
         return None
+    body = match.group(1)
     raw: dict[str, str] = {}
-    for key, value in _ENEMY_FIELD.findall(match.group(1)):
+    starts = list(_ENEMY_FIELD.finditer(body))
+    for field, nxt in zip(starts, starts[1:] + [None]):
+        value = body[field.end():nxt.start() if nxt else len(body)]
         value = strip_links(value).strip().rstrip("}")
         if value:
-            raw[key] = value
+            raw[field.group(1)] = value
 
     stats: dict = {}
-    for key in ("type", "codename", "origin", "identifiedBy",
-                "weakness", "resistance", "immunity"):
+    for key in ("type", "codename", "origin", "identifiedBy"):
         if raw.get(key):
             stats[key] = raw[key]
+    # les sensibilités sont des listes de types de dégâts, en anglais du wiki
+    for key in ("weakness", "resistance", "immunity"):
+        parts = [p.strip() for p in raw.get(key, "").split(",") if p.strip()]
+        if parts:
+            stats[key] = parts
     health = {part: raw[f"health{part.capitalize()}"]
               for part in ("head", "torso", "arms", "legs")
               if raw.get(f"health{part.capitalize()}")}
