@@ -360,9 +360,13 @@ describe("zones", () => {
     }
   });
 
-  it("couvre presque toutes les zones", () => {
-    const withIcon = dataset.zones.filter((z) => z.icon).length;
-    expect(withIcon).toBeGreaterThanOrEqual(dataset.zones.length - 3);
+  it("donne une pastille et une couleur à toutes les zones", () => {
+    // les seules zones qui en manquaient étaient des redirections du wiki,
+    // désormais fondues dans leur cible (canonical_zone)
+    expect(dataset.zones.filter((z) => !z.icon)).toEqual([]);
+    expect(dataset.zones.filter((z) => !z.color)).toEqual([]);
+    expect(dataset.zones.map((z) => z.name))
+      .not.toContain("Mycofields");
   });
 });
 
@@ -384,9 +388,11 @@ describe("découverte (§5.7), sur les vraies données", () => {
       "Cascade Laboratories", "Far Garden", "Flathill", "Hydroplant",
       "Manufacturing West", "Reactors", "Residence Sector", "Security Sector",
     ]);
-    // les cinq lieux que rien ne relie restent proposés, à part
+    // les lieux que rien ne relie restent proposés, à part — les zones
+    // fantômes (Mycofields, Power Services, Divarication) étaient des
+    // redirections du wiki, fondues dans leur zone réelle
     expect(entries.filter((f) => f.uncharted).map((f) => f.zone).sort()).toEqual([
-      "Divarication", "Mycofields", "North Pole", "Power Services", "Temple of Stone",
+      "North Pole", "Temple of Stone",
     ]);
   });
 

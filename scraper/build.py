@@ -221,6 +221,30 @@ def amounts(row: dict) -> tuple[int, int]:
     return min(qty_min, qty_max), qty_max
 
 
+_REDIRECT = re.compile(r"#REDIRECT\s*\[\[([^\]#|]+)", re.I)
+_zone_canon: dict[str, str] = {}
+
+
+def canonical_zone(name: str) -> str:
+    """Suit les redirections du wiki : « Mycofields » n'est pas une zone.
+
+    Trois sous-titres de pages item fabriquaient des zones fantômes — sans
+    pastille, sans liens, échouées sous « Uncharted » : Mycofields est un alias
+    de The Mycofields, Power Services un quartier de Reactors, Divarication une
+    aile de Fragments. Leur page en cache n'est qu'un `#REDIRECT [[…]]`.
+    """
+    if name not in _zone_canon:
+        target, seen = name, set()
+        while target not in seen:
+            seen.add(target)
+            match = _REDIRECT.match((fetch_wikitext.read_page(target) or "").strip())
+            if not match:
+                break
+            target = match.group(1).strip()
+        _zone_canon[name] = target
+    return _zone_canon[name]
+
+
 def source_key(source: dict) -> tuple:
     return (source["kind"], source.get("zone"), source.get("target"), source.get("from"))
 
@@ -234,6 +258,8 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
     def add(item_id: str | None, source: dict) -> None:
         if not item_id:
             return
+        if source.get("zone"):
+            source["zone"] = canonical_zone(source["zone"])
         bucket = sources[item_id]
         key = source_key(source)
         for existing in bucket:
@@ -708,9 +734,10 @@ def build_providers(resolver: Resolver, sources: dict[str, list[dict]],
             if image:
                 provider["icon"] = icon_filename(image)
             for entry in parse_locations(wikitext, page):
-                known = next((z for z in zones if z["zone"] == entry["zone"]), None)
+                zone_name = canonical_zone(entry["zone"])
+                known = next((z for z in zones if z["zone"] == zone_name), None)
                 if known is None:
-                    known = {"zone": entry["zone"]}
+                    known = {"zone": zone_name}
                     zones.append(known)
                 if entry.get("where"):
                     known["where"] = entry["where"]
@@ -718,7 +745,7 @@ def build_providers(resolver: Resolver, sources: dict[str, list[dict]],
                 # les pages de créatures décrivent leurs lieux en prose, sans
                 # sous-titres de zone : la Peccary Sow en nomme trois ainsi
                 for name_ in zone_mentions(wikitext, zone_names):
-                    zones.append({"zone": name_})
+                    zones.append({"zone": canonical_zone(name_)})
                     report.bump("zones de provider lues en prose")
 
         if "icon" not in provider:

@@ -885,3 +885,16 @@ phrases de progression de sa page (« begin to appear », « after completing »
 
 Le Zombie garde son Furniture Store : il le peuple réellement, c'est là qu'on
 le rencontre.
+
+## Les zones sans pastille étaient des redirections du wiki
+
+Trois zones du sélecteur n'avaient ni image ni couleur : Mycofields, Power
+Services, Divarication. Leur page wiki n'existe pas — ce sont des redirections
+(`#REDIRECT [[…]]`) vers The Mycofields, Reactors#Locations et
+Fragments#Botanical_Wing. Elles naissaient de sous-titres `== Locations ==` de
+pages item qui emploient l'alias. Plutôt que de leur chercher une image, le
+scraper suit désormais la redirection (`canonical_zone` dans `build.py`, appelée
+au point d'entrée unique des sources et sur les zones des providers) : les
+fantômes fusionnent dans leur zone réelle. 28 zones, toutes avec pastille et
+couleur ; « Uncharted » retombe à North Pole et Temple of Stone, les deux seuls
+lieux que le wiki ne relie vraiment à rien.

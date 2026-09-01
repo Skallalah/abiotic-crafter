@@ -93,3 +93,18 @@ def test_harvesting_a_corpse_is_a_kill_not_a_grow():
     assert [s["kind"] for s in sources["quill"]] == ["drop"]
     assert sources["skull"][0]["kind"] == "drop"
     assert sources["leaf"][0]["kind"] == "grow"
+
+
+def test_canonical_zone_follows_wiki_redirects(tmp_path, monkeypatch):
+    """« Power Services » n'est pas une zone : sa page redirige vers Reactors."""
+    import build
+    import fetch_wikitext
+
+    pages = {"Power Services": "#REDIRECT [[Reactors#Locations]]",
+             "Reactors": "{{Sector}}\nDu contenu."}
+    monkeypatch.setattr(fetch_wikitext, "read_page", lambda t: pages.get(t))
+    build._zone_canon.clear()
+    assert build.canonical_zone("Power Services") == "Reactors"
+    assert build.canonical_zone("Reactors") == "Reactors"
+    assert build.canonical_zone("Nulle Part") == "Nulle Part"
+    build._zone_canon.clear()
