@@ -126,14 +126,16 @@ export function sourceLine(
   // rend cliquable ici plutôt que chez les quatre appelants de sourceLine.
   if (source.targetId && model.hasProvider(source.targetId)) {
     const link = providerLink(source.targetId, object);
-    if (availability && !availability.provider(source.targetId)) spoil(link);
+    if (availability && !availability.provider(source.targetId)) {
+      veilProvider(availability, link);
+    }
     li.append(" ", link);
   } else if (source.from && model.has(source.from) && onSelect) {
     // « salvage Pocket Watch (1) » : l'origine est un item, aussi vivant qu'un
     // contenant — clic gauche le sélectionne, clic droit ouvre sa fenêtre, où
     // l'on découvre par exemple que le coffre à montres existe aussi à Flathill
     const link = itemLink(model, source.from, onSelect, object);
-    if (availability && !availability.item(source.from)) spoil(link);
+    if (availability) veilName(availability, source.from, link);
     li.append(" ", link);
   } else {
     const text = document.createElement("span");
@@ -141,10 +143,24 @@ export function sourceLine(
     if (source.from && model.has(source.from)) text.dataset.item = source.from;
     // « salvage Fire Extinguisher (2) » ne doit pas nommer une origine qu'on
     // n'a pas encore croisée
-    if (availability && source.from && !availability.item(source.from)) spoil(text);
+    if (availability && source.from) veilName(availability, source.from, text);
     li.append(" ", text);
   }
   return li;
+}
+
+/** Le réglage spoiler pour un lien de contenant indisponible. */
+function veilProvider(availability: Availability, link: HTMLButtonElement): void {
+  if (availability.spoilers === "show") return;
+  if (availability.spoilers === "blur") {
+    spoil(link);
+    return;
+  }
+  link.replaceChildren(redactedBar());
+  link.classList.add("censored");
+  link.title = "Beyond your discovered zones";
+  delete link.dataset.provider;
+  link.disabled = true;
 }
 
 /** Nom d'un contenant, cliquable : clic gauche comme clic droit ouvrent sa fenêtre. */
@@ -213,6 +229,48 @@ export function spoil(el: HTMLElement): HTMLElement {
   el.classList.add("spoiler");
   el.title = "Beyond your discovered zones — hover to reveal";
   return el;
+}
+
+/** La barre de censure, identique à celle de la prose. */
+function redactedBar(): HTMLElement {
+  const bar = document.createElement("span");
+  bar.className = "redacted";
+  bar.textContent = "[REDACTED]";
+  return bar;
+}
+
+/**
+ * Applique le réglage spoiler (§5.7) à un élément qui nomme un item.
+ *
+ * `hide` (défaut) : le nom devient un [REDACTED] **inerte** — plus de survol,
+ * plus de clic, plus de fenêtre au clic droit, l'attribut `data-item` saute.
+ * Caché, c'est caché. `blur` : le flou d'avant, le survol révèle. `show` :
+ * rien. Ne fait rien si l'item est disponible.
+ */
+export function veilName(availability: Availability, id: string, el: HTMLElement): void {
+  if (availability.item(id) || availability.spoilers === "show") return;
+  if (availability.spoilers === "blur") {
+    spoil(el);
+    return;
+  }
+  el.replaceChildren(redactedBar());
+  el.classList.add("censored");
+  el.title = "Beyond your discovered zones";
+  delete el.dataset.item;
+  if (el instanceof HTMLButtonElement) el.disabled = true;
+}
+
+/** Même réglage pour la vignette : son icône identifie l'item aussi bien que
+ * son nom. En `hide`, elle devient une pastille muette « ? ». */
+export function veilTile(availability: Availability, id: string, tileEl: HTMLElement): void {
+  if (availability.item(id) || availability.spoilers === "show") return;
+  if (availability.spoilers === "blur") {
+    spoil(tileEl);
+    return;
+  }
+  tileEl.querySelector("img")?.remove();
+  tileEl.textContent = "?";
+  tileEl.className = "tile censored";
 }
 
 /** Mot-clé coloré isolé, pour les lignes qui n'ont pas de source à décrire. */
@@ -331,7 +389,9 @@ export function sourceList(
 const REDACTORS = new WeakMap<Availability, (text: string) => (string | Node)[]>();
 
 export function redactor(model: Model, availability?: Availability) {
-  if (!availability || !availability.enabled) return (text: string) => [text];
+  if (!availability || !availability.enabled || availability.spoilers === "show") {
+    return (text: string) => [text];
+  }
   let apply = REDACTORS.get(availability);
   if (apply) return apply;
 
@@ -359,10 +419,13 @@ export function redactor(model: Model, availability?: Availability) {
     for (const match of text.matchAll(pattern)) {
       if (!hidden.has(match[0])) continue;      // un nom disponible reste en clair
       if (match.index! > cursor) parts.push(text.slice(cursor, match.index));
-      const bar = document.createElement("span");
-      bar.className = "redacted";
-      bar.textContent = "[REDACTED]";
-      parts.push(bar);
+      if (availability.spoilers === "blur") {
+        const veiled = document.createElement("span");
+        veiled.textContent = match[0];
+        parts.push(spoil(veiled));
+      } else {
+        parts.push(redactedBar());
+      }
       cursor = match.index! + match[0].length;
     }
     if (cursor < text.length) parts.push(text.slice(cursor));

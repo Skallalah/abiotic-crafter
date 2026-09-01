@@ -1,4 +1,4 @@
-import { frontier, type DiscoveryState } from "../core/discovery";
+import { frontier, type DiscoveryState, type SpoilerMode } from "../core/discovery";
 import type { Model } from "../core/tree";
 import { spoil, zoneTag } from "./format";
 
@@ -16,16 +16,25 @@ const START_ZONE = "Office Sector";
  * avec l'utilisateur : **suivi actif, Office Sector coché** — l'app s'ouvre
  * sans spoiler, et le panneau permet de tout désactiver d'un clic.
  */
+const SPOILER_MODES: { id: SpoilerMode; label: string }[] = [
+  { id: "hide", label: "Hide" },
+  { id: "blur", label: "Blur" },
+  { id: "show", label: "Show" },
+];
+
 export function loadDiscovery(model: Model): DiscoveryState {
   const known = new Set(model.ds.zones.map((z) => z.name));
   const fallback: DiscoveryState = {
     enabled: true,
     zones: new Set(known.has(START_ZONE) ? [START_ZONE] : []),
+    spoilers: "hide",
   };
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return fallback;
-    const parsed = JSON.parse(raw) as { enabled?: unknown; zones?: unknown };
+    const parsed = JSON.parse(raw) as {
+      enabled?: unknown; zones?: unknown; spoilers?: unknown;
+    };
     if (typeof parsed.enabled !== "boolean" || !Array.isArray(parsed.zones)) {
       return fallback;
     }
@@ -34,6 +43,9 @@ export function loadDiscovery(model: Model): DiscoveryState {
       zones: new Set(parsed.zones.filter(
         (z): z is string => typeof z === "string" && known.has(z),
       )),
+      spoilers: SPOILER_MODES.some((m) => m.id === parsed.spoilers)
+        ? parsed.spoilers as SpoilerMode
+        : "hide",
     };
   } catch {
     return fallback;
@@ -45,6 +57,7 @@ function save(state: DiscoveryState): void {
     localStorage.setItem(KEY, JSON.stringify({
       enabled: state.enabled,
       zones: [...state.zones],
+      spoilers: state.spoilers ?? "hide",
     }));
   } catch {
     // stockage indisponible : l'état tient pour la session en cours
@@ -150,6 +163,30 @@ export class DiscoverPanel {
       ? "Blurred zones border what you know — hover to peek, click to discover."
       : "Everything is visible. Enable tracking to hide what you have not reached.";
 
+    // le sort des items hors zones : caviardés, floutés, ou en clair
+    const modes = document.createElement("div");
+    modes.className = "spoiler-modes";
+    if (enabled) {
+      const title = document.createElement("span");
+      title.textContent = "Spoilers";
+      modes.appendChild(title);
+      for (const mode of SPOILER_MODES) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = mode.label;
+        button.className = (this.state.spoilers ?? "hide") === mode.id ? "on" : "";
+        button.title = {
+          hide: "Unreachable items become [REDACTED] — nothing to hover, nothing to open",
+          blur: "Unreachable items are blurred — hover to reveal",
+          show: "Everything readable, only the lists are filtered",
+        }[mode.id];
+        button.addEventListener("click", () => {
+          this.apply({ ...this.state, spoilers: mode.id });
+        });
+        modes.appendChild(button);
+      }
+    }
+
     const list = document.createElement("div");
     list.className = "discover-list";
     const uncharted = document.createElement("div");
@@ -172,7 +209,7 @@ export class DiscoverPanel {
       }
     }
 
-    this.panel.replaceChildren(head, note, list);
+    this.panel.replaceChildren(head, note, modes, list);
     if (uncharted.childElementCount > 0) {
       const title = document.createElement("div");
       title.className = "discover-title";

@@ -333,12 +333,21 @@ décrite, seule une recette dont tous les ingrédients sont visibles le montre.
 D'où deux invariants testés, *suivi désactivé = app entière* et *toutes zones
 cochées = app entière*. Mesure : Office seul → ~240 craftables sur 597.
 
-**Le caviardage.** Le flou ne peut rien pour la prose : dans les lignes d'emplacement, tout nom d'item indisponible ou de zone non découverte devient un littéral **[REDACTED]** — la langue des documents GATE du jeu. Remplacement réel, rien à survoler ; le motif connaît tous les noms, les plus longs d'abord, pour qu'un nom disponible protège ses sous-chaînes (« Exquisite Chain » ne perd pas son « Chain »).
+**Le caviardage de la prose** suit le même réglage : en `hide`, tout nom d'item indisponible ou de zone non découverte dans les lignes d'emplacement devient un littéral **[REDACTED]** — la langue des documents GATE du jeu ; en `blur`, le nom reste mais flouté ; en `show`, rien. Remplacement réel, rien à survoler ; le motif connaît tous les noms, les plus longs d'abord, pour qu'un nom disponible protège ses sous-chaînes (« Exquisite Chain » ne perd pas son « Chain »).
 
-**Le voile.** Un item indisponible qui apparaît quand même (ingrédient d'une
-recette affichée, contenu d'une caisse, lien montant) est **flouté, le survol
-révèle** : rien ne disparaît d'une recette, regarder est un geste délibéré. La
-racine de l'arbre n'est jamais floutée — l'ouvrir est déjà une révélation. Les
+**Le voile est un réglage : Hide / Blur / Show**, dans le panneau de
+découverte, `hide` par défaut. Il s'applique à tout ce qui nomme un item
+indisponible — ingrédients d'une recette affichée, liens montants, contenus de
+caisse, liens et textes des fenêtres, vignettes comprises (une icône identifie
+un item aussi bien que son nom).
+- `hide` : **[REDACTED] inerte** — le nom est remplacé, la vignette devient
+  « ? », plus de survol, plus de clic, plus de fenêtre au clic droit (les
+  attributs `data-item`/`data-provider` sautent, la fenêtre d'un sujet voilé
+  refuse de s'ouvrir). Caché, c'est caché.
+- `blur` : le flou, le survol révèle — regarder est un geste délibéré.
+- `show` : tout en clair ; seules les listes restent filtrées.
+Rien ne disparaît jamais d'une recette, quel que soit le mode. La
+racine de l'arbre n'est jamais voilée — l'ouvrir est déjà une révélation. Les
 listes, elles, filtrent : la liste de gauche ne montre que l'atteignable (avec
 « N items beyond your zones » qui ouvre le panneau), le bilan ne groupe que les
 zones découvertes (un requis sans source visible tombe sous « Beyond known

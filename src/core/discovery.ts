@@ -16,9 +16,14 @@ const GENERIC_KINDS = new Set(["container", "pickup", "salvage"]);
  * C'est de la configuration locale, pas de la donnée : l'état vit dans
  * l'interface (src/ui/discover.ts) et tout le calcul est ici, pur et testé.
  */
+/** Traitement des items hors zones : caviardé (défaut), flouté, ou en clair. */
+export type SpoilerMode = "hide" | "blur" | "show";
+
 export interface DiscoveryState {
   enabled: boolean;
   zones: ReadonlySet<string>;
+  /** Absent dans un vieux stockage : vaut « hide ». */
+  spoilers?: SpoilerMode;
 }
 
 export interface FrontierEntry {
@@ -62,6 +67,8 @@ export function frontier(model: Model, state: DiscoveryState): FrontierEntry[] {
 /** Réponses de disponibilité, précalculées pour un état de découverte donné. */
 export interface Availability {
   readonly enabled: boolean;
+  /** Comment présenter l'indisponible : [REDACTED], flou, ou en clair. */
+  readonly spoilers: SpoilerMode;
   item(id: ItemId): boolean;
   provider(id: ProviderId): boolean;
   /** La zone est-elle découverte ? La pseudo-zone du bilan l'est toujours. */
@@ -70,7 +77,7 @@ export interface Availability {
   source(source: Source): boolean;
 }
 
-const EVERYTHING: Omit<Availability, "enabled"> = {
+const EVERYTHING: Omit<Availability, "enabled" | "spoilers"> = {
   item: () => true,
   provider: () => true,
   zone: () => true,
@@ -94,7 +101,8 @@ const EVERYTHING: Omit<Availability, "enabled"> = {
  * déclare aucune (les casiers génériques existent partout).
  */
 export function computeAvailability(model: Model, state: DiscoveryState): Availability {
-  if (!state.enabled) return { enabled: false, ...EVERYTHING };
+  // suivi coupé : tout est disponible, le mode n'a plus rien à voiler
+  if (!state.enabled) return { enabled: false, spoilers: "show", ...EVERYTHING };
 
   const discovered = state.zones;
   const providers = availableProviders(model, discovered);
@@ -127,6 +135,7 @@ export function computeAvailability(model: Model, state: DiscoveryState): Availa
 
   return {
     enabled: true,
+    spoilers: state.spoilers ?? "hide",
     item: (id) => items.has(id),
     provider: (id) => providers.has(id),
     zone: (name) => name === OTHER_METHODS || discovered.has(name),

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DetailsWindows } from "./details";
 import { computeAvailability } from "../core/discovery";
 import { Model } from "../core/tree";
@@ -7,11 +7,19 @@ import { discoveryDataset, mockupDataset } from "../core/fixtures";
 const model = new Model(mockupDataset());
 const everything = computeAvailability(model, { enabled: false, zones: new Set() });
 
+const instances: DetailsWindows[] = [];
+
+afterEach(() => {
+  for (const w of instances) w.dispose();
+  instances.length = 0;
+});
+
 function mount(): { windows: DetailsWindows; selected: string[] } {
   document.body.innerHTML = `<div class="row" data-item="circuit_board">Circuit Board</div>`;
   const selected: string[] = [];
   const windows = new DetailsWindows(model, (id) => selected.push(id), "https://wiki/",
                                      everything);
+  instances.push(windows);
   return { windows, selected };
 }
 
@@ -151,10 +159,11 @@ describe("découverte dans les fenêtres", () => {
   const world = new Model(discoveryDataset());
   const state = (...zones: string[]) => ({ enabled: true, zones: new Set(zones) });
 
-  function mountWorld() {
+  function mountWorld(spoilers: "hide" | "blur" | "show" = "blur") {
     document.body.innerHTML = `<div data-item="looted_mfg"></div>`;
     const windows = new DetailsWindows(world, () => {}, "https://wiki/",
-                                       computeAvailability(world, state("Office Sector")));
+      computeAvailability(world, { ...state("Office Sector"), spoilers }));
+    instances.push(windows);
     return windows;
   }
 
@@ -169,19 +178,39 @@ describe("découverte dans les fenêtres", () => {
   it("re-rend les fenêtres ouvertes quand la découverte change", () => {
     const windows = mountWorld();
     rightClick(document.querySelector("[data-item]")!);
-    windows.setAvailability(
-      computeAvailability(world, state("Office Sector", "Manufacturing West")));
+    windows.setAvailability(computeAvailability(world,
+      { ...state("Office Sector", "Manufacturing West"), spoilers: "blur" }));
     const box = boxes()[0]!;
     expect(box.textContent).toContain("Manufacturing West");
     expect(box.textContent).not.toContain("not yet discovered");
   });
 
-  it("floute un lien vers un contenant hors zones", () => {
+  it("floute un lien vers un contenant hors zones (mode Blur)", () => {
     document.body.innerHTML = `<div data-item="via_crate"></div>`;
-    new DetailsWindows(world, () => {}, "https://wiki/",
-                       computeAvailability(world, state("Office Sector")));
+    instances.push(new DetailsWindows(world, () => {}, "https://wiki/",
+      computeAvailability(world, { ...state("Office Sector"), spoilers: "blur" })));
     rightClick(document.querySelector("[data-item]")!);
     const link = boxes()[0]!.querySelector("[data-provider]")!;
     expect(link.classList.contains("spoiler")).toBe(true);
+  });
+
+  it("mode Hide : caché, c'est caché", () => {
+    // la fenêtre d'un item voilé ne s'ouvre pas — elle le révélerait
+    mountWorld("hide");
+    const event = rightClick(document.querySelector("[data-item]")!);
+    expect(event.defaultPrevented).toBe(false);
+    expect(boxes()).toHaveLength(0);
+
+    // et dans la fenêtre d'un item atteignable, le lien de contenant voilé
+    // devient un [REDACTED] inerte, sans data-provider
+    document.body.innerHTML = `<div data-item="office_tracker"></div>`;
+    instances.push(new DetailsWindows(world, () => {}, "https://wiki/",
+      computeAvailability(world, { ...state("Office Sector"), spoilers: "hide" })));
+    rightClick(document.querySelector("[data-item]")!);
+    const box = boxes()[0]!;
+    const censored = box.querySelector<HTMLButtonElement>("button.censored")!;
+    expect(censored.textContent).toBe("[REDACTED]");
+    expect(censored.disabled).toBe(true);
+    expect(censored.dataset.provider).toBeUndefined();
   });
 });

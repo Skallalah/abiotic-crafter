@@ -768,3 +768,21 @@ caviardait « Exquisite [REDACTED] » — l'item « Chain », indisponible, matc
 **tous** les noms (≈ 1 300, compilé une fois par état de découverte), les plus
 longs d'abord : un nom disponible protège ses sous-chaînes, et seuls les cachés
 sont remplacés. Verrouillé sur les vraies données par le cas rapporté.
+
+
+### Le voile devient un réglage : Hide / Blur / Show
+Demandé après le caviardage de la prose : les **liens** aussi. Le flou et le
+caviardage fusionnent en un réglage du panneau de découverte, `hide` par
+défaut, porté par `Availability.spoilers` — le contexte de rendu qui circule
+déjà partout.
+
+`hide` est cohérent jusqu'au bout : nom remplacé par [REDACTED], vignette
+muette « ? » (une icône identifie un item aussi bien que son nom), lien
+désarmé — `data-item`/`data-provider` sautent, le bouton est `disabled`, le
+clic droit sur un sujet voilé n'ouvre pas sa fenêtre, la carte montante perd
+son clic. *Caché, c'est caché* : aucun geste ne révèle. `blur` garde l'ancien
+comportement, survol révélateur. `show` laisse tout lisible, seules les listes
+filtrent. Dans tous les modes, une recette garde tous ses ingrédients.
+
+Au passage, `DetailsWindows` gagne un `dispose()` : ses écouteurs `document`
+s'accumulaient entre les instances des tests.

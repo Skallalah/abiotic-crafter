@@ -29,6 +29,7 @@ describe("état enregistré", () => {
     expect(loadDiscovery(model)).toEqual({
       enabled: true,
       zones: new Set(["Office Sector"]),
+      spoilers: "hide",
     });
   });
 
@@ -82,6 +83,25 @@ describe("le panneau", () => {
     const state = loadDiscovery(model);
     expect(state.zones.has("Office Sector")).toBe(false);
     expect(state.zones.has("Manufacturing West")).toBe(true);
+  });
+
+  it("règle le sort des spoilers : Hide, Blur ou Show", () => {
+    const { changes } = mount();
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>(".spoiler-modes button")];
+    expect(buttons.map((b) => b.textContent)).toEqual(["Hide", "Blur", "Show"]);
+    expect(buttons[0]!.classList.contains("on")).toBe(true);   // défaut : Hide
+
+    buttons[1]!.click();
+    expect(changes[0]!.spoilers).toBe("blur");
+    expect(JSON.parse(localStorage.getItem(KEY)!).spoilers).toBe("blur");
+    expect(loadDiscovery(model).spoilers).toBe("blur");
+  });
+
+  it("retombe sur Hide devant un mode inconnu en stockage", () => {
+    localStorage.setItem(KEY, JSON.stringify({
+      enabled: true, zones: ["Office Sector"], spoilers: "sepia",
+    }));
+    expect(loadDiscovery(model).spoilers).toBe("hide");
   });
 
   it("l'interrupteur maître coupe tout le suivi", () => {

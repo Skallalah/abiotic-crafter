@@ -6,8 +6,8 @@ import type { Model } from "../core/tree";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
-  badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spoil, spotLine, tile,
-  zoneTag,
+  badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spotLine, tile, veilName,
+  veilTile, zoneTag,
 } from "./format";
 
 const KIND_LABEL: Record<Provider["kind"], string> = {
@@ -42,6 +42,7 @@ interface OpenWindow {
 
 export class DetailsWindows {
   private readonly open = new Map<string, OpenWindow>();
+  private readonly unbind: (() => void)[] = [];
 
   constructor(
     private readonly model: Model,
@@ -67,21 +68,34 @@ export class DetailsWindows {
    * Le clic droit, règle unique et partout : il remonte au plus proche élément
    * qui se déclare, et n'entrave le menu du navigateur que là.
    */
+  /** Détache les écouteurs globaux — les tests créent plusieurs instances. */
+  dispose(): void {
+    this.closeAll();
+    for (const off of this.unbind) off();
+    this.unbind.length = 0;
+  }
+
   private bindContextMenu(): void {
-    document.addEventListener("contextmenu", (event) => {
+    const onContextMenu = (event: MouseEvent) => {
       const el = (event.target as Element | null)
         ?.closest?.("[data-provider], [data-item]") as HTMLElement | null;
       if (!el) return;
       const { provider, item } = el.dataset;
-      if (provider && this.model.hasProvider(provider)) this.openProvider(provider, event);
-      else if (item && this.model.has(item)) this.openItem(item, event);
-      else return;
+      const hide = this.availability.spoilers === "hide";
+      if (provider && this.model.hasProvider(provider)) {
+        // caché c'est caché : la fenêtre d'un sujet voilé le révélerait
+        if (hide && !this.availability.provider(provider)) return;
+        this.openProvider(provider, event);
+      } else if (item && this.model.has(item)) {
+        if (hide && !this.availability.item(item)) return;
+        this.openItem(item, event);
+      } else return;
       event.preventDefault();
-    });
+    };
 
     // clic gauche sur un nom de contenant : il n'est pas sélectionnable comme
     // objet courant, l'ouvrir est la seule chose qu'il puisse faire
-    document.addEventListener("click", (event) => {
+    const onClick = (event: MouseEvent) => {
       const el = (event.target as Element | null)
         ?.closest?.("[data-provider]") as HTMLElement | null;
       const id = el?.dataset.provider;
@@ -89,7 +103,14 @@ export class DetailsWindows {
         event.stopPropagation();
         this.openProvider(id, event);
       }
-    }, true);
+    };
+
+    document.addEventListener("contextmenu", onContextMenu);
+    document.addEventListener("click", onClick, true);
+    this.unbind.push(
+      () => document.removeEventListener("contextmenu", onContextMenu),
+      () => document.removeEventListener("click", onClick, true),
+    );
   }
 
   openItem(id: ItemId, at?: MouseEvent): void {
@@ -373,14 +394,19 @@ export class DetailsWindows {
 
       const label = document.createElement("span");
       const link = itemLink(this.model, entry.id, (id) => this.onSelect(id));
-      if (!this.availability.item(entry.id)) spoil(link);
+      veilName(this.availability, entry.id, link);
       label.append(link, " ", badges(this.model, entry.id));
 
       const note = document.createElement("span");
       note.className = "stack";
       note.textContent = entry.note;
 
-      row.append(tile(this.model, item), label, note);
+      const thumb = tile(this.model, item);
+      veilTile(this.availability, entry.id, thumb);
+      if (this.availability.spoilers === "hide" && !this.availability.item(entry.id)) {
+        delete row.dataset.item;
+      }
+      row.append(thumb, label, note);
       list.appendChild(row);
     }
     return list;

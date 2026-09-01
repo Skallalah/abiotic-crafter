@@ -5,7 +5,7 @@ import { BEYOND, groupByZone, type ZoneEntry } from "../core/zones";
 import type { ItemId, Source } from "../data/types";
 import {
   badges, keyword, KIND_KEYWORD, MAX_SPOTS, originLines, sourceLine, sourceList,
-  spoil, spotLine, stackText, tile, zoneTag,
+  spoil, spotLine, stackText, tile, veilName, veilTile, zoneTag,
 } from "./format";
 
 /**
@@ -61,7 +61,7 @@ export class Summary {
       const label = document.createElement("span");
       const name = document.createElement("span");
       name.textContent = `${item.name} `;
-      if (!this.availability.item(id)) spoil(name);
+      veilName(this.availability, id, name);
       label.append(name, badges(this.model, id));
       const craft = this.craftLine(id);
       if (craft) label.appendChild(craft);
@@ -80,7 +80,9 @@ export class Summary {
       big.textContent = String(qty);
       stack.append(big, ` ${stackText(item, qty)}`);
 
-      row.append(tile(this.model, item), label, stack);
+      const thumb = tile(this.model, item);
+      veilTile(this.availability, id, thumb);
+      row.append(thumb, label, stack);
       fragment.appendChild(row);
     }
 
@@ -127,7 +129,7 @@ export class Summary {
       const head = document.createElement("div");
       head.append("collect ");
       const link = this.openLink(origin);
-      if (!this.availability.item(origin)) spoil(link);
+      veilName(this.availability, origin, link);
       head.appendChild(link);
       head.append(" :");
       block.appendChild(head);
@@ -183,7 +185,7 @@ export class Summary {
       const label = document.createElement("span");
       const name = document.createElement("span");
       name.textContent = `${item.name} `;
-      if (!this.availability.item(id)) spoil(name);
+      veilName(this.availability, id, name);
       label.append(name, badges(this.model, id));
       if (this.model.isDual(id)) {
         const alt = document.createElement("div");
@@ -266,7 +268,8 @@ export class Summary {
     const name = document.createElement("span");
     name.textContent = `${item.name} `;
     // dans « Beyond known zones », même le nom est un spoiler
-    if (beyond || !this.availability.item(entry.id)) spoil(name);
+    if (beyond) spoil(name);
+    veilName(this.availability, entry.id, name);
     label.append(name, badges(this.model, entry.id));
 
     if (entry.via) {
@@ -313,7 +316,9 @@ export class Summary {
     qty.className = `qtybig${entry.optional ? " done" : ""}`;
     qty.textContent = String(entry.qty);
 
-    row.append(tile(this.model, item), label, qty);
+    const thumb = tile(this.model, item);
+    veilTile(this.availability, entry.id, thumb);
+    row.append(thumb, label, qty);
     return row;
   }
 

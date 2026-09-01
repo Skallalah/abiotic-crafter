@@ -200,6 +200,12 @@ export function discoveryDataset(): Dataset {
   add(item("phantom", "Phantom", 1, [{ kind: "pickup", target: "Pest (Pet)" }]));
   // pur craft jamais-localisable : seule sa recette peut le justifier
   add(item("ghost_gadget", "Ghost Gadget", 1));
+  // disponible à Office, mais cite aussi une caisse d'ailleurs : sa fenêtre
+  // doit voiler ce lien-là sans se voiler elle-même
+  add(item("office_tracker", "Office Tracker", 4, [
+    { kind: "pickup", zone: "Office Sector" },
+    { kind: "break", target: "Mfg Crate", targetId: "mfg_crate" },
+  ]));
   // drop soumis à une condition de quête : ne prouve rien, la vraie zone si
   add(item("gated_loot", "Gated Loot", 1, [
     { kind: "drop", zone: "Manufacturing West", target: "Mfg Crate",

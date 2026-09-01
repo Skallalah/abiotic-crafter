@@ -1,7 +1,7 @@
 import type { Availability } from "../core/discovery";
 import { buildTree, type Model, type RecipeChoice, type TreeNode } from "../core/tree";
 import type { ItemId } from "../data/types";
-import { badges, spoil, tile } from "./format";
+import { badges, tile, veilName, veilTile } from "./format";
 
 export interface TreeCallbacks {
   toggle: (path: string) => void;
@@ -110,7 +110,7 @@ export class TreeView {
     const name = document.createElement("div");
     name.className = "name";
     name.append(`${item.name} `, badges(this.model, id));
-    if (!availability.item(id)) spoil(name);
+    veilName(availability, id, name);
     text.append(name);
 
     // quantité de l'objet courant que cette recette consomme
@@ -118,7 +118,17 @@ export class TreeView {
     consumed.className = "qty";
     consumed.textContent = `×${qty}`;
 
-    el.append(tile(this.model, item), text, consumed);
+    const thumb = tile(this.model, item);
+    veilTile(availability, id, thumb);
+    el.append(thumb, text, consumed);
+    // caché c'est caché : en mode [REDACTED], une carte montante voilée ne
+    // s'ouvre pas — cliquer révélerait le nom dans la barre du haut
+    if (!availability.item(id) && availability.spoilers === "hide") {
+      delete el.dataset.item;
+      el.tabIndex = -1;
+      el.title = "Beyond your discovered zones";
+      return el;
+    }
     const open = (event: Event) => {
       event.stopPropagation();
       this.callbacks.openParent(id);
@@ -199,8 +209,8 @@ export class TreeView {
     name.className = "name";
     name.append(`${item.name} `, badges(this.model, node.id));
     // la recette reste entière : on sait qu'il faut quelque chose, pas quoi.
-    // La racine n'est jamais floutée — l'ouvrir est une révélation délibérée.
-    if (!isRoot && !state.availability.item(node.id)) spoil(name);
+    // La racine n'est jamais voilée — l'ouvrir est une révélation délibérée.
+    if (!isRoot) veilName(state.availability, node.id, name);
 
     const recipes = this.model.recipesFor(node.id);
     if (recipes.length > 1 && !node.loop) {
@@ -219,7 +229,11 @@ export class TreeView {
 
     // Le §5.3 réserve le clic simple au surlignage : ouvrir passe par un bouton
     // dédié, sinon on perdrait la synchronisation arbre ↔ bilan du §5.4.
-    if (!isRoot) name.appendChild(this.openButton(node.id));
+    // En mode [REDACTED], pas de bouton ↗ sur un nom voilé : l'ouvrir le
+    // révélerait dans la barre du haut.
+    const censored = !state.availability.item(node.id)
+      && state.availability.spoilers === "hide";
+    if (!isRoot && !censored) name.appendChild(this.openButton(node.id));
 
     const sub = document.createElement("div");
     sub.className = "sub";
@@ -231,7 +245,10 @@ export class TreeView {
     qty.className = "qty";
     qty.textContent = `×${node.qty}`;
 
-    el.append(tile(this.model, item), text, qty);
+    const thumb = tile(this.model, item);
+    if (!isRoot) veilTile(state.availability, node.id, thumb);
+    el.append(thumb, text, qty);
+    if (censored) delete el.dataset.item;
     el.addEventListener("click", (event) => {
       event.stopPropagation();
       this.callbacks.highlight(node.id);
