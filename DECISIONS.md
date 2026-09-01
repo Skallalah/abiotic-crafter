@@ -833,3 +833,16 @@ mot-clé sans complément qui ressemblait à un bug. Deux étages :
 - **l'UI ne montre plus jamais un BUY nu** : à défaut de nom, « BUY from a
   local trader ». « LOOT » seul, lui, reste : les emplacements qui suivent le
   complètent.
+
+Puis, relancé par l'utilisateur (« on sait qui vend des staplers quand même »),
+le vrai gisement : le wiki n'a pas de table Cargo pour le commerce, mais **un
+template d'inventaire par marchand** (`Template:Trade/warren`…), énumérés par
+le switch de `Template:Trade`, reliés à leur PNJ par le `{{Trade|clé}}` de sa
+page, et à leur zone par son `appearance1`. Chaque offre donne l'item vendu, le
+coût et le déblocage : 55 offres deviennent des sources vendor complètes —
+« BUY Warren Bunning » sur le Stapler, avec « Trades for 1 Raw Antefish Filet.
+Unlocked: Going through the Far Garden exit portal. » en ligne d'emplacement.
+La source de secteur sans nom, moins précise, est élaguée par le prune
+habituel. Les déblocages d'inventaire ne rendent pas la source conditionnelle :
+c'est de la progression mineure au sein d'une zone déjà atteinte, pas du
+contenu d'une autre zone.

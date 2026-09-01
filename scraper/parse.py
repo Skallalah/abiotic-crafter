@@ -550,6 +550,54 @@ def _template_param(body: str, key: str) -> str:
     return match.group(1).strip() if match else ""
 
 
+def parse_trade_offers(wikitext: str) -> list[dict]:
+    """Tableau d'un Template:Trade/<marchand> → ses offres.
+
+    Chaque ligne vend un item (premier {{itemSlot}}) contre un coût (second),
+    parfois derrière un déblocage — la dernière cellule en prose, qui peut
+    s'étaler sur plusieurs lignes via un rowspan.
+    """
+    offers: list[dict] = []
+    pending_unlock: str | None = None
+    pending_rows = 0
+
+    for row in wikitext.split("|-"):
+        slots = _ITEM_SLOT.findall(row)
+        if not slots:
+            continue
+        offer: dict = {"item": slots[0][0].strip()}
+        text = _SLOT_TEXT.search(slots[1][1] or "") if len(slots) > 1 else None
+        if len(slots) > 1:
+            qty = text.group(1).strip() if text else "1"
+            offer["cost"] = f"{qty} {slots[1][0].strip()}"
+
+        # la cellule de déblocage : la dernière, en prose, sans itemSlot
+        unlock = None
+        cells = [c.strip() for line in row.splitlines()
+                 for c in line.lstrip("|").split("||")]
+        for cell in reversed(cells):
+            span = re.match(r"rowspan\s*=\s*(\d+)\s*\|\s*(.*)", cell, re.S)
+            if span:
+                pending_unlock = strip_links(span.group(2)).strip()
+                pending_rows = int(span.group(1))
+                unlock = pending_unlock
+                break
+            if cell and "itemslot" not in cell.lower() and not cell.isdigit() \
+                    and not cell.lower().startswith(("!", "{|", "}")):
+                flat = strip_links(cell).strip()
+                if flat and not flat.isdigit():
+                    unlock = flat
+                    break
+        if unlock is None and pending_rows > 0:
+            unlock = pending_unlock
+        if pending_rows > 0:
+            pending_rows -= 1
+        if unlock:
+            offer["unlock"] = unlock
+        offers.append(offer)
+    return offers
+
+
 # ------------------------------------------------------------------- unlock
 
 _RECIPE_TEMPLATE = re.compile(r"\{\{\s*itemRecipe", re.I)

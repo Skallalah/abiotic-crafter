@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 
 from fetch_cargo import load
 from parse import (
@@ -121,6 +122,18 @@ def npc_titles() -> list[str]:
     return sorted(strip_links(t).strip() for t in titles if t)
 
 
+def trade_titles() -> list[str]:
+    """Templates d'inventaire des marchands : Template:Trade/<clé>.
+
+    Le wiki n'a pas de table Cargo pour le commerce, mais un template par
+    marchand — la seule source qui dise QUI vend QUOI, à quel prix, et
+    derrière quel déblocage. Les clés sortent du switch de Template:Trade.
+    """
+    body = read_page("Template:Trade") or ""
+    keys = re.findall(r"\|\s*(\w+)\s*=\s*\{\{\s*Trade/", body)
+    return ["Template:Trade"] + [f"Template:Trade/{k}" for k in keys]
+
+
 def fetch_pages(wiki: Wiki, titles: list[str]) -> int:
     """Écrit data/raw/pages/<title>.wikitext. Renvoie le nombre de pages vues."""
     PAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -184,6 +197,12 @@ def main() -> None:
     npcs = npc_titles()
     print(f"pages PNJ : {len(npcs)}")
     n += fetch_pages(wiki, npcs)
+
+    # le switch d'abord, puis les inventaires qu'il déclare
+    n += fetch_pages(wiki, ["Template:Trade"])
+    trades = trade_titles()
+    print(f"inventaires de marchands : {len(trades) - 1}")
+    n += fetch_pages(wiki, trades)
     print(f"{n} pages écrites dans {PAGES_DIR}")
     print(f"{wiki.requests_made} requêtes, {wiki.cache_hits} depuis le cache")
 

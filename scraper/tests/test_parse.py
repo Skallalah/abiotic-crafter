@@ -8,7 +8,7 @@ from parse import (  # noqa: E402
     parse_infobox_image, parse_locations, parse_object_images, parse_sector,
     parse_person_zones, parse_sector_enemies, parse_sector_links, parse_zone_icon,
     parse_zone_items, zone_mentions,
-    parse_sources, parse_unlock, sections, slugify, strip_links,
+    parse_sources, parse_trade_offers, parse_unlock, sections, slugify, strip_links,
 )
 
 
@@ -405,3 +405,26 @@ def test_prose_restating_the_craft_is_not_a_source():
             "Can also be obtained from breaking [[Computer]].")
     sources, _ = parse_sources(page, "Acid Coating")
     assert [s["kind"] for s in sources] == ["break"]
+
+
+def test_parse_trade_offers_reads_a_merchant_inventory():
+    """Item vendu, coût, déblocage — le rowspan couvre les lignes suivantes."""
+    page = """{| class="wikitable"
+|-
+! Buy !! Cost !! Unlocked
+|-
+| {{itemSlot|Stapler|text=1}} || {{itemSlot|Raw Antefish Filet|text=1}} || Going through the [[Far Garden]] exit portal
+|-
+| {{itemSlot|Canned Peas|text=1}} || {{itemSlot|Rootbear|text=1}}
+|rowspan=2| Speaking with Warren
+|-
+| {{itemSlot|Employee Locator|text=1}} || {{itemSlot|Peccary Skull|text=1}}
+|-
+|}"""
+    assert parse_trade_offers(page) == [
+        {"item": "Stapler", "cost": "1 Raw Antefish Filet",
+         "unlock": "Going through the Far Garden exit portal"},
+        {"item": "Canned Peas", "cost": "1 Rootbear", "unlock": "Speaking with Warren"},
+        {"item": "Employee Locator", "cost": "1 Peccary Skull",
+         "unlock": "Speaking with Warren"},
+    ]

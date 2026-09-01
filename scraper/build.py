@@ -21,8 +21,9 @@ from colors import dominant_color, shrink_icon
 from parse import (
     link_targets, normalize_name, parse_drop_table, parse_infobox_image, parse_locations,
     parse_object_images, parse_person_zones, parse_sector, parse_sector_enemies,
-    parse_sector_links, parse_sector_portal_worlds, parse_sources, parse_unlock,
-    parse_zone_icon, parse_zone_items, slugify, strip_links, zone_mentions,
+    parse_sector_links, parse_sector_portal_worlds, parse_sources,
+    parse_trade_offers, parse_unlock, parse_zone_icon, parse_zone_items, slugify,
+    strip_links, zone_mentions,
 )
 from wiki import RAW, ROOT, Wiki
 
@@ -383,6 +384,31 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
                          if normalize_name(t) in known]
             npc_cache[name] = zones[0] if zones else None
         return npc_cache[name]
+
+    # 4 bis. les inventaires des marchands : Template:Trade/<clé>, seule source
+    # qui dise QUI vend QUOI — la liste === Trading === d'un secteur ne nomme
+    # personne. La page du PNJ relie la clé (« {{Trade|warren}} ») à son nom,
+    # et son appearance1 à sa zone.
+    trade_key = re.compile(r"\{\{\s*Trade\s*\|\s*(\w+)\s*\}\}")
+    for npc in fetch_wikitext.npc_titles():
+        npc_page = fetch_wikitext.read_page(npc) or ""
+        npc_zones = parse_person_zones(npc_page)
+        for key in trade_key.findall(npc_page):
+            inventory = fetch_wikitext.read_page(f"Template:Trade/{key}") or ""
+            for offer in parse_trade_offers(inventory):
+                item_id = resolver.get(offer["item"])
+                if not item_id:
+                    continue
+                sentence = f"Trades for {offer['cost']}." if offer.get("cost") else ""
+                if offer.get("unlock"):
+                    sentence += f" Unlocked: {offer['unlock']}."
+                source = {"kind": "vendor", "target": npc}
+                if npc_zones:
+                    source["zone"] = npc_zones[0]
+                if sentence:
+                    source["where"] = [sentence.strip()]
+                add(item_id, source)
+                report.bump("offres de marchands lues")
 
     # 5. prose == Sources == et section == Locations == des pages item
     for path in sorted((RAW / "pages").glob("*.wikitext")):
@@ -1088,7 +1114,8 @@ def main() -> None:
     print(f"  emplacements pr\u00e9cis lus       {spots}")
     print(f"  items d'infobox de zone      {report.counts.get('items lus dans les infobox de zone', 0)}")
     print(f"  ventes localisées (PNJ)      {report.counts.get('ventes localisées par la page du PNJ', 0)}"
-          f" (+{report.counts.get('ventes de secteur attribuées à leur marchand', 0)} attribuées au marchand de la zone)")
+          f" (+{report.counts.get('ventes de secteur attribuées à leur marchand', 0)} attribuées au marchand de la zone, "
+          f"{report.counts.get('offres de marchands lues', 0)} offres d'inventaire)")
     print(f"  dérivations de cuisine       {report.counts.get('dérivations cuisson/découpe/décomposition', 0)}")
     print(f"  drops conditionnels          {report.counts.get('drops conditionnels marqués', 0)}")
     print(f"  récoltes de cadavre          "

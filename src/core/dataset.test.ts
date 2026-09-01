@@ -467,6 +467,16 @@ describe("découverte (§5.7), sur les vraies données", () => {
     }
   });
 
+  it("nomme le vendeur réel, son prix et son déblocage", () => {
+    // les listes === Trading === des secteurs ne nomment personne ; les
+    // Template:Trade/<marchand> si — Warren vend bien des Staplers
+    const sale = model.item("stapler").sources
+      .find((s) => s.kind === "vendor");
+    expect(sale?.target).toBe("Warren Bunning");
+    expect(sale?.zone).toBe("Office Sector");
+    expect(sale?.where?.[0]).toContain("1 Raw Antefish Filet");
+  });
+
   it("localise les ventes par la page du PNJ et les créatures par leur prose", () => {
     // « trading with The Blacksmith » → Manufacturing West, via {{Person}} ;
     // la Peccary Sow → ses zones, via les puces de son == Locations ==
