@@ -6,7 +6,7 @@ import type { Model } from "../core/tree";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
-  ASSET_BASE, badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spotLine,
+  ASSET_BASE, badges, itemLink, MAX_SPOTS, sourceLines, sourceList, spotLine,
   tile, veilName, veilTile, zoneTag,
 } from "./format";
 
@@ -192,9 +192,8 @@ export class DetailsWindows {
         }
         block.appendChild(this.zoneBlock(
           zone,
-          sourceList(sources.map((source) =>
-            sourceLine(this.model, source, this.availability, this.onSelect))),
-          sources.flatMap((source) => source.where ?? []),
+          sourceList(sourceLines(this.model, sources, this.availability, this.onSelect)),
+          [],
         ));
       }
       if (hidden > 0) block.appendChild(undiscoveredNote(hidden));

@@ -4,8 +4,8 @@ import { computeTotals, type Totals } from "../core/totals";
 import { BEYOND, groupByZone, type ZoneEntry } from "../core/zones";
 import type { ItemId } from "../data/types";
 import {
-  badges, keyword, KIND_KEYWORD, MAX_SPOTS, originLines, sourceLine, sourceList,
-  spoil, spotLine, tile, veilName, veilTile, zoneTag,
+  badges, keyword, KIND_KEYWORD, originLines, sourceLines, sourceList,
+  spoil, tile, veilName, veilTile, zoneTag,
 } from "./format";
 
 /**
@@ -213,9 +213,8 @@ export class Summary {
       label.appendChild(head);
     }
     if (entry.sources.length > 0) {
-      label.appendChild(this.sourceList(entry.sources.map(
-        (s) => sourceLine(this.model, s, this.availability, this.onOpen))),
-      );
+      label.appendChild(this.sourceList(
+        sourceLines(this.model, entry.sources, this.availability, this.onOpen)));
     }
 
     if (entry.via) {
@@ -225,15 +224,6 @@ export class Summary {
                                   entry.via.through.kind),
                  ` to get ${item.name}`);
       label.appendChild(how);
-    }
-
-    // Les emplacements précis : le wiki en liste jusqu'à sept par zone, qui
-    // formaient jusqu'ici un pavé de texte noyant les lignes d'obtention.
-    const spots = entry.sources.flatMap((s) => s.where ?? []);
-    if (spots.length > 0) {
-      label.appendChild(this.sourceList(
-        unique(spots).map((spot) => spotLine(spot, this.model, this.availability)),
-        MAX_SPOTS, "spots"));
     }
 
     if (entry.optional) {
@@ -276,9 +266,5 @@ export class Summary {
     row.addEventListener("click", () => this.onHighlight(id));
     return row;
   }
-}
-
-function unique(values: string[]): string[] {
-  return [...new Set(values)];
 }
 

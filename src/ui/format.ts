@@ -277,6 +277,31 @@ export function veilTile(availability: Availability, id: string, tileEl: HTMLEle
   tileEl.className = "tile censored";
 }
 
+/**
+ * Les lignes d'une zone, chacune suivie de SES emplacements, imbriqués.
+ *
+ * Les emplacements de toutes les sources partaient en vrac sous tous les
+ * mots-clés : sur le Stapler, la phrase d'achat de Warren se mélangeait aux
+ * étagères du loot. Chaque détail appartient à sa ligne.
+ */
+export function sourceLines(
+  model: Model,
+  sources: readonly Source[],
+  availability?: Availability,
+  onSelect?: (id: string) => void,
+): HTMLLIElement[] {
+  return sources.map((source) => {
+    const li = sourceLine(model, source, availability, onSelect);
+    const spots = [...new Set(source.where ?? [])];
+    if (spots.length > 0) {
+      li.appendChild(sourceList(
+        spots.map((spot) => spotLine(spot, model, availability)),
+        MAX_SPOTS, "spots"));
+    }
+    return li;
+  });
+}
+
 /** Mot-clé coloré isolé, pour les lignes qui n'ont pas de source à décrire. */
 export function keyword(text: string, kind: string): HTMLElement {
   const span = document.createElement("span");
