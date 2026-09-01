@@ -118,7 +118,13 @@ export function sourceLine(
   li.appendChild(keyword);
 
   const object = sourceObject(model, source);
-  if (!object) return li;
+  if (!object) {
+    // un mot-clé seul se lit — « LOOT » sous une zone, les emplacements
+    // suivent — sauf « BUY », qui appelle un vendeur : à défaut de nom,
+    // on dit au moins qu'il y en a un
+    if (source.kind === "vendor") li.append(" from a local trader");
+    return li;
+  }
 
   // « break Manufacturing Wood Crate » : la caisse a sa propre fenêtre, on la
   // rend cliquable ici plutôt que chez les quatre appelants de sourceLine.

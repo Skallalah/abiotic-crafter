@@ -309,6 +309,16 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
                 enemy_items[normalize_name(row["name"] or row["_pageName"])].append(item_id)
                 add(item_id, {"kind": "drop", "target": row["name"] or row["_pageName"]})
 
+    # les marchands par zone : un PNJ dont la page porte une section de
+    # commerce ({{Trade}}), rangé sous chaque zone où il apparaît
+    traders: dict[str, list[str]] = defaultdict(list)
+    for npc in fetch_wikitext.npc_titles():
+        page = fetch_wikitext.read_page(npc) or ""
+        if "{{Trade" not in page and "==Trades==" not in page.replace(" ", ""):
+            continue
+        for zone_name in parse_person_zones(page):
+            traders[zone_name].append(npc)
+
     # 4. zones — les 9 secteurs ET les mondes-portails : leurs infobox
     # déclarent ennemis et items au même format, et un monde-portail n'a que
     # ça (Flathill n'a pas de section == Items ==, son infobox liste Power
@@ -324,9 +334,19 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
         zones_seen.append(title)
         buckets = parse_sector(wikitext)
 
-        for kind in ("pickup", "drop", "vendor", "grow"):
+        for kind in ("pickup", "drop", "grow"):
             for name in buckets.get(kind, []):
                 add(resolver.get(name), {"kind": kind, "zone": title})
+
+        # la liste === Trading === dit qu'un item s'achète ici, pas à qui :
+        # la page du PNJ marchand de la zone, quand il n'y en a qu'un, le dit
+        for name in buckets.get("vendor", []):
+            source: dict = {"kind": "vendor", "zone": title}
+            sellers = traders.get(title, [])
+            if len(sellers) == 1:
+                source["target"] = sellers[0]
+                report.bump("ventes de secteur attribuées à leur marchand")
+            add(resolver.get(name), source)
 
         # les « Resource Nodes » sont des objets : on passe par la table Loot
         for object_name in buckets.get("node", []):
@@ -1067,7 +1087,8 @@ def main() -> None:
     spots = sum(len(s.get("where", [])) for it in items.values() for s in it["sources"])
     print(f"  emplacements pr\u00e9cis lus       {spots}")
     print(f"  items d'infobox de zone      {report.counts.get('items lus dans les infobox de zone', 0)}")
-    print(f"  ventes localisées (PNJ)      {report.counts.get('ventes localisées par la page du PNJ', 0)}")
+    print(f"  ventes localisées (PNJ)      {report.counts.get('ventes localisées par la page du PNJ', 0)}"
+          f" (+{report.counts.get('ventes de secteur attribuées à leur marchand', 0)} attribuées au marchand de la zone)")
     print(f"  dérivations de cuisine       {report.counts.get('dérivations cuisson/découpe/décomposition', 0)}")
     print(f"  drops conditionnels          {report.counts.get('drops conditionnels marqués', 0)}")
     print(f"  récoltes de cadavre          "

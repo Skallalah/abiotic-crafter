@@ -818,3 +818,18 @@ soit déjà argenté). Le thème du mockup reste disponible sous son nouveau nom
 assumé. Le sélecteur quitte la barre du haut pour un onglet **Settings** tout à
 droite ; « Zones » devient « Discovered Zones » ; et les deux panneaux
 s'ancrent désormais sous leur bouton (`anchorBelow`) au lieu d'un coin fixe.
+
+
+### Le « BUY » nu du Stapler
+Les listes `=== Trading ===` des pages secteur disent qu'un item s'achète dans
+la zone, pas à qui : la ligne rendait « BUY » tout seul, sous un « LOOT » — un
+mot-clé sans complément qui ressemblait à un bug. Deux étages :
+
+- **la donnée nomme le marchand quand il est sans ambiguïté** : les pages de
+  PNJ portant une section de commerce (`{{Trade}}`) donnent la carte
+  marchand → zones ; une zone à marchand unique attribue ses ventes (Marion à
+  Flathill, le Blacksmith à Manufacturing West, Carson à Security). Office
+  Sector en compte trois — attribuer au hasard serait mentir, on s'abstient ;
+- **l'UI ne montre plus jamais un BUY nu** : à défaut de nom, « BUY from a
+  local trader ». « LOOT » seul, lui, reste : les emplacements qui suivent le
+  complètent.
