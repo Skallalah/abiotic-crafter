@@ -1,18 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   abbreviation, fold, KIND_KEYWORD, redactor, sourceLabel, sourceLine, spotLine,
-  stackText, zoneTag,
+  zoneTag,
 } from "./format";
-import type { Item, SourceKind } from "../data/types";
+import type { SourceKind } from "../data/types";
 import { computeAvailability } from "../core/discovery";
 import { Model } from "../core/tree";
 import { discoveryDataset, mockupDataset } from "../core/fixtures";
 import { dataset } from "../data/load";
-
-const item = (stack: number): Item => ({
-  id: "x", name: "X", wikiTitle: "X", category: "c", stack, sources: [],
-  meta: { fetchedAt: "", verified: false },
-});
 
 describe("abbreviation", () => {
   it("ignore la ponctuation", () => {
@@ -23,17 +18,6 @@ describe("abbreviation", () => {
   it("gère un et deux mots", () => {
     expect(abbreviation("Glowstick")).toBe("GLO");
     expect(abbreviation("Tech Scrap")).toBe("TES");
-  });
-});
-
-describe("stackText", () => {
-  it("n'affiche rien pour un stack de 1", () => {
-    expect(stackText(item(1), 3)).toBe("");
-  });
-  it("compte les stacks pleins et le reste", () => {
-    expect(stackText(item(64), 140)).toBe("2 stacks + 12 (64)");
-    expect(stackText(item(64), 128)).toBe("2 stacks (64)");
-    expect(stackText(item(64), 10)).toBe("10 / 64");
   });
 });
 

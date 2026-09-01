@@ -5,7 +5,7 @@ import { BEYOND, groupByZone, type ZoneEntry } from "../core/zones";
 import type { ItemId, Source } from "../data/types";
 import {
   badges, keyword, KIND_KEYWORD, MAX_SPOTS, originLines, sourceLine, sourceList,
-  spoil, spotLine, stackText, tile, veilName, veilTile, zoneTag,
+  spoil, spotLine, tile, veilName, veilTile, zoneTag,
 } from "./format";
 
 /**
@@ -73,16 +73,15 @@ export class Summary {
         label.appendChild(alt);
       }
 
-      const stack = document.createElement("span");
-      stack.className = "stack";
-      const big = document.createElement("span");
-      big.className = "qtybig";
-      big.textContent = String(qty);
-      stack.append(big, ` ${stackText(item, qty)}`);
+      // juste « ×10 » : le découpage en stacks embrouillait plus qu'il
+      // n'aidait ici — la taille de stack reste lisible dans la fenêtre d'item
+      const count = document.createElement("span");
+      count.className = "qtybig";
+      count.textContent = `×${qty}`;
 
       const thumb = tile(this.model, item);
       veilTile(this.availability, id, thumb);
-      row.append(thumb, label, stack);
+      row.append(thumb, label, count);
       fragment.appendChild(row);
     }
 

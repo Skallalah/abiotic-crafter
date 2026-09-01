@@ -65,15 +65,6 @@ function badge(kind: string, label: string): HTMLElement {
   return el;
 }
 
-/** « 3 stacks + 12 (64) » (§5.4.1). */
-export function stackText(item: Item, qty: number): string {
-  if (item.stack <= 1) return "";
-  if (qty <= item.stack) return `${qty} / ${item.stack}`;
-  const full = Math.floor(qty / item.stack);
-  const rest = qty % item.stack;
-  return `${full} stack${full > 1 ? "s" : ""}${rest ? ` + ${rest}` : ""} (${item.stack})`;
-}
-
 /**
  * Mot-clé anglais de chaque manière d'obtenir un objet.
  *
