@@ -594,3 +594,30 @@ tues). `computeTotals` n'est pas touché : le bilan chiffre la recette, la
 découverte n'en change pas les besoins. Décidé aussi : suivi **actif par
 défaut** (Office Sector coché), et décocher une zone ne cascade pas — revenir
 en arrière est un droit, l'app ne décide pas à la place du joueur.
+
+
+### Trois fuites, trouvées à l'usage et refermées
+Signalé avec Office + Flathill + Far Garden : l'Energy Pistol restait
+craftable, Capacitor et Night Essence en clair. Trace faite, trois règles
+étaient trop généreuses :
+
+- **« un provider sans zone existe partout »** couvrait aussi les créatures :
+  Capacitor passait par un Giant Power Leech jamais localisé, Military
+  Electronics par les soldats de l'Order, Night Essence par un poisson. Le
+  bénéfice du doute est restreint au **mobilier générique** (container, pickup,
+  salvage) — un casier existe partout, une créature vit quelque part ;
+- **« source sans géographie ⇒ disponible »** attrapait les cibles nommées mais
+  jamais résolues (« kill Order ») : quelqu'un qu'on nomme n'est pas un lieu
+  inconnu, c'est un lieu qu'on ne sait pas vérifier — la source ne prouve
+  plus rien ;
+- le point fixe ignorait les **UpgradeRecipes** : les armures A.E.G.I.S.
+  passaient « jamais localisables » donc toujours visibles, au lieu de suivre
+  leurs ingrédients.
+
+Après correction : Office seul → 238 craftables sur 597 (contre 348), les cinq
+items du signalement cachés avec les trois zones, l'invariant « toutes zones =
+tout » intact — la clôture recalcule sa base avec **les mêmes règles** que le
+filtre, sinon elle ne mesure pas ce qu'elle prétend. Le cas rapporté est un
+test de non-régression sur les vraies données ; 112 items restent « jamais
+localisables », et un craft gardé visible par cette clôture montre ses
+ingrédients inatteignables floutés — l'app avoue ce qui manque.

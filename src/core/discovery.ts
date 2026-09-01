@@ -3,6 +3,14 @@ import type { Model } from "./tree";
 import { OTHER_METHODS } from "./zones";
 
 /**
+ * Les natures de contenants qui, sans zone déclarée, existent réellement
+ * partout : le mobilier générique (casiers, étagères, canapés). Une créature
+ * ou une caisse sans donnée de zone, elle, vit *quelque part* — l'ignorer
+ * rendait Capacitor disponible via un Power Leech jamais localisé.
+ */
+const GENERIC_KINDS = new Set(["container", "pickup", "salvage"]);
+
+/**
  * Suivi de découverte (§5.7) : quelles zones le joueur a explorées.
  *
  * C'est de la configuration locale, pas de la donnée : l'état vit dans
@@ -89,14 +97,7 @@ export function computeAvailability(model: Model, state: DiscoveryState): Availa
   if (!state.enabled) return { enabled: false, ...EVERYTHING };
 
   const discovered = state.zones;
-  const providers = new Set<ProviderId>();
-  for (const provider of Object.values(model.ds.providers)) {
-    const zones = provider.zones;
-    if (zones.length === 0 || zones.some((z) => discovered.has(z.zone))) {
-      providers.add(provider.id);
-    }
-  }
-
+  const providers = availableProviders(model, discovered);
   const items = reachable(model, discovered, providers);
   // jamais localisables : invisibles même toutes zones cochées → toujours montrés
   for (const id of neverLocalisable(model)) items.add(id);
@@ -110,6 +111,21 @@ export function computeAvailability(model: Model, state: DiscoveryState): Availa
   };
 }
 
+function availableProviders(
+  model: Model,
+  discovered: ReadonlySet<string>,
+): Set<ProviderId> {
+  const out = new Set<ProviderId>();
+  for (const provider of Object.values(model.ds.providers)) {
+    const zones = provider.zones;
+    if (zones.some((z) => discovered.has(z.zone))
+        || (zones.length === 0 && GENERIC_KINDS.has(provider.kind))) {
+      out.add(provider.id);
+    }
+  }
+  return out;
+}
+
 /** Le point fixe brut, sans la clôture des jamais-localisables. */
 function reachable(
   model: Model,
@@ -119,6 +135,16 @@ function reachable(
   const dropped = new Set<ItemId>();
   for (const id of providers) {
     for (const drop of model.provider(id)!.drops) dropped.add(drop.item);
+  }
+
+  // craft ET upgrade : les deux fabriquent. Les armures A.E.G.I.S. ne sortent
+  // que d'améliorations — les ignorer les rangeait en « jamais localisables ».
+  const madeBy = new Map<ItemId, ItemId[][]>();
+  for (const recipe of model.ds.recipes) {
+    const list = madeBy.get(recipe.output.item);
+    const inputs = recipe.inputs.map((input) => input.item);
+    if (list) list.push(inputs);
+    else madeBy.set(recipe.output.item, [inputs]);
   }
 
   const available = new Set<ItemId>();
@@ -135,10 +161,13 @@ function reachable(
               ? available.has(s.from)
               : s.targetId
                 ? providers.has(s.targetId)
-                : true) ||
+                // une cible nommée mais jamais résolue (« kill Order ») vit
+                // quelque part : ce n'est pas un lieu inconnu, c'est un lieu
+                // qu'on ne sait pas vérifier — elle ne prouve rien ici
+                : !s.target) ||
         dropped.has(item.id) ||
-        model.recipesFor(item.id).some((r) =>
-          r.inputs.every((input) => available.has(input.item)));
+        (madeBy.get(item.id) ?? []).some((inputs) =>
+          inputs.every((input) => available.has(input)));
       if (ok) {
         available.add(item.id);
         changed = true;
@@ -154,9 +183,10 @@ const NEVER = new WeakMap<Model, ReadonlySet<ItemId>>();
 function neverLocalisable(model: Model): ReadonlySet<ItemId> {
   let cached = NEVER.get(model);
   if (!cached) {
+    // les mêmes règles que le point fixe courant, toutes zones cochées : la
+    // clôture ne vaut que si elle mesure exactement ce que le filtre mesure
     const allZones = new Set(model.ds.zones.map((z) => z.name));
-    const allProviders = new Set(Object.keys(model.ds.providers));
-    const atFull = reachable(model, allZones, allProviders);
+    const atFull = reachable(model, allZones, availableProviders(model, allZones));
     cached = new Set(
       Object.keys(model.ds.items).filter((id) => !atFull.has(id)),
     );

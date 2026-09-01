@@ -73,6 +73,26 @@ describe("disponibilité", () => {
     expect(both.item("crafted")).toBe(true);
   });
 
+  it("ne laisse pas une créature jamais localisée rendre quoi que ce soit disponible", () => {
+    // le bug rapporté : Capacitor « disponible » via un Power Leech sans zone.
+    // La créature vit quelque part — seule la vraie zone de l'item compte.
+    expect(office.item("leech_loot")).toBe(false);
+    expect(office.provider("ghost")).toBe(false);
+    expect(both.item("leech_loot")).toBe(true);
+  });
+
+  it("ne prend pas une cible non résolue pour un lieu inconnu", () => {
+    // « kill Order » nomme quelqu'un : ce n'est pas de la prose sans géographie
+    expect(office.item("faction_drop")).toBe(false);
+    expect(both.item("faction_drop")).toBe(true);
+  });
+
+  it("suit les améliorations comme les crafts", () => {
+    // les armures A.E.G.I.S. ne sortent que d'UpgradeRecipes
+    expect(office.item("upgraded")).toBe(false);
+    expect(both.item("upgraded")).toBe(true);
+  });
+
   it("ne cache jamais ce que la donnée ne sait pas localiser", () => {
     // prose sans géographie, et item sans la moindre information
     expect(office.item("unknown")).toBe(true);

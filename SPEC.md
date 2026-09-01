@@ -317,11 +317,15 @@ relie vivent sous « Uncharted », toujours proposées, floutées.
 **La disponibilité** est un point fixe, mesuré avant d'être écrit (cf.
 DECISIONS.md) : zone directe d'une source ; chaîne `from` jusqu'à une origine
 disponible ; contenant disponible, par sa cible (`targetId`) comme par ses
-`drops` ; recette dont tous les ingrédients sont disponibles. Un contenant sans
-zone déclarée existe partout. Clôture : **ce que la donnée ne sait localiser
-nulle part n'est jamais caché** — d'où deux invariants testés, *suivi désactivé
-= app entière* et *toutes zones cochées = app entière*. Mesure : Office seul →
-~350 craftables sur 597.
+`drops` ; recette — craft **ou amélioration** — dont tous les ingrédients sont
+disponibles. Trois pièges, corrigés sur signalement : seul le **mobilier
+générique** (container, pickup, salvage) sans zone déclarée existe partout —
+une créature ou une caisse sans donnée de zone vit *quelque part* et ne prouve
+rien ; une **cible nommée mais non résolue** (« kill Order ») n'est pas un lieu
+inconnu ; et les UpgradeRecipes fabriquent autant que les crafts. Clôture :
+**ce que la donnée ne sait localiser nulle part n'est jamais caché** — d'où
+deux invariants testés, *suivi désactivé = app entière* et *toutes zones
+cochées = app entière*. Mesure : Office seul → ~240 craftables sur 597.
 
 **Le voile.** Un item indisponible qui apparaît quand même (ingrédient d'une
 recette affichée, contenu d'une caisse, lien montant) est **flouté, le survol

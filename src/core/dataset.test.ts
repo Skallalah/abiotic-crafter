@@ -399,10 +399,31 @@ describe("découverte (§5.7), sur les vraies données", () => {
     const availability = computeAvailability(model, state("Office Sector"));
     const craftables = Object.keys(dataset.items).filter((id) => model.isCraftable(id));
     const visible = craftables.filter((id) => availability.item(id)).length;
-    // mesuré à 397 pendant la planification ; on borne sans figer le chiffre
-    expect(visible).toBeGreaterThan(300);
-    expect(visible).toBeLessThan(500);
+    // mesuré à 238 après correction des fuites ; on borne sans figer le chiffre
+    expect(visible).toBeGreaterThan(150);
+    expect(visible).toBeLessThan(400);
     expect(visible).toBeLessThan(craftables.length);
+  });
+
+  it("ne rend pas l'Energy Pistol atteignable avec Office, Flathill et Far Garden", () => {
+    // le cas rapporté : Capacitor passait par un Power Leech sans zone,
+    // Military Electronics par des soldats de l'Order jamais localisés,
+    // Night Essence par un poisson — et la recette semblait complète
+    const availability = computeAvailability(
+      model, state("Office Sector", "Flathill", "Far Garden"));
+    for (const id of ["energy_pistol", "capacitor", "night_essence",
+                      "military_electronics", "magbow"]) {
+      expect(availability.item(id), id).toBe(false);
+    }
+    // et l'Energy Pistol redevient atteignable là où vivent vraiment les leechs
+    const later = computeAvailability(
+      model, state("Office Sector", "Cascade Laboratories"));
+    expect(later.item("capacitor")).toBe(true);
+  });
+
+  it("suit les améliorations : l'A.E.G.I.S. n'est plus « jamais localisable »", () => {
+    const availability = computeAvailability(model, state("Office Sector"));
+    expect(availability.item("a_e_g_i_s_helmet")).toBe(false);
   });
 
   it("toutes zones découvertes = l'app entière, par construction", () => {

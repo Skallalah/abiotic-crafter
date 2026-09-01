@@ -183,6 +183,19 @@ export function discoveryDataset(): Dataset {
   add(item("crafted", "Crafted", 1));
   // ni source, ni recette, ni drop : la donnée ne sait rien, jamais caché
   add(item("nowhere", "Nowhere", 1));
+  // lâché par une créature jamais localisée ET lootable dans Manufacturing :
+  // seule la zone doit compter, la créature sans zone ne prouve rien
+  add(item("leech_loot", "Leech Loot", 8, [
+    { kind: "drop", target: "Ghost", targetId: "ghost" },
+    { kind: "pickup", zone: "Manufacturing West" },
+  ]));
+  // cible nommée mais jamais résolue (« kill Order ») : pas un lieu inconnu
+  add(item("faction_drop", "Faction Drop", 8, [
+    { kind: "drop", target: "Order" },
+    { kind: "pickup", zone: "Manufacturing West" },
+  ]));
+  // ne sort que d'une amélioration : suit ses ingrédients comme un craft
+  add(item("upgraded", "Upgraded", 1));
 
   const providers: Record<string, Provider> = {
     mfg_crate: {
@@ -192,11 +205,17 @@ export function discoveryDataset(): Dataset {
     },
     // aucun lieu déclaré : les casiers génériques existent partout
     generic: { id: "generic", name: "Generic", kind: "container", zones: [], drops: [] },
+    // une créature sans zone, elle, vit quelque part : elle ne prouve rien
+    ghost: { id: "ghost", name: "Ghost", kind: "enemy", zones: [], drops: [] },
   };
 
   return {
     items,
-    recipes: [recipe("crafted", [["looted_office", 1], ["looted_mfg", 1]])],
+    recipes: [
+      recipe("crafted", [["looted_office", 1], ["looted_mfg", 1]]),
+      { id: "u_upgraded_1", kind: "upgrade", output: { item: "upgraded", qty: 1 },
+        inputs: [{ item: "looted_mfg", qty: 1 }], bench: "Enhancement Bench" },
+    ],
     zones: [
       // lien déclaré en sens unique, comme The Encroachment sur le wiki
       { name: "Office Sector", order: 0, links: ["Manufacturing West"] },
