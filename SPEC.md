@@ -416,8 +416,13 @@ divergent : un `#f0b641` reste lisible en aplat et disparaît en texte.
 
 | Thème | `data-theme` | Ce qui change |
 |---|---|---|
-| GATE terminal | `gate` (défaut) | l'habillage du mockup, inchangé |
-| Windows 98 | `win98` | argent, biseaux, angles droits, fonte pixel |
+| Windows 98 | `win98` (défaut) | argent, biseaux, angles droits, fonte pixel |
+| Modern Slop | `gate` | l'habillage du mockup, inchangé |
+
+Le sélecteur vit dans l'onglet **Settings**, tout à droite de la barre — un
+réglage qu'on touche deux fois par an n'occupe pas la barre en permanence. Les
+panneaux (Settings, Discovered Zones) **tombent de leur bouton**, bords droits
+alignés, comme des menus.
 
 **Windows 98.** Panneaux `#d4d0c8` en relief à quatre arêtes (`--bevel-out`),
 champs en creux (`--bevel-in`), `--radius: 0`, aucune ombre portée. Le plan de

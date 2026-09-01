@@ -47,7 +47,7 @@ describe("état enregistré", () => {
 describe("le panneau", () => {
   it("montre le découvert coché, la frontière floutée, et rien au-delà", () => {
     const { button } = mount();
-    expect(button.textContent).toBe("Zones 1/5");
+    expect(button.textContent).toBe("Discovered Zones 1/5");
 
     const office = row("Office Sector")!;
     expect(office.classList.contains("on")).toBe(true);
@@ -71,7 +71,7 @@ describe("le panneau", () => {
     expect(changes).toHaveLength(1);
     expect(changes[0]!.zones.has("Manufacturing West")).toBe(true);
     expect(JSON.parse(localStorage.getItem(KEY)!).zones).toContain("Manufacturing West");
-    expect(button.textContent).toBe("Zones 2/5");
+    expect(button.textContent).toBe("Discovered Zones 2/5");
     expect(row("The Deep")).toBeTruthy();          // la frontière a avancé
   });
 

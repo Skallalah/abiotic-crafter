@@ -809,3 +809,12 @@ Deux aménagements techniques :
 Le workflow (`.github/workflows/deploy.yml`) fait `npm ci`, les tests, le
 build, et publie `dist/` — jamais le scraper : la donnée voyage par le dépôt,
 le build n'appelle pas le wiki.
+
+
+### Windows 98 devient le défaut, « GATE terminal » devient « Modern Slop »
+Demandé une fois le thème rétro adopté : il passe premier et par défaut (le
+script inline d'index.html suit, pour que le premier rendu d'un visiteur neuf
+soit déjà argenté). Le thème du mockup reste disponible sous son nouveau nom,
+assumé. Le sélecteur quitte la barre du haut pour un onglet **Settings** tout à
+droite ; « Zones » devient « Discovered Zones » ; et les deux panneaux
+s'ancrent désormais sous leur bouton (`anchorBelow`) au lieu d'un coin fixe.

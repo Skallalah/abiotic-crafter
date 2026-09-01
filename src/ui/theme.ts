@@ -11,13 +11,13 @@
 const KEY = "gate-crafting-index/theme";
 
 export const THEMES = [
-  { id: "gate", label: "GATE terminal" },
   { id: "win98", label: "Windows 98" },
+  { id: "gate", label: "Modern Slop" },
 ] as const;
 
 export type ThemeId = (typeof THEMES)[number]["id"];
 
-export const DEFAULT_THEME: ThemeId = "gate";
+export const DEFAULT_THEME: ThemeId = "win98";
 
 function isTheme(value: string | null): value is ThemeId {
   return THEMES.some((theme) => theme.id === value);

@@ -340,13 +340,18 @@ button.censored, .censored { cursor: default; }
 }
 .itemlist .beyond button:hover { color: var(--accent-ink); }
 
-/* Sélecteur de thème (§6). */
-.topbar .theme {
+/* Sélecteur de thème, dans l'onglet Settings (§6). */
+.settings-panel { width: 220px; }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; font-weight: 600;
+}
+.theme {
   background: var(--bg); color: var(--ink-2);
   border: 1px solid var(--line); border-radius: var(--radius);
   font-size: 12px; padding: 3px 6px;
 }
-.topbar .theme:hover { color: var(--ink); border-color: var(--ink-2); }
+.theme:hover { color: var(--ink); border-color: var(--ink-2); }
 
 /* Cibles d'une source dans la colonne de droite. */
 .zone .targets { color: var(--ink-2); font-size: 12px; line-height: 1.35; }

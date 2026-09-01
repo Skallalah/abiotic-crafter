@@ -9,7 +9,7 @@ import type { ItemId } from "./data/types";
 import { Canvas, type View } from "./ui/canvas";
 import { DetailsWindows } from "./ui/details";
 import { DiscoverPanel } from "./ui/discover";
-import { mountThemePicker } from "./ui/theme";
+import { SettingsPanel } from "./ui/settings";
 import { ItemList } from "./ui/list";
 import { Summary } from "./ui/summary";
 import { TreeView } from "./ui/tree-view";
@@ -24,7 +24,7 @@ interface Session {
   view: View;
 }
 
-mountThemePicker(document.getElementById("theme") as HTMLSelectElement);
+new SettingsPanel(document.getElementById("settings") as HTMLButtonElement);
 
 const model = new Model(dataset);
 

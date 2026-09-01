@@ -2,6 +2,18 @@ import { frontier, type DiscoveryState, type SpoilerMode } from "../core/discove
 import type { Model } from "../core/tree";
 import { spoil, zoneTag } from "./format";
 
+/**
+ * Ancre un panneau sous le bouton qui l'ouvre, bords droits alignés.
+ *
+ * Les panneaux étaient fixés à un coin arbitraire de l'écran : ils doivent
+ * tomber de leur bouton, comme un menu.
+ */
+export function anchorBelow(button: HTMLElement, panel: HTMLElement): void {
+  const rect = button.getBoundingClientRect();
+  panel.style.top = `${rect.bottom + 8}px`;
+  panel.style.right = `${Math.max(8, window.innerWidth - rect.right)}px`;
+}
+
 /** Doit rester distinct de la session : changer d'objet ne touche pas à ça. */
 const KEY = "gate-crafting-index/discovery";
 
@@ -112,12 +124,16 @@ export class DiscoverPanel {
   /** Utile aux autres composants : « N items beyond your zones » ouvre ici. */
   open(): void {
     this.panel.hidden = false;
+    anchorBelow(this.button, this.panel);
     this.render();
   }
 
   private toggleOpen(): void {
     this.panel.hidden = !this.panel.hidden;
-    if (!this.panel.hidden) this.render();
+    if (!this.panel.hidden) {
+      anchorBelow(this.button, this.panel);
+      this.render();
+    }
   }
 
   private apply(state: DiscoveryState): void {
@@ -139,8 +155,8 @@ export class DiscoverPanel {
   private render(): void {
     const { enabled, zones } = this.state;
     this.button.textContent = enabled
-      ? `Zones ${zones.size}/${this.model.ds.zones.length}`
-      : "Zones — all";
+      ? `Discovered Zones ${zones.size}/${this.model.ds.zones.length}`
+      : "Discovered Zones — all";
     this.button.title = "Which zones you have discovered";
 
     const inFrontier = new Map(

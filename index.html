@@ -11,7 +11,7 @@
      recopiée — les deux commentaires se répondent. */
   try {
     var saved = localStorage.getItem("gate-crafting-index/theme");
-    if (saved) document.documentElement.dataset.theme = saved;
+    document.documentElement.dataset.theme = saved || "win98";
   } catch (e) { /* stockage indisponible : thème par défaut */ }
 </script>
 </head>
@@ -21,10 +21,10 @@
   <h1>GATE Crafting Index</h1>
   <span class="current">Item: <b id="currentName">—</b></span>
   <a id="wikiLink" class="wiki" href="#" target="_blank" rel="noreferrer noopener">wiki page ↗</a>
-  <select id="theme" class="theme" title="Interface theme"></select>
-  <button id="discover" class="discover" type="button"></button>
   <span class="spacer"></span>
   <span class="hint">Click a craftable card to expand it · <span class="up">dashed links above</span> = what consumes this item · <b>right-click anything</b> for a movable window · double-click its title bar to roll it up · drag to pan · wheel to zoom · <kbd>/</kbd> to search</span>
+  <button id="discover" class="discover" type="button"></button>
+  <button id="settings" class="discover" type="button">Settings</button>
 </header>
 
 <div class="layout">
