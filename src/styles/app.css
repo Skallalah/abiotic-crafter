@@ -51,15 +51,19 @@
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
   }
   .search::placeholder { color: var(--ink-2); }
-  /* santé et sensibilités d'une créature, côte à côte */
+  /* santé et sensibilités d'une créature, côte à côte — même système
+     typographique que la fiche .props : 12px, étiquette grise condensée,
+     valeur en demi-gras. Les deux blocs se font face, ils doivent se lire
+     d'une seule voix. */
   .vitals { display: flex; gap: 20px; align-items: flex-start; }
   .vitals > * { flex: 1; min-width: 0; }
   .senscol { display: grid; gap: 2px; }
   .sens { display: grid; gap: 4px; }
   .health { display: grid; gap: 4px; }
-  .hp { display: flex; align-items: center; gap: 8px; }
+  .hp { display: flex; align-items: center; gap: 8px; font-size: 12px; }
   .hp svg { width: 16px; height: 16px; flex: none; color: var(--logo-ink); }
-  .hp .part { color: var(--ink-2); min-width: 44px; }
+  .hp .part { color: var(--ink-2); font-stretch: 85%; min-width: 44px; }
+  .hp b, .sens .hp span { font-weight: 600; color: var(--ink); }
 
   /* barre de catégories : icônes dans l'encre du logo, All en tête, repliée
      par défaut derrière sa ligne de pli */
