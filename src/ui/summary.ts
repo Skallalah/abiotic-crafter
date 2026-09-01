@@ -1,8 +1,8 @@
 import type { Availability } from "../core/discovery";
 import { chosenRecipe, type Model, type RecipeChoice } from "../core/tree";
-import { computeTotals, craftOrder, type Totals } from "../core/totals";
+import { computeTotals, type Totals } from "../core/totals";
 import { BEYOND, groupByZone, type ZoneEntry } from "../core/zones";
-import type { ItemId, Source } from "../data/types";
+import type { ItemId } from "../data/types";
 import {
   badges, keyword, KIND_KEYWORD, MAX_SPOTS, originLines, sourceLine, sourceList,
   spoil, spotLine, tile, veilName, veilTile, zoneTag,
@@ -19,7 +19,6 @@ import {
 export class Summary {
   private readonly baseRows = document.getElementById("baseRows")!;
   private readonly baseCount = document.getElementById("baseCount")!;
-  private readonly steps = document.getElementById("steps")!;
   private readonly zones = document.getElementById("zones")!;
 
   constructor(
@@ -40,7 +39,6 @@ export class Summary {
     this.availability = availability;
     const totals = computeTotals(this.model, root, choice, 1, expanded);
     this.renderBase(totals, highlighted);
-    this.renderSteps(totals, choice, highlighted);
     this.renderZones(totals, choice, highlighted);
     return totals;
   }
@@ -165,73 +163,7 @@ export class Summary {
     return `or craft: ${parts.join(", ")}`;
   }
 
-  // --------------------------------------------------------------- 2. étapes
-
-  private renderSteps(totals: Totals, choice: RecipeChoice, highlighted: ItemId | null): void {
-    const fragment = document.createDocumentFragment();
-
-    for (const id of craftOrder(totals)) {
-      const item = this.model.item(id);
-      const qty = totals.steps.get(id)!;
-      const li = document.createElement("li");
-      li.dataset.item = id;
-      if (highlighted === id) li.classList.add("hl");
-
-      const n = document.createElement("span");
-      n.className = "n";
-      n.textContent = `×${qty}`;
-
-      const label = document.createElement("span");
-      const name = document.createElement("span");
-      name.textContent = `${item.name} `;
-      veilName(this.availability, id, name);
-      label.append(name, badges(this.model, id));
-      if (this.model.isDual(id)) {
-        const alt = document.createElement("div");
-        alt.className = "alt";
-        alt.textContent = "or loot :";
-        alt.appendChild(this.sourceList(this.lootLines(id)));
-        label.appendChild(alt);
-      }
-
-      const bench = document.createElement("span");
-      bench.className = "b";
-      bench.textContent = chosenRecipe(this.model, id, choice)?.bench ?? "";
-
-      li.append(n, label, bench);
-      li.addEventListener("click", () => this.onHighlight(id));
-      fragment.appendChild(li);
-    }
-
-    this.steps.replaceChildren(fragment);
-  }
-
-  /**
-   * « ou loot : Office Sector — casser Computer ». Les sources localisées
-   * passent devant : savoir dans quel secteur ramasser l'objet est plus utile
-   * que la liste des objets à démonter pour l'obtenir.
-   */
-  private lootLines(id: ItemId): HTMLLIElement[] {
-    const sources = [...this.model.item(id).sources]
-      .filter((s) => this.availability.source(s))
-      .sort((a, b) => rankSource(a) - rankSource(b));
-    if (sources.length === 0) {
-      const li = document.createElement("li");
-      li.textContent = "in undiscovered zones";
-      return [li];
-    }
-    return sources.map((source) => {
-      const li = sourceLine(this.model, source, this.availability, this.onOpen);
-      if (source.zone) {
-        const zone = document.createElement("b");
-        zone.textContent = source.zone;
-        li.prepend(zone, " — ");
-      }
-      return li;
-    });
-  }
-
-  // ---------------------------------------------------------------- 3. zones
+  // ------------------------------------------------------------------ zones
 
   private renderZones(totals: Totals, choice: RecipeChoice, highlighted: ItemId | null): void {
     const fragment = document.createDocumentFragment();
@@ -350,8 +282,3 @@ function unique(values: string[]): string[] {
   return [...new Set(values)];
 }
 
-/** Une source localisée passe avant une source globale, le salvage en dernier. */
-function rankSource(source: Source): number {
-  if (source.zone) return 0;
-  return source.kind === "salvage" ? 2 : 1;
-}
