@@ -46,7 +46,7 @@ function mount(): ItemList {
 }
 
 const catButtons = () =>
-  [...document.querySelectorAll<HTMLButtonElement>(".catbar button")];
+  [...document.querySelectorAll<HTMLButtonElement>(".catrow button")];
 const listedNames = () =>
   [...document.querySelectorAll<HTMLElement>("#itemlist button[data-item] span")]
     .filter((s) => !s.className).map((s) => s.textContent);
@@ -64,8 +64,28 @@ beforeEach(() => {
 });
 
 describe("barre de catégories", () => {
+  it("naît repliée derrière sa ligne de pli, qui nomme la catégorie", () => {
+    mount();
+    const row = document.querySelector<HTMLElement>(".catrow")!;
+    const fold = document.querySelector<HTMLButtonElement>(".catfold")!;
+    expect(row.hidden).toBe(true);
+    expect(fold.textContent).toBe("▸ Category: all");
+    fold.click();
+    expect(row.hidden).toBe(false);
+    expect(fold.textContent).toBe("▾ Category: all");
+    catButtons().find((b) => b.title === "Tools")!.click();
+    expect(fold.textContent).toBe("▾ Category: Tools");
+
+    // le pli, comme le filtre, survit à une réouverture
+    document.getElementById("catbar")!.replaceChildren();
+    mount();
+    expect(document.querySelector<HTMLElement>(".catrow")!.hidden).toBe(false);
+    expect(document.querySelector(".catfold")!.textContent).toBe("▾ Category: Tools");
+  });
+
   it("rend All puis une icône par catégorie présente, Divers en dernier", () => {
     mount();
+    document.querySelector<HTMLButtonElement>(".catfold")!.click();
     expect(catButtons().map((b) => b.title)).toEqual([
       "All categories", "Ghost Gear", "Test", "Tools", "Divers",
     ]);

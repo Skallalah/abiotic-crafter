@@ -51,16 +51,25 @@
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
   }
   .search::placeholder { color: var(--ink-2); }
-  /* barre de catégories : icônes dans l'encre du logo, All en tête */
-  .catbar { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-  .catbar button {
+  /* barre de catégories : icônes dans l'encre du logo, All en tête, repliée
+     par défaut derrière sa ligne de pli */
+  .catbar { margin-top: 8px; }
+  .catfold {
+    display: block; padding: 0; background: none; border: 0;
+    color: var(--ink-2); font-size: 12px; text-align: left;
+  }
+  .catfold:hover, .catfold.filtering { color: var(--ink); }
+  .catrow { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  /* notre display:flex écraserait le style UA de [hidden] — repli explicite */
+  .catrow[hidden] { display: none; }
+  .catrow button {
     display: flex; padding: 4px 6px;
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
     color: var(--logo-ink);
   }
-  .catbar button svg { display: block; width: 16px; height: 16px; }
-  .catbar button:hover { background: var(--panel-2); }
-  .catbar button.on { background: var(--panel-2); border-color: var(--accent); }
+  .catrow button svg { display: block; width: 16px; height: 16px; }
+  .catrow button:hover { background: var(--panel-2); }
+  .catrow button.on { background: var(--panel-2); border-color: var(--accent); }
   .itemlist { list-style: none; margin: 0; padding: 0; }
   .itemlist button {
     width: 100%; display: flex; align-items: center; gap: 10px;

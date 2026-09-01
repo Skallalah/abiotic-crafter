@@ -911,3 +911,6 @@ toute catégorie qu'un futur scrape ferait apparaître. En vue mono-catégorie,
 l'intertitre du groupe reste affiché : même rendu partout, on sait où on est.
 La sélection s'efface d'elle-même si un lien montant amène sur un objet d'une
 autre catégorie, comme la recherche le fait déjà.
+La rangée vit repliée par défaut derrière une ligne de pli — treize boutons
+prenaient trois lignes du panneau — qui nomme la catégorie active pour que le
+filtre reste lisible barre fermée ; replier ne défait pas le filtre.

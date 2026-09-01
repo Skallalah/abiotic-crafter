@@ -6,6 +6,8 @@ import { ALL_ICON, categoryIcon, svgIcon } from "./icons";
 
 /** Distinct de la session et de la découverte, comme le thème. */
 const CATEGORY_KEY = "gate-crafting-index/category";
+/** Le pli de la barre de catégories — fermée par défaut, elle prend de la place. */
+const CATBAR_KEY = "gate-crafting-index/catbar";
 
 /**
  * Colonne de gauche : les items craftables, groupés par catégorie.
@@ -20,6 +22,8 @@ export class ItemList {
   private readonly input: HTMLInputElement;
   private readonly craftables: ItemId[];
   private readonly catButtons = new Map<string | null, HTMLButtonElement>();
+  private catFold: HTMLButtonElement | null = null;
+  private catRow: HTMLElement | null = null;
   private current: ItemId | null = null;
   private category: string | null = null;
   private availability!: Availability;
@@ -49,6 +53,10 @@ export class ItemList {
    * catégorie qui apparaît au prochain scrape gagne un bouton toute seule
    * (avec l'icône de secours). « Divers » passe en dernier — c'est le
    * fourre-tout, pas une catégorie qu'on cherche.
+   *
+   * Treize boutons mangent trois lignes du panneau : la rangée vit donc
+   * derrière un pli, fermé par défaut. La ligne de pli nomme la catégorie
+   * active pour que le filtre reste lisible barre fermée.
    */
   private buildCategoryBar(): void {
     const bar = document.getElementById("catbar");
@@ -59,6 +67,24 @@ export class ItemList {
     ))].sort((a, b) =>
       (a === "Divers" ? 1 : 0) - (b === "Divers" ? 1 : 0) || a.localeCompare(b, "en"));
 
+    this.catFold = document.createElement("button");
+    this.catFold.type = "button";
+    this.catFold.className = "catfold";
+    this.catFold.addEventListener("click", () => {
+      this.catRow!.hidden = !this.catRow!.hidden;
+      try {
+        localStorage.setItem(CATBAR_KEY, this.catRow!.hidden ? "folded" : "open");
+      } catch { /* le pli tient pour la session en cours */ }
+      this.reflectCategory();
+    });
+
+    this.catRow = document.createElement("div");
+    this.catRow.className = "catrow";
+    this.catRow.hidden = true;
+    try {
+      if (localStorage.getItem(CATBAR_KEY) === "open") this.catRow.hidden = false;
+    } catch { /* stockage indisponible : fermée */ }
+
     const button = (cat: string | null, icon: SVGSVGElement, title: string) => {
       const b = document.createElement("button");
       b.type = "button";
@@ -67,10 +93,12 @@ export class ItemList {
       b.appendChild(icon);
       b.addEventListener("click", () => this.setCategory(cat));
       this.catButtons.set(cat, b);
-      bar.appendChild(b);
+      this.catRow!.appendChild(b);
     };
     button(null, svgIcon(ALL_ICON), "All categories");
     for (const cat of categories) button(cat, categoryIcon(cat), cat);
+
+    bar.append(this.catFold, this.catRow);
 
     try {
       const saved = localStorage.getItem(CATEGORY_KEY);
@@ -93,6 +121,13 @@ export class ItemList {
   private reflectCategory(): void {
     for (const [cat, button] of this.catButtons) {
       button.classList.toggle("on", cat === this.category);
+    }
+    if (this.catFold && this.catRow) {
+      const open = !this.catRow.hidden;
+      this.catFold.textContent =
+        `${open ? "▾" : "▸"} Category: ${this.category ?? "all"}`;
+      this.catFold.title = open ? "Hide the category filter" : "Filter by category";
+      this.catFold.classList.toggle("filtering", this.category !== null);
     }
   }
 

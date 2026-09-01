@@ -106,14 +106,14 @@
 [data-theme="win98"] .canvas-help:active { box-shadow: var(--bevel-in); }
 /* panneau ouvert = bouton tenu enfoncé, le vrai comportement d'époque */
 [data-theme="win98"] .topbar .discover.open,
-[data-theme="win98"] .catbar button.on,
+[data-theme="win98"] .catrow button.on,
 [data-theme="win98"] .canvas-help.open {
   box-shadow: var(--bevel-in);
   background: var(--panel-2);
 }
-[data-theme="win98"] .catbar button { padding: 4px 5px; }
-[data-theme="win98"] .catbar button:hover { background: var(--panel); }
-[data-theme="win98"] .catbar button.on:hover { background: var(--panel-2); }
+[data-theme="win98"] .catrow button { padding: 4px 5px; }
+[data-theme="win98"] .catrow button:hover { background: var(--panel); }
+[data-theme="win98"] .catrow button.on:hover { background: var(--panel-2); }
 
 [data-theme="win98"] .discover-panel {
   border: 0;
@@ -148,7 +148,7 @@
 [data-theme="win98"] .canvas-tools button,
 [data-theme="win98"] .details-foot button,
 [data-theme="win98"] .theme,
-[data-theme="win98"] .catbar button,
+[data-theme="win98"] .catrow button,
 [data-theme="win98"] .topbar .discover {
   background: var(--panel);
   color: var(--ink);
