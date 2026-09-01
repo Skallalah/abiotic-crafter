@@ -276,6 +276,28 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
                           "target": pretty(row["sourceObject"] or row["sourceEnemy"]),
                           "qtyMin": qty_min, "qtyMax": qty_max})
 
+    # 2 bis. chaînes de cuisson, de découpe et de décomposition : la table
+    # Items déclare en colonnes ce que la prose racontait mal — cuire X donne
+    # Y (cookingCookedItem), le découper donne Z (cookingPortionItem), le
+    # laisser pourrir donne W (decayToItem). C'est ce qui relie l'Anteverse
+    # Cheese à sa meule, et la meule aux curds qu'une soupe fabrique.
+    derivations: dict[str, list[tuple[str, str]]] = defaultdict(list)
+    for row in load("Items"):
+        row_id = resolver.get(row["_pageName"])
+        if not row_id:
+            continue
+        for field in ("cookingCookedItem", "cookingPortionItem", "decayToItem"):
+            name = (row.get(field) or "").strip()
+            result_id = resolver.get(name)
+            if result_id and result_id != row_id:
+                derivations[result_id].append((row_id, row["_pageName"]))
+    for result_id, origins_ in derivations.items():
+        # 245 aliments pourrissent en Rotten Food : au complet, l'éventail
+        # noierait sa fenêtre — même plafond que le salvage (cf. DECISIONS.md)
+        for from_id, from_name in sorted(set(origins_))[:MAX_SALVAGE]:
+            add(result_id, {"kind": "pickup", "from": from_id, "target": from_name})
+            report.bump("dérivations cuisson/découpe/décomposition")
+
     # 3. drops d'ennemis
     enemy_items: dict[str, list[str]] = defaultdict(list)
     for row in load("Enemies"):
@@ -976,6 +998,7 @@ def main() -> None:
     print(f"  emplacements pr\u00e9cis lus       {spots}")
     print(f"  items d'infobox de zone      {report.counts.get('items lus dans les infobox de zone', 0)}")
     print(f"  ventes localisées (PNJ)      {report.counts.get('ventes localisées par la page du PNJ', 0)}")
+    print(f"  dérivations de cuisine       {report.counts.get('dérivations cuisson/découpe/décomposition', 0)}")
     print(f"  sources dérivées résolues    {report.counts.get('sources dérivées résolues', 0)}")
     print(f"  items purement dérivés       {len(derives)}")
     with_icon = sum(1 for z in zones if z.get("icon"))

@@ -412,7 +412,8 @@ describe("découverte (§5.7), sur les vraies données", () => {
     const availability = computeAvailability(
       model, state("Office Sector", "Flathill", "Far Garden"));
     for (const id of ["energy_pistol", "capacitor", "night_essence",
-                      "military_electronics", "magbow", "carapace_helm"]) {
+                      "military_electronics", "magbow", "carapace_helm",
+                      "raw_stuffed_mushroom_tray"]) {
       expect(availability.item(id), id).toBe(false);
     }
     // et l'Energy Pistol redevient atteignable là où vivent vraiment les leechs
@@ -424,6 +425,15 @@ describe("découverte (§5.7), sur les vraies données", () => {
   it("suit les améliorations : l'A.E.G.I.S. n'est plus « jamais localisable »", () => {
     const availability = computeAvailability(model, state("Office Sector"));
     expect(availability.item("a_e_g_i_s_helmet")).toBe(false);
+  });
+
+  it("relie la cuisine par les colonnes cooking*/decay de la table Items", () => {
+    // Raw Stuffed Mushroom Tray ← Anteverse Cheese ← meule ← curds ← soupe :
+    // la chaîne n'existait qu'en prose muette, les colonnes Cargo la déclarent
+    const wheel = model.item("ripening_alien_cheese_wheel");
+    expect(wheel.sources.some((s) => s.from === "alien_cheese_curds")).toBe(true);
+    const cheese = model.item("anteverse_cheese");
+    expect(cheese.sources.some((s) => s.from === "alien_cheese_wheel")).toBe(true);
   });
 
   it("localise les ventes par la page du PNJ et les créatures par leur prose", () => {

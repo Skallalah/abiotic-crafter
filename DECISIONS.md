@@ -648,3 +648,23 @@ résidu honnête). Le Carapace Helm est gaté normalement : caché avec trois
 zones, sa chaîne vivante à découverte complète via la forge de Manufacturing
 West. C'est la leçon du signalement : quand la clôture garde trop de monde,
 ce n'est pas la clôture qu'on élargit, c'est la donnée qu'on complète.
+
+
+### « Pourquoi Raw Stuffed Mushroom Tray ? » — la cuisine était déclarée, jamais lue
+Même méthode que le Helm : la chaîne mourait à découverte totale sur
+l'Anteverse Cheese, dont la meule n'avait qu'une prose muette. Or la table
+Cargo `Items` déclare les transformations de cuisine **en colonnes** :
+`cookingCookedItem` (cuire X donne Y, 198 cas), `cookingPortionItem` (le
+découper donne Z, 86) et `decayToItem` (le laisser tourner donne W, 287).
+Jamais récupérées. Chaque colonne devient une source dérivée `from`, comme le
+salvage — et la meule se relie aux curds, que la soupe au Vial of Milk
+fabrique : toute la chaîne se gate normalement.
+
+Deux garde-fous : 245 aliments pourrissent en Rotten Food, l'éventail complet
+noierait sa fenêtre — même plafond que le salvage (6, tri stable). Et le
+périmètre du dataset grandit de 134 items (1 153 → 1 287) : les aliments crus
+que ces chaînes citent entrent avec leurs propres sources.
+
+Il ne reste que **6 fabricables** que la donnée ne sait localiser nulle part —
+des armes d'items-compagnons (Electro Pest, Magma Skink…), chaînes que le wiki
+ne documente pas. Résidu assumé : toujours visibles, ingrédients floutés.

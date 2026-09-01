@@ -20,7 +20,8 @@ TABLES: dict[str, list[str]] = {
     "Items": [
         "name", "image", "category", "weight", "stackSize",
         "researchMaterial", "tier", "description", "gearSlot",
-    ],
+              # chaînes de cuisson, de découpe et de décomposition (§4 étape 1)
+              "cookingCookedItem", "cookingPortionItem", "decayToItem"],
     "Recipes": [
         "resultItem", "resultAmount", "requiredStation",
         "ingredient1Item", "ingredient1Amount",

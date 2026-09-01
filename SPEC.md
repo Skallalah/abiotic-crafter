@@ -178,6 +178,8 @@ GET /api.php?action=cargoquery&format=json&tables=<T>&fields=<cols>&limit=500&of
 
 Paginer par `offset`. Si les tables couvrent items + recettes + stack, l'étape 2 ne sert que pour les `sources` (souvent en prose).
 
+La table `Items` déclare aussi les **chaînes de cuisine** en colonnes — `cookingCookedItem` (cuire X donne Y), `cookingPortionItem` (le découper donne Z), `decayToItem` (le laisser tourner donne W) : chacune devient une source dérivée `from`, plafonnée comme le salvage quand l'éventail converge (245 aliments pourrissent en Rotten Food).
+
 `LootTables` + `LootTablesItems` décrivent le contenu des contenants — 47 tables, 216 lignes — et sont la **seule** source de `Chance` (jusqu'à 0.001). `Objects` donne la nature de chaque objet (`destroyable`, `pickup`). Les trois alimentent `providers`.
 
 ### Étape 2 — wikitext par page (complément)
