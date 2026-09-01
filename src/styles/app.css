@@ -658,9 +658,13 @@ button.open:hover { color: var(--accent-ink); }
   /* Les deux seuls conteneurs qui défilent : les colonnes latérales et le
      corps d'une fenêtre de détail. La barre native du système jurait avec les
      tokens : piste claire et pouce gris sur des panneaux sombres. */
-  .pane-body, .wb-body {
-    scrollbar-width: thin;                        /* Firefox */
-    scrollbar-color: var(--line) transparent;
+  /* Firefox seulement : sur Chrome, poser scrollbar-width/color DÉSACTIVE
+     tout le dessin ::-webkit-scrollbar (dont les ascenseurs Windows 98) */
+  @supports not selector(::-webkit-scrollbar) {
+    .pane-body, .wb-body {
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
   }
 
   .pane-body::-webkit-scrollbar,

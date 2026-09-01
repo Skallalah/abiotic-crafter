@@ -297,35 +297,34 @@
 [data-theme="win98"] .pane-body::-webkit-scrollbar,
 [data-theme="win98"] .wb-body::-webkit-scrollbar { width: 16px; height: 16px; }
 
-/* la trame un-pixel-sur-deux du fond d'ascenseur */
-[data-theme="win98"] .pane-body::-webkit-scrollbar-track,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-track,
-[data-theme="win98"] .pane-body::-webkit-scrollbar-corner,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-corner {
+/* Les ascenseurs d'époque, pour TOUT ce qui défile (colonnes, fenêtres,
+   panneaux) : 16 px de large, trame un-pixel-sur-deux, pouce et flèches en
+   relief. La largeur de base (10 px) écrasait les flèches. */
+[data-theme="win98"] ::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+[data-theme="win98"] ::-webkit-scrollbar-track,
+[data-theme="win98"] ::-webkit-scrollbar-corner {
   background-color: #d4d0c8;
   background-image: repeating-conic-gradient(#ffffff 0 25%, #d4d0c8 0 50%);
   background-size: 2px 2px;
 }
-
-[data-theme="win98"] .pane-body::-webkit-scrollbar-thumb,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-thumb {
+[data-theme="win98"] ::-webkit-scrollbar-thumb {
   background: #d4d0c8;
   background-clip: border-box;
   border: 0;
   border-radius: 0;
   box-shadow: var(--bevel-out);
 }
-[data-theme="win98"] .pane-body::-webkit-scrollbar-thumb:hover,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-thumb:hover,
-[data-theme="win98"] .pane-body::-webkit-scrollbar-thumb:active,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-thumb:active {
+[data-theme="win98"] ::-webkit-scrollbar-thumb:hover,
+[data-theme="win98"] ::-webkit-scrollbar-thumb:active {
   background: #d4d0c8;
   box-shadow: var(--bevel-out);
 }
 
 /* les flèches, en relief elles aussi ; le triangle est dessiné en SVG inline */
-[data-theme="win98"] .pane-body::-webkit-scrollbar-button,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-button {
+[data-theme="win98"] ::-webkit-scrollbar-button {
   display: block;
   width: 16px;
   height: 16px;
@@ -334,26 +333,34 @@
   background-position: center;
   box-shadow: var(--bevel-out);
 }
-[data-theme="win98"] .pane-body::-webkit-scrollbar-button:vertical:decrement,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-button:vertical:decrement {
+[data-theme="win98"] ::-webkit-scrollbar-button:vertical:decrement {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1z'/%3E%3C/svg%3E");
 }
-[data-theme="win98"] .pane-body::-webkit-scrollbar-button:vertical:increment,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-button:vertical:increment {
+[data-theme="win98"] ::-webkit-scrollbar-button:vertical:increment {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M0 0h7v1H6v1H5v1H4v1H3V3H2V2H1V1H0z'/%3E%3C/svg%3E");
 }
-[data-theme="win98"] .pane-body::-webkit-scrollbar-button:horizontal:decrement,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-button:horizontal:decrement {
+[data-theme="win98"] ::-webkit-scrollbar-button:horizontal:decrement {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7'%3E%3Cpath d='M3 0v7H2V6H1V5H0V2h1V1h1V0z'/%3E%3C/svg%3E");
 }
-[data-theme="win98"] .pane-body::-webkit-scrollbar-button:horizontal:increment,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-button:horizontal:increment {
+[data-theme="win98"] ::-webkit-scrollbar-button:horizontal:increment {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7'%3E%3Cpath d='M0 0h1v1h1v1h1v3H2v1H1v1H0z'/%3E%3C/svg%3E");
 }
 /* WebKit dessine aussi les deux coins doubles : on les masque */
-[data-theme="win98"] .pane-body::-webkit-scrollbar-button:vertical:start:increment,
-[data-theme="win98"] .pane-body::-webkit-scrollbar-button:vertical:end:decrement,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-button:vertical:start:increment,
-[data-theme="win98"] .wb-body::-webkit-scrollbar-button:vertical:end:decrement {
+[data-theme="win98"] ::-webkit-scrollbar-button:vertical:start:increment,
+[data-theme="win98"] ::-webkit-scrollbar-button:vertical:end:decrement,
+[data-theme="win98"] ::-webkit-scrollbar-button:horizontal:start:increment,
+[data-theme="win98"] ::-webkit-scrollbar-button:horizontal:end:decrement {
   display: none;
+}
+
+/* Firefox ne peut pas dessiner les flèches : au moins la bonne largeur et
+   les bonnes couleurs, pouce argent sur piste claire. Jamais sur Chrome :
+   ces propriétés y débrancheraient les ascenseurs dessinés ci-dessus. */
+@supports not selector(::-webkit-scrollbar) {
+  [data-theme="win98"] .pane-body,
+  [data-theme="win98"] .wb-body,
+  [data-theme="win98"] .discover-panel {
+    scrollbar-width: auto;
+    scrollbar-color: #b8b4ac #e9e7e3;
+  }
 }
