@@ -2,6 +2,13 @@ import type { Item, Source } from "../data/types";
 import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 
+/**
+ * Racine des fichiers servis tels quels (icônes). `/` en dev, mais le site
+ * déployé vit sous un sous-chemin (`/abiotic-crafter/` sur GitHub Pages) :
+ * un `src="/Icon.png"` absolu y chercherait au mauvais endroit.
+ */
+export const ASSET_BASE = import.meta.env.BASE_URL;
+
 /** Abréviation 3 lettres affichée quand l'icône manque (§6). */
 export function abbreviation(name: string): string {
   // La ponctuation ne porte pas d'information : « Keypad Hacker (Tier 2) »
@@ -34,7 +41,7 @@ export function tile(model: Model, item: Item): HTMLElement {
   span.textContent = abbreviation(item.name);
   if (item.icon) {
     const img = document.createElement("img");
-    img.src = `/${item.icon}`;
+    img.src = ASSET_BASE + item.icon;
     img.alt = "";
     img.loading = "lazy";
     img.addEventListener("error", () => img.remove());
@@ -209,7 +216,7 @@ export function zoneTag(model: Model, name: string): HTMLElement {
   if (zone?.icon) {
     const img = document.createElement("img");
     img.className = "zoneicon";
-    img.src = `/${zone.icon}`;
+    img.src = ASSET_BASE + zone.icon;
     img.alt = "";
     img.loading = "lazy";
     img.addEventListener("error", () => img.remove());

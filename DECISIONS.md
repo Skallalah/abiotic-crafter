@@ -786,3 +786,26 @@ filtrent. Dans tous les modes, une recette garde tous ses ingrédients.
 
 Au passage, `DetailsWindows` gagne un `dispose()` : ses écouteurs `document`
 s'accumulaient entre les instances des tests.
+
+
+## Déploiement : GitHub Pages, donnée et icônes dans le dépôt
+
+Décidé avec l'utilisateur : dépôt passé **public** — le plan Free ne permet pas
+Pages sur un dépôt privé, et un site Pages est de toute façon une URL publique
+sur tous les plans hors Enterprise. Les images viennent du wiki public (assets
+du jeu) : usage de groupe non commercial assumé, mention au README, retrait sur
+demande. L'ancienne réserve « pas de redistribution de data/icons/ » est levée
+en conséquence.
+
+Deux aménagements techniques :
+- **les icônes sont réduites à 256 px** (côté long) à l'arrivée du
+  téléchargement, et le stock existant a été repassé : 180 Mo → 38 Mo. Le wiki
+  sert les originaux — 3,4 Mo pour un portrait de Yeti affiché en 76 px. Nom de
+  fichier inchangé, le cache de téléchargement reste valide ;
+- **`base: "./"` et `import.meta.env.BASE_URL`** pour les icônes construites à
+  l'exécution : le site vit sous `/abiotic-crafter/`, un `src="/Icon.png"`
+  absolu chercherait à la racine du domaine.
+
+Le workflow (`.github/workflows/deploy.yml`) fait `npm ci`, les tests, le
+build, et publie `dist/` — jamais le scraper : la donnée voyage par le dépôt,
+le build n'appelle pas le wiki.

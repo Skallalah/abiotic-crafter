@@ -6,8 +6,8 @@ import type { Model } from "../core/tree";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
-  badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spotLine, tile, veilName,
-  veilTile, zoneTag,
+  ASSET_BASE, badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spotLine,
+  tile, veilName, veilTile, zoneTag,
 } from "./format";
 
 const KIND_LABEL: Record<Provider["kind"], string> = {
@@ -456,7 +456,7 @@ function providerTile(provider: Provider): HTMLElement {
   span.dataset.provider = provider.id;
   if (provider.icon) {
     const img = document.createElement("img");
-    img.src = `/${provider.icon}`;
+    img.src = ASSET_BASE + provider.icon;
     img.alt = "";
     img.addEventListener("error", () => img.remove());
     span.appendChild(img);

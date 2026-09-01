@@ -63,3 +63,25 @@ def dominant_color(path: Path) -> str | None:
     return "#%02x%02x%02x" % tuple(
         round(sum(c[i] for c in keep) / len(keep)) for i in range(3)
     )
+
+
+# côté le plus long au-delà duquel une image est réduite : l'app n'affiche
+# jamais une icône au-dessus de 76 px, 256 laisse une marge confortable
+MAX_ICON_SIDE = 256
+
+
+def shrink_icon(path: Path) -> int:
+    """Réduit une image trop grande, en place. Rend les octets économisés.
+
+    Le wiki sert les originaux : 3,4 Mo pour un portrait de Yeti affiché en
+    76 px. À 1 400 icônes, le dossier pesait 180 Mo — intenable à committer et
+    à servir. Filename inchangé : le cache de téléchargement reste valide.
+    """
+    before = path.stat().st_size
+    with Image.open(path) as image:
+        if max(image.size) <= MAX_ICON_SIDE:
+            return 0
+        image = image.convert("RGBA" if path.suffix.lower() == ".png" else "RGB")
+        image.thumbnail((MAX_ICON_SIDE, MAX_ICON_SIDE), Image.LANCZOS)
+        image.save(path, optimize=True)
+    return before - path.stat().st_size

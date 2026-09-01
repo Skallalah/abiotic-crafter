@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 
 import fetch_wikitext
 from fetch_cargo import load
-from colors import dominant_color
+from colors import dominant_color, shrink_icon
 from parse import (
     link_targets, normalize_name, parse_drop_table, parse_infobox_image, parse_locations,
     parse_object_images, parse_person_zones, parse_sector, parse_sector_enemies,
@@ -897,6 +897,9 @@ def download_icons(entries: list[dict], wiki: Wiki, report: Report) -> None:
             continue
         try:
             wiki.download(url, ICONS / name)
+            # le wiki sert l'original (3,4 Mo pour un portrait affiché en
+            # 76 px) : on réduit à l'arrivée, une fois pour toutes
+            shrink_icon(ICONS / name)
         except RuntimeError as exc:
             report.bump("téléchargements échoués")
             report.warn(f"icône {name} : {exc}")

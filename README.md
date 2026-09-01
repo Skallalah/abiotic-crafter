@@ -1,5 +1,8 @@
 # GATE Crafting Index
 
+**App en ligne : <https://skallalah.github.io/abiotic-crafter/>** — déployée
+par GitHub Pages à chaque push sur `main`.
+
 Explorateur local des recettes d'*Abiotic Factor* : arbre de craft explosable,
 bilan récursif des ressources, lieux de collecte par zone. **Clic droit sur
 n'importe quoi** — un item, une caisse, une créature — pour une fenêtre
@@ -57,8 +60,10 @@ Les phrases de source que le parseur n'a pas su classer sont listées dans
 
 ## Licence des données
 
-Contenu du wiki en CC BY-SA 4.0 ; les icônes sont des assets du jeu. Usage
-personnel local, pas de redistribution de `data/icons/`.
+Contenu textuel tiré de [abioticfactor.wiki.gg](https://abioticfactor.wiki.gg)
+(CC BY-SA 4.0). Les images proviennent du wiki public — assets d'*Abiotic
+Factor* (Deep Field Games) — réduites à 256 px et embarquées pour un outil de
+groupe non commercial ; retrait sur demande des ayants droit.
 
 Polices embarquées : **Archivo** (OFL 1.1) et **Ark Pixel** (OFL 1.1, texte de
 la licence dans `src/styles/fonts/ark-pixel.OFL.txt`).
