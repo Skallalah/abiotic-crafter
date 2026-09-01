@@ -456,6 +456,22 @@ describe("découverte (§5.7), sur les vraies données", () => {
       .toContain("Completing");
   });
 
+  it("ne prête pas à la Peccary Sow le lieu d'une conséquence en sous-puce", () => {
+    // « ** After completing the Furniture Store multiple Zombies spawn… »
+    // décrivait des zombies, pas un lieu de vie de la truie
+    const sow = model.provider("peccary_sow")!;
+    expect(sow.zones.some((z) => z.zone === "Furniture Store")).toBe(false);
+    expect(sow.zones.some((z) => z.zone === "Cascade Laboratories")).toBe(true);
+  });
+
+  it("retarde le Symphonist : il n'apparaît qu'après avoir complété Flathill", () => {
+    // sa propre page le dit ; l'infobox de Flathill le liste sans ce timing
+    expect(model.provider("symphonist")!.zones).toEqual([]);
+    const flathill = computeAvailability(model,
+      state("Office Sector", "Flathill", "Far Garden"));
+    expect(flathill.provider("symphonist")).toBe(false);
+  });
+
   it("retarde la présence du Lab Rat à Office : l'override delayedPresence", () => {
     // l'infobox d'Office le déclare, mais les rats n'y apparaissent qu'une
     // fois Manufacturing atteint — le wiki ne le dit qu'en prose floue

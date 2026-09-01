@@ -427,6 +427,11 @@ def zone_mentions(wikitext: str, zone_names: list[str]) -> list[str]:
             break
     if not body:
         return []
+    # les sous-puces (**) décrivent des détails et des conséquences, pas des
+    # lieux de vie : « ** After completing the Furniture Store multiple
+    # Zombies spawn » prêtait le Furniture Store à la Peccary Sow
+    body = "\n".join(line for line in body.splitlines()
+                     if not line.lstrip().startswith("**"))
     out: list[str] = []
     for zone in zone_names:
         if re.search(rf"(?<![A-Za-z]){re.escape(zone)}(?![a-z])", body) and zone not in out:

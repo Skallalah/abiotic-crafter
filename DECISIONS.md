@@ -863,3 +863,25 @@ affichées, mais ne prouvant aucune disponibilité, la machinerie des
 dont la disponibilité passe par les zones où on le rencontre vraiment d'abord.
 Effet mesuré : Rat Scanner et Rat Pack cessent d'être « disponibles » à Office
 seul, et reviennent avec Manufacturing — exactement la réalité du jeu.
+
+
+### La revue des créatures : deux corrections, deux non-cas
+Balayage demandé après le Lab Rat : chaque créature zonée confrontée aux
+phrases de progression de sa page (« begin to appear », « after completing »,
+« can only spawn »…). Quatre alertes :
+
+- **Symphonist** : « They can only spawn after fully completing Flathill » —
+  l'infobox de Flathill le liste sans ce timing. Deuxième entrée
+  `delayedPresence`, sa seule zone tombe : introuvable tant que la donnée ne
+  sait pas modéliser « Flathill complété », comme les drops « Completing
+  Canaan » ;
+- **Peccary Sow** : son « Furniture Store » venait d'une sous-puce parlant de
+  zombies (« ** After completing the Furniture Store multiple Zombies
+  spawn… »). `zone_mentions` ignore désormais les sous-puces — elles décrivent
+  des détails et des conséquences, pas des lieux de vie ;
+- **Mystagogue** : son spawn conditionnel d'Office (« After activating Cloud
+  Reactor ») n'était pas dans nos données — rien à corriger ;
+- **Lab Rat** : déjà traité.
+
+Le Zombie garde son Furniture Store : il le peuple réellement, c'est là qu'on
+le rencontre.

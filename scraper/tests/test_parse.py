@@ -390,6 +390,10 @@ def test_zone_mentions_reads_prose_locations():
     zones = ["Cascade Laboratories", "Hydroplant", "Rise", "Office Sector"]
     # « Rise » ne doit pas matcher « surprise », et rien hors de == Locations ==
     assert zone_mentions(page, zones) == ["Cascade Laboratories", "Hydroplant"]
+    # une sous-puce décrit une conséquence, pas un lieu de vie
+    sub = ("== Locations ==\n* In the Wildlife Pen.\n"
+           "** After completing the Rise, Zombies spawn here.\n")
+    assert zone_mentions(sub, zones) == []
     assert zone_mentions("Du lore qui cite [[Rise]] hors section.", zones) == []
 
 
