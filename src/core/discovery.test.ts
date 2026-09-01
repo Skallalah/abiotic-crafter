@@ -102,6 +102,15 @@ describe("disponibilité", () => {
     expect(both.item("ghost_gadget")).toBe(true);
   });
 
+  it("ne prend pas un drop conditionnel pour une disponibilité", () => {
+    // « Completing Canaan » dans la colonne de chance est une condition de
+    // quête : le Lab Rat d'Office Sector ne lâche pas du contenu de fin de jeu
+    expect(both.item("gated_loot")).toBe(false);
+    const deep = computeAvailability(model,
+      state("Office Sector", "Manufacturing West", "The Deep"));
+    expect(deep.item("gated_loot")).toBe(true);
+  });
+
   it("ne cache jamais ce que la donnée ne sait pas localiser", () => {
     // prose sans géographie, et item sans la moindre information
     expect(office.item("unknown")).toBe(true);

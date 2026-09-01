@@ -174,7 +174,12 @@ function reachable(
 ): Set<ItemId> {
   const dropped = new Set<ItemId>();
   for (const id of providers) {
-    for (const drop of model.provider(id)!.drops) dropped.add(drop.item);
+    for (const drop of model.provider(id)!.drops) {
+      // une chance sans « % » est une condition de progression (« Completing
+      // Canaan… ») : le contenant est là, pas ce qu'il lâche
+      if (drop.chanceText && !drop.chanceText.includes("%")) continue;
+      dropped.add(drop.item);
+    }
   }
 
   const available = new Set<ItemId>();
@@ -185,7 +190,9 @@ function reachable(
       if (available.has(item.id)) continue;
       const ok =
         item.sources.some((s) =>
-          s.zone
+          s.conditional
+            ? false
+            : s.zone
             ? discovered.has(s.zone)
             : s.from
               ? available.has(s.from)

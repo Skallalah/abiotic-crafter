@@ -704,3 +704,23 @@ précédent les juge par leur recette. Giganto Tincture suit son fromage ;
 Alien Distillation, elle, reste visible *à bon droit* — sa recette de
 distillation n'utilise que du poisson pêchable dès les premières zones.
 Invariant toutes-zones vérifié, le cas au test de non-régression.
+
+
+### « Et Holy Coating ? » — un drop conditionnel n'est pas une disponibilité
+Dernière fuite de la série, en deux couches. La table de drops du Lab Rat dit
+« Lodestone Fragment — **Completing Canaan** or the Security Sector » : une
+condition de progression, que `chanceText` portait fidèlement… et que la
+disponibilité ignorait — un rat d'Office Sector « prouvait » du contenu de fin
+de jeu, et trois distillations remontaient jusqu'au Holy Coating. Règle : une
+chance sans « % » est une condition, elle ne prouve rien (le drop reste affiché
+dans la fenêtre, condition comprise — c'est de l'information, pas une preuve).
+
+La seconde couche masquait la première : `build_providers` concaténait le
+tableau de la page (riche, avec conditions) et la table Cargo `Enemies` (nue)
+sans fusionner par item. Le Lodestone du rat existait donc **en deux lignes**,
+et la ligne nue passait le filtre — en prime, les fenêtres de créatures
+affichaient des doublons. Fusion par item, l'entrée riche gagne, `via` complété.
+
+Contre-exemple qui valide : Charged Distillation reste visible via Black Gunk,
+drop *ordinaire* (« ×2 », sans condition) du même rat. Le cas au test de
+non-régression, l'invariant toutes-zones intact, 169 craftables à trois zones.

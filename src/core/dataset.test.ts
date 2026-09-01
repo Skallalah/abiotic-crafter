@@ -399,9 +399,9 @@ describe("découverte (§5.7), sur les vraies données", () => {
     const availability = computeAvailability(model, state("Office Sector"));
     const craftables = Object.keys(dataset.items).filter((id) => model.isCraftable(id));
     const visible = craftables.filter((id) => availability.item(id)).length;
-    // mesuré à 238 après correction des fuites ; on borne sans figer le chiffre
-    expect(visible).toBeGreaterThan(150);
-    expect(visible).toBeLessThan(400);
+    // ~150 après la série de corrections de fuites ; on borne sans figer
+    expect(visible).toBeGreaterThan(100);
+    expect(visible).toBeLessThan(350);
     expect(visible).toBeLessThan(craftables.length);
   });
 
@@ -414,7 +414,8 @@ describe("découverte (§5.7), sur les vraies données", () => {
     for (const id of ["energy_pistol", "capacitor", "night_essence",
                       "military_electronics", "magbow", "carapace_helm",
                       "raw_stuffed_mushroom_tray", "electro_pest_item",
-                      "giganto_tincture", "acid_coating"]) {
+                      "giganto_tincture", "acid_coating", "holy_coating",
+                      "lodestone_fragment", "hexwood"]) {
       expect(availability.item(id), id).toBe(false);
     }
     // la feuille inconnue de la même chaîne reste visible : « Pest (Pet) »
@@ -438,6 +439,19 @@ describe("découverte (§5.7), sur les vraies données", () => {
     expect(wheel.sources.some((s) => s.from === "alien_cheese_curds")).toBe(true);
     const cheese = model.item("anteverse_cheese");
     expect(cheese.sources.some((s) => s.from === "alien_cheese_wheel")).toBe(true);
+  });
+
+  it("distingue un drop conditionnel d'un drop ordinaire du même rat", () => {
+    // la table du Lab Rat : « Lodestone Fragment — Completing Canaan… » est
+    // une condition, « Black Gunk ×2 » un drop ordinaire
+    const availability = computeAvailability(
+      model, state("Office Sector", "Flathill", "Far Garden"));
+    expect(availability.item("black_gunk")).toBe(true);
+    const rat = model.provider("lab_rat")!;
+    const ids = rat.drops.map((d) => d.item);
+    expect(new Set(ids).size).toBe(ids.length);   // plus de lignes en double
+    expect(rat.drops.find((d) => d.item === "lodestone_fragment")!.chanceText)
+      .toContain("Completing");
   });
 
   it("localise les ventes par la page du PNJ et les créatures par leur prose", () => {

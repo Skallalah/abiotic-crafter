@@ -322,7 +322,7 @@ relie vivent sous « Uncharted », toujours proposées, floutées.
 DECISIONS.md) : zone directe d'une source ; chaîne `from` jusqu'à une origine
 disponible ; contenant disponible, par sa cible (`targetId`) comme par ses
 `drops` ; recette — craft **ou amélioration** — dont tous les ingrédients sont
-disponibles. Trois pièges, corrigés sur signalement : seul le **mobilier
+disponibles. Un drop dont la chance est une **condition de progression** (« Completing Canaan… » — pas de « % ») est affiché mais ne prouve jamais une disponibilité. Trois pièges, corrigés sur signalement : seul le **mobilier
 générique** (container, pickup, salvage) sans zone déclarée existe partout —
 une créature ou une caisse sans donnée de zone vit *quelque part* et ne prouve
 rien ; une **cible nommée mais non résolue** (« kill Order ») n'est pas un lieu

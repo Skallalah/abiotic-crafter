@@ -623,13 +623,24 @@ def build_providers(resolver: Resolver, sources: dict[str, list[dict]],
 
     providers: dict[str, dict] = {}
     for name in sorted(set(kinds) | set(contents) | set(creatures)):
+        # fusion par item : la table Cargo Enemies redit ce que le tableau de
+        # la page détaille. Sans fusion, le Lodestone du Lab Rat existait en
+        # deux lignes — l'une portant sa condition (« Completing Canaan »),
+        # l'autre nue, qui refaisait croire à un drop ordinaire.
         drops: list[dict] = []
+        by_item: dict[str, dict] = {}
         for drop in contents.get(name, []) + creatures.get(name, []):
             item_id = resolver.get(drop["item"])
             if item_id is None:
                 report.bump("contenus non résolus vers un item")
                 continue
-            drops.append({**drop, "item": item_id})
+            entry = by_item.get(item_id)
+            if entry is None:
+                entry = {**drop, "item": item_id}
+                by_item[item_id] = entry
+                drops.append(entry)
+            elif "via" in drop:
+                entry.setdefault("via", drop["via"])
 
         # une zone porte ses propres emplacements : les mettre à plat rendait
         # « Vehicle Lot 07 » indiscernable de « Botanical Wing », à sept
@@ -712,6 +723,31 @@ def link_targets_to_providers(sources: dict[str, list[dict]],
                 orphan += 1
     report.counts["sources liées à une fenêtre"] = linked
     report.counts["cibles sans fenêtre"] = orphan
+
+
+def flag_conditional_drops(sources: dict[str, list[dict]],
+                           providers: dict[str, dict], report: Report) -> None:
+    """Marque les drops soumis à une condition de progression.
+
+    La table de drops du Lab Rat dit « Lodestone Fragment — Completing Canaan
+    or the Security Sector » : une condition de quête, pas une probabilité.
+    `chanceText` la porte fidèlement, mais une source « kill Lab Rat » dans
+    Office Sector laissait croire qu'un rat du début lâche du contenu de fin
+    de jeu. Règle : une chance sans « % » est une condition.
+    """
+    conditional: set[tuple[str, str]] = set()
+    for provider in providers.values():
+        for drop in provider["drops"]:
+            text = drop.get("chanceText") or ""
+            if text and "%" not in text:
+                conditional.add((provider["id"], drop["item"]))
+
+    for item_id, bucket in sources.items():
+        for source in bucket:
+            if (source["kind"] == "drop"
+                    and (source.get("targetId"), item_id) in conditional):
+                source["conditional"] = True
+                report.bump("drops conditionnels marqués")
 
 
 # --------------------------------------------------------------------- items
@@ -930,6 +966,7 @@ def main() -> None:
 
     providers = build_providers(resolver, sources, all_zones, report)
     link_targets_to_providers(sources, providers, report)
+    flag_conditional_drops(sources, providers, report)
 
     scope = {r["output"]["item"] for r in recipes}
     scope |= {i["item"] for r in recipes for i in r["inputs"]}
@@ -999,6 +1036,7 @@ def main() -> None:
     print(f"  items d'infobox de zone      {report.counts.get('items lus dans les infobox de zone', 0)}")
     print(f"  ventes localisées (PNJ)      {report.counts.get('ventes localisées par la page du PNJ', 0)}")
     print(f"  dérivations de cuisine       {report.counts.get('dérivations cuisson/découpe/décomposition', 0)}")
+    print(f"  drops conditionnels          {report.counts.get('drops conditionnels marqués', 0)}")
     print(f"  sources dérivées résolues    {report.counts.get('sources dérivées résolues', 0)}")
     print(f"  items purement dérivés       {len(derives)}")
     with_icon = sum(1 for z in zones if z.get("icon"))

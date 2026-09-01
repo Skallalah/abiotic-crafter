@@ -37,6 +37,12 @@ export interface Source {
    */
   qtyMin?: number;
   qtyMax?: number;
+  /**
+   * Drop soumis à une condition de progression (« Completing Canaan… ») : la
+   * table du wiki l'écrit dans sa colonne de chance, sans « % ». Affiché comme
+   * les autres, mais il ne prouve jamais une disponibilité (§5.7).
+   */
+  conditional?: boolean;
 }
 
 export interface Item {

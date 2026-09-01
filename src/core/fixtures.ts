@@ -200,12 +200,22 @@ export function discoveryDataset(): Dataset {
   add(item("phantom", "Phantom", 1, [{ kind: "pickup", target: "Pest (Pet)" }]));
   // pur craft jamais-localisable : seule sa recette peut le justifier
   add(item("ghost_gadget", "Ghost Gadget", 1));
+  // drop soumis à une condition de quête : ne prouve rien, la vraie zone si
+  add(item("gated_loot", "Gated Loot", 1, [
+    { kind: "drop", zone: "Manufacturing West", target: "Mfg Crate",
+      targetId: "mfg_crate", conditional: true },
+    { kind: "pickup", zone: "The Deep" },
+  ]));
 
   const providers: Record<string, Provider> = {
     mfg_crate: {
       id: "mfg_crate", name: "Mfg Crate", kind: "destroyable",
       zones: [{ zone: "Manufacturing West" }],
-      drops: [{ item: "dropped" }],
+      drops: [
+        { item: "dropped" },
+        // la chance sans « % » est une condition de progression
+        { item: "gated_loot", chanceText: "Completing Canaan" },
+      ],
     },
     // aucun lieu déclaré : les casiers génériques existent partout
     generic: { id: "generic", name: "Generic", kind: "container", zones: [], drops: [] },
