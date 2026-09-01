@@ -98,9 +98,32 @@ export function computeAvailability(model: Model, state: DiscoveryState): Availa
 
   const discovered = state.zones;
   const providers = availableProviders(model, discovered);
-  const items = reachable(model, discovered, providers);
-  // jamais localisables : invisibles même toutes zones cochées → toujours montrés
-  for (const id of neverLocalisable(model)) items.add(id);
+  const madeBy = recipeIndex(model);
+  const items = reachable(model, discovered, providers, madeBy);
+
+  // Jamais localisables : invisibles même toutes zones cochées. Deux natures :
+  //  - une acquisition que la donnée ne décrit pas (des sources mortes, ou
+  //    rien du tout) → toujours visible, inconnu n'est pas spoiler ;
+  //  - un PUR CRAFT (aucune source, une recette) : son acquisition est
+  //    parfaitement décrite — c'est sa recette qui doit le justifier, et elle
+  //    ne le fait que si TOUS ses ingrédients sont visibles. L'Electro Pest
+  //    réclame un Capacitor : tant que le Capacitor est caché, lui aussi.
+  const pureCrafts: ItemId[] = [];
+  for (const id of neverLocalisable(model)) {
+    if (model.item(id).sources.length === 0 && madeBy.has(id)) pureCrafts.push(id);
+    else items.add(id);
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const id of pureCrafts) {
+      if (items.has(id)) continue;
+      if (madeBy.get(id)!.some((inputs) => inputs.every((i) => items.has(i)))) {
+        items.add(id);
+        changed = true;
+      }
+    }
+  }
 
   return {
     enabled: true,
@@ -127,24 +150,31 @@ function availableProviders(
 }
 
 /** Le point fixe brut, sans la clôture des jamais-localisables. */
-function reachable(
-  model: Model,
-  discovered: ReadonlySet<string>,
-  providers: ReadonlySet<ProviderId>,
-): Set<ItemId> {
-  const dropped = new Set<ItemId>();
-  for (const id of providers) {
-    for (const drop of model.provider(id)!.drops) dropped.add(drop.item);
-  }
-
-  // craft ET upgrade : les deux fabriquent. Les armures A.E.G.I.S. ne sortent
-  // que d'améliorations — les ignorer les rangeait en « jamais localisables ».
+/**
+ * Ce qui fabrique quoi — craft ET upgrade, les deux fabriquent. Les armures
+ * A.E.G.I.S. ne sortent que d'améliorations : les ignorer les rangeait en
+ * « jamais localisables ».
+ */
+function recipeIndex(model: Model): Map<ItemId, ItemId[][]> {
   const madeBy = new Map<ItemId, ItemId[][]>();
   for (const recipe of model.ds.recipes) {
     const list = madeBy.get(recipe.output.item);
     const inputs = recipe.inputs.map((input) => input.item);
     if (list) list.push(inputs);
     else madeBy.set(recipe.output.item, [inputs]);
+  }
+  return madeBy;
+}
+
+function reachable(
+  model: Model,
+  discovered: ReadonlySet<string>,
+  providers: ReadonlySet<ProviderId>,
+  madeBy: Map<ItemId, ItemId[][]>,
+): Set<ItemId> {
+  const dropped = new Set<ItemId>();
+  for (const id of providers) {
+    for (const drop of model.provider(id)!.drops) dropped.add(drop.item);
   }
 
   const available = new Set<ItemId>();
@@ -186,7 +216,8 @@ function neverLocalisable(model: Model): ReadonlySet<ItemId> {
     // les mêmes règles que le point fixe courant, toutes zones cochées : la
     // clôture ne vaut que si elle mesure exactement ce que le filtre mesure
     const allZones = new Set(model.ds.zones.map((z) => z.name));
-    const atFull = reachable(model, allZones, availableProviders(model, allZones));
+    const atFull = reachable(model, allZones, availableProviders(model, allZones),
+                             recipeIndex(model));
     cached = new Set(
       Object.keys(model.ds.items).filter((id) => !atFull.has(id)),
     );

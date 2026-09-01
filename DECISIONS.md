@@ -668,3 +668,21 @@ que ces chaînes citent entrent avec leurs propres sources.
 Il ne reste que **6 fabricables** que la donnée ne sait localiser nulle part —
 des armes d'items-compagnons (Electro Pest, Magma Skink…), chaînes que le wiki
 ne documente pas. Résidu assumé : toujours visibles, ingrédients floutés.
+
+
+### « Electro Pest réclame un Capacitor caché » — la clôture protégeait en bloc
+Dernier signalement de la série, et le plus fin : les six fabricables restants
+(Electro Pest, Magma Skink…) sont des **purs crafts** — aucune source propre,
+une recette. La clôture les gardait visibles parce que leur chaîne meurt à
+découverte totale (« Pest (Pet) » n'est pas un item de la donnée : les
+compagnons n'existent pas dans Cargo). Mais un pur craft n'a pas d'acquisition
+inconnue à protéger : **sa recette est son acquisition**, parfaitement décrite.
+
+La clôture se raffine donc en deux natures : une feuille que la donnée ne sait
+pas localiser (Pest (Item) ← « Pest (Pet) ») reste toujours visible — inconnu
+n'est pas spoiler ; un pur craft jamais-localisable ne se montre que si **tous
+les ingrédients d'une de ses recettes sont visibles**, par point fixe sur ce
+petit ensemble. L'Electro Pest suit donc son Capacitor : caché avec trois
+zones, visible à découverte totale. Les deux invariants tiennent — le test
+« toutes zones = tout » le garantit, et détecterait le jour où un cycle de
+purs crafts morts apparaîtrait dans la donnée.

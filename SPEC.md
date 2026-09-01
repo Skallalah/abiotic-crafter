@@ -327,8 +327,10 @@ générique** (container, pickup, salvage) sans zone déclarée existe partout �
 une créature ou une caisse sans donnée de zone vit *quelque part* et ne prouve
 rien ; une **cible nommée mais non résolue** (« kill Order ») n'est pas un lieu
 inconnu ; et les UpgradeRecipes fabriquent autant que les crafts. Clôture :
-**ce que la donnée ne sait localiser nulle part n'est jamais caché** — d'où
-deux invariants testés, *suivi désactivé = app entière* et *toutes zones
+**ce que la donnée ne sait localiser nulle part n'est jamais caché** — sauf un
+**pur craft** (aucune source, une recette) : son acquisition est parfaitement
+décrite, seule une recette dont tous les ingrédients sont visibles le montre.
+D'où deux invariants testés, *suivi désactivé = app entière* et *toutes zones
 cochées = app entière*. Mesure : Office seul → ~240 craftables sur 597.
 
 **Le voile.** Un item indisponible qui apparaît quand même (ingrédient d'une

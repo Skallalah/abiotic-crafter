@@ -196,6 +196,10 @@ export function discoveryDataset(): Dataset {
   ]));
   // ne sort que d'une amélioration : suit ses ingrédients comme un craft
   add(item("upgraded", "Upgraded", 1));
+  // feuille que la donnée ne sait pas localiser : toujours visible
+  add(item("phantom", "Phantom", 1, [{ kind: "pickup", target: "Pest (Pet)" }]));
+  // pur craft jamais-localisable : seule sa recette peut le justifier
+  add(item("ghost_gadget", "Ghost Gadget", 1));
 
   const providers: Record<string, Provider> = {
     mfg_crate: {
@@ -215,6 +219,7 @@ export function discoveryDataset(): Dataset {
       recipe("crafted", [["looted_office", 1], ["looted_mfg", 1]]),
       { id: "u_upgraded_1", kind: "upgrade", output: { item: "upgraded", qty: 1 },
         inputs: [{ item: "looted_mfg", qty: 1 }], bench: "Enhancement Bench" },
+      recipe("ghost_gadget", [["phantom", 1], ["looted_mfg", 1]]),
     ],
     zones: [
       // lien déclaré en sens unique, comme The Encroachment sur le wiki

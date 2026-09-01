@@ -93,6 +93,15 @@ describe("disponibilité", () => {
     expect(both.item("upgraded")).toBe(true);
   });
 
+  it("ne justifie un pur craft jamais-localisable que par sa recette", () => {
+    // le cas Electro Pest : aucune source, une recette réclamant un Capacitor
+    // caché. La feuille inconnue (Phantom) reste visible ; le pur craft, lui,
+    // suit ses ingrédients.
+    expect(office.item("phantom")).toBe(true);
+    expect(office.item("ghost_gadget")).toBe(false);
+    expect(both.item("ghost_gadget")).toBe(true);
+  });
+
   it("ne cache jamais ce que la donnée ne sait pas localiser", () => {
     // prose sans géographie, et item sans la moindre information
     expect(office.item("unknown")).toBe(true);

@@ -413,9 +413,12 @@ describe("découverte (§5.7), sur les vraies données", () => {
       model, state("Office Sector", "Flathill", "Far Garden"));
     for (const id of ["energy_pistol", "capacitor", "night_essence",
                       "military_electronics", "magbow", "carapace_helm",
-                      "raw_stuffed_mushroom_tray"]) {
+                      "raw_stuffed_mushroom_tray", "electro_pest_item"]) {
       expect(availability.item(id), id).toBe(false);
     }
+    // la feuille inconnue de la même chaîne reste visible : « Pest (Pet) »
+    // n'existe pas dans la donnée, cacher Pest (Item) serait arbitraire
+    expect(availability.item("pest_item")).toBe(true);
     // et l'Energy Pistol redevient atteignable là où vivent vraiment les leechs
     const later = computeAvailability(
       model, state("Office Sector", "Cascade Laboratories"));
