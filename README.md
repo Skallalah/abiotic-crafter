@@ -26,10 +26,10 @@ Le scraper est en Python, exécuté à la main, jamais par l'app. Il respecte un
 requête par seconde et met tout en cache dans `data/raw/`.
 
 ```sh
-python3 -m venv .venv && .venv/bin/pip install requests mwparserfromhell pytest
+python3 -m venv .venv && .venv/bin/pip install requests mwparserfromhell pillow pytest
 
 .venv/bin/python scraper/fetch_cargo.py      # tables Cargo → data/raw/cargo/
-.venv/bin/python scraper/fetch_wikitext.py   # secteurs + items + objets → data/raw/pages/
+.venv/bin/python scraper/fetch_wikitext.py   # secteurs, items, objets, zones → data/raw/pages/
 .venv/bin/python scraper/build.py            # → data/scraped.json + data/icons/
 .venv/bin/python -m pytest scraper/tests     # parseurs wikitext
 ```

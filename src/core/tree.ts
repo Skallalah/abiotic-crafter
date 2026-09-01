@@ -1,11 +1,13 @@
-import type { Dataset, ItemId, Provider, ProviderId, Recipe, Source } from "../data/types";
+import type {
+  Dataset, ItemId, Provider, ProviderId, Recipe, Source, Zone,
+} from "../data/types";
 
 /** Index dérivé du dataset. Rien de tout ceci n'est stocké dans le JSON (§3). */
 export class Model {
   readonly ds: Dataset;
   private readonly craftRecipes = new Map<ItemId, Recipe[]>();
   private readonly consumers = new Map<ItemId, Recipe[]>();
-  private readonly zoneOrder = new Map<string, number>();
+  private readonly byZone = new Map<string, Zone>();
 
   constructor(ds: Dataset) {
     this.ds = ds;
@@ -22,7 +24,7 @@ export class Model {
         else this.consumers.set(input, [recipe]);
       }
     }
-    for (const zone of ds.zones) this.zoneOrder.set(zone.name, zone.order);
+    for (const zone of ds.zones) this.byZone.set(zone.name, zone);
   }
 
   item(id: ItemId) {
@@ -130,7 +132,12 @@ export class Model {
   }
 
   zoneRank(name: string): number {
-    return this.zoneOrder.get(name) ?? Number.MAX_SAFE_INTEGER;
+    return this.byZone.get(name)?.order ?? Number.MAX_SAFE_INTEGER;
+  }
+
+  /** Pastille et couleur d'une zone. Absente pour « Other methods ». */
+  zone(name: string): Zone | undefined {
+    return this.byZone.get(name);
   }
 }
 

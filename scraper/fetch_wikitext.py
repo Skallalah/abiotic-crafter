@@ -6,7 +6,9 @@ n'existe que dans la prose. On télécharge donc :
   - les pages de **tous** les items, pour `== Sources ==` et l'unlock ;
   - les pages des objets fouillables et des créatures, pour leur image et leur
     `== Locations ==` : une caisse n'a pas de ligne dans la table `Items`, donc
-    pas de champ `image`, et sa fenêtre de détail n'aurait rien à montrer.
+    pas de champ `image`, et sa fenêtre de détail n'aurait rien à montrer ;
+  - les pages des zones — mondes-portails compris — pour leur pastille ronde,
+    dont on tire aussi leur couleur.
 
 Le périmètre était limité aux items des recettes, mais build.py fait aussi
 entrer dans le dataset les objets dont un item dérive (démonter un extincteur
@@ -21,7 +23,7 @@ import argparse
 import json
 
 from fetch_cargo import load
-from parse import parse_sector, strip_links
+from parse import parse_sector, parse_sector_portal_worlds, strip_links, zone_sections
 from wiki import RAW, Wiki
 
 PAGES_DIR = RAW / "pages"
@@ -82,6 +84,22 @@ def object_titles(sectors: list[str]) -> list[str]:
     return sorted(titles)
 
 
+def zone_titles(sectors: list[str]) -> list[str]:
+    """Titres de toutes les zones : secteurs, mondes-portails, et le reste.
+
+    Les mondes-portails sont déclarés par l'infobox de leur secteur. Le reste —
+    Divarication, North Pole, Temple of Stone… — n'apparaît que comme sous-titre
+    d'un `== Locations ==` de page item ; on relit donc les pages déjà en cache
+    plutôt que de coder ces noms en dur.
+    """
+    titles: set[str] = set(sectors)
+    for sector in sectors:
+        titles.update(parse_sector_portal_worlds(read_page(sector) or ""))
+    for path in PAGES_DIR.glob("*.wikitext"):
+        titles.update(zone_sections(path.read_text()))
+    return sorted(t for t in titles if t)
+
+
 def fetch_pages(wiki: Wiki, titles: list[str]) -> int:
     """Écrit data/raw/pages/<title>.wikitext. Renvoie le nombre de pages vues."""
     PAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -135,6 +153,12 @@ def main() -> None:
     print(f"pages objets et créatures : {len(objects)}")
 
     n = fetch_pages(wiki, sorted(set(items) | set(objects)))
+
+    # les zones en dernier : leurs noms sortent des pages items qu'on vient
+    # d'écrire, autant que des infobox de secteur
+    zones = zone_titles(sectors)
+    print(f"pages zones : {len(zones)}")
+    n += fetch_pages(wiki, zones)
     print(f"{n} pages écrites dans {PAGES_DIR}")
     print(f"{wiki.requests_made} requêtes, {wiki.cache_hits} depuis le cache")
 

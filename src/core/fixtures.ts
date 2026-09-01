@@ -66,8 +66,8 @@ export function mockupDataset(circuitBoardPrimary: "craft" | "loot" = "loot"): D
   ];
 
   const zones = [
-    { name: "Office Sector", order: 0 },
-    { name: "Manufacturing West", order: 1 },
+    { name: "Office Sector", order: 0, icon: "Icon_office_sector.png", color: "#3177a3" },
+    { name: "Manufacturing West", order: 1 },   // sans pastille : cas à couvrir
   ];
 
   const providers: Record<string, Provider> = {

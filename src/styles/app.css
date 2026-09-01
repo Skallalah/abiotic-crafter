@@ -239,6 +239,22 @@
 .topbar a.wiki { color: var(--ink-2); font-size: 12px; text-decoration: none; }
 .topbar a.wiki:hover { color: var(--accent-ink); text-decoration: underline; }
 
+/* Pastille et couleur d'une zone, toutes deux venues du wiki. */
+.zonetag {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ink); font-weight: 600;
+}
+.zoneicon {
+  flex: none; width: 18px; height: 18px;
+  border-radius: 50%; object-fit: cover;
+  background: var(--deep);
+  box-shadow: 0 0 0 1.5px var(--zone, var(--line));
+}
+.zoneblock .zonetag { font-size: 13px; }
+.zone h4 { align-items: center; }
+/* le filet reprend la couleur de la zone : on la retrouve d'un coup d'œil */
+.zone { border-left: 3px solid var(--zone, transparent); padding-left: 8px; }
+
 /* Sélecteur de thème (§6). */
 .topbar .theme {
   background: var(--bg); color: var(--ink-2);
@@ -425,9 +441,8 @@ button.open:hover { color: var(--accent-ink); }
     margin: 10px 0 0; color: var(--ink-2); font-size: 12.5px; font-style: italic;
   }
   /* un lieu, et sous lui ce qu'on y sait de précis */
-  .zoneblock { margin-top: 8px; }
+  .zoneblock { margin-top: 10px; padding-left: 7px; border-left: 2px solid var(--zone, var(--line)); }
   .zoneblock:first-child { margin-top: 0; }
-  .zoneblock > b { color: var(--ink); font-weight: 600; font-size: 13px; }
   .zoneblock .sources { margin-top: 1px; }
   .zoneblock .spots { margin-top: 2px; }
   .details-body .bench { color: var(--ink-2); font-size: 12px; font-stretch: 85%; }

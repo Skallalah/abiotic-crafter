@@ -5,7 +5,7 @@ import type { Model } from "../core/tree";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
-  badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spotLine, tile,
+  badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spotLine, tile, zoneTag,
 } from "./format";
 
 const KIND_LABEL: Record<Provider["kind"], string> = {
@@ -303,10 +303,9 @@ export class DetailsWindows {
   private zoneBlock(zone: string, ways: HTMLElement | null, spots: string[]): HTMLElement {
     const block = document.createElement("div");
     block.className = "zoneblock";
-
-    const name = document.createElement("b");
-    name.textContent = zone;
-    block.appendChild(name);
+    const color = this.model.zone(zone)?.color;
+    if (color) block.style.setProperty("--zone", color);
+    block.appendChild(zoneTag(this.model, zone));
 
     if (ways) block.appendChild(ways);
     if (spots.length > 0) {

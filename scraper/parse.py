@@ -181,6 +181,28 @@ _INFOBOX_IMAGE = re.compile(r"\|\s*image\s*=\s*([^\n|}]+)")
 _FILE_LINK = re.compile(r"\[\[\s*(?:File|Image)\s*:\s*([^\]|]+)", re.I)
 
 
+def parse_zone_icon(wikitext: str) -> str | None:
+    """Pastille ronde d'un secteur ou d'un monde-portail.
+
+    Les deux modèles ne la rangent pas au même endroit : `{{Sector}}` met la
+    ronde directement dans son `image =`, alors que `{{PortalWorld}}` y met une
+    capture carrée et pose la ronde juste après, en `[[File:Icon Flathill.png]]`.
+    Le point commun est le préfixe « Icon » du nom de fichier ; on le cherche
+    partout, et à défaut on retombe sur l'image de l'infobox.
+    """
+    infobox = parse_infobox_image(wikitext)
+    candidates = _FILE_LINK.findall(wikitext)
+    if infobox:
+        candidates.insert(0, infobox)
+    # certaines infobox écrivent « File:Icon Vignettes.png » en toutes lettres
+    names = [re.sub(r"^\s*(?:File|Image)\s*:\s*", "", n, flags=re.I).strip()
+             for n in candidates]
+    for name in names:
+        if name.lower().startswith("icon"):
+            return name
+    return names[0] if names else None
+
+
 def parse_infobox_image(wikitext: str, page_name: str = "") -> str | None:
     """Fichier illustrant une page — l'`image =` de son infobox.
 

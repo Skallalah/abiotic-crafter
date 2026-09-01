@@ -130,6 +130,13 @@ export interface Zone {
   name: string;
   order: number;
   parent?: string;
+  /** Pastille ronde du wiki, fichier dans `data/icons/`. */
+  icon?: string;
+  /**
+   * Couleur de la zone, `#rrggbb`, **extraite de sa pastille** et non choisie
+   * à la main : les deux ne peuvent donc pas se contredire.
+   */
+  color?: string;
 }
 
 export interface Dataset {

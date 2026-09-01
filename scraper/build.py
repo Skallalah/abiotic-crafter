@@ -17,10 +17,12 @@ from datetime import datetime, timezone
 
 import fetch_wikitext
 from fetch_cargo import load
+from colors import dominant_color
 from parse import (
     normalize_name, parse_drop_table, parse_infobox_image, parse_locations,
     parse_object_images, parse_sector, parse_sector_enemies,
-    parse_sector_portal_worlds, parse_sources, parse_unlock, slugify, strip_links,
+    parse_sector_portal_worlds, parse_sources, parse_unlock, parse_zone_icon,
+    slugify, strip_links,
 )
 from wiki import RAW, ROOT, Wiki
 
@@ -782,6 +784,11 @@ def build_zones(known: set[str], report: Report) -> list[dict]:
         zone: dict = {"name": name, "order": len(ordered)}
         if parent:
             zone["parent"] = parent
+        icon = parse_zone_icon(fetch_wikitext.read_page(name) or "")
+        if icon:
+            zone["icon"] = icon_filename(icon)
+        else:
+            report.bump("zones sans pastille")
         ordered.append(zone)
 
     for sector in ZONE_ORDER:
@@ -798,6 +805,23 @@ def build_zones(known: set[str], report: Report) -> list[dict]:
         push(name)
 
     return ordered
+
+
+def attach_zone_colors(zones: list[dict], report: Report) -> None:
+    """Donne à chaque zone la couleur de sa pastille.
+
+    Le wiki a déjà choisi une couleur par secteur et par monde-portail : la
+    prendre dans l'image plutôt que l'inventer garantit que la pastille et la
+    couleur de la zone ne se contredisent jamais.
+    """
+    for zone in zones:
+        path = ICONS / zone["icon"] if zone.get("icon") else None
+        if path is None or not path.exists():
+            continue
+        color = dominant_color(path)
+        if color:
+            zone["color"] = color
+            report.bump("zones avec couleur")
 
 
 def main() -> None:
@@ -829,9 +853,6 @@ def main() -> None:
     scope |= {d["item"] for p in providers.values() for d in p["drops"]}
     items = build_items(resolver, scope, recipes, sources, report)
 
-    if not args.no_icons:
-        download_icons([*items.values(), *providers.values()],
-                       Wiki(force=args.force), report)
 
     # compté après le téléchargement : une icône introuvable sur le wiki est
     # retirée par `download_icons`, le rapport doit dire ce qui reste
@@ -843,6 +864,11 @@ def main() -> None:
 
     known_zones = {s.get("zone") for it in items.values() for s in it["sources"]} - {None}
     zones = build_zones(known_zones, report)
+
+    if not args.no_icons:
+        download_icons([*items.values(), *providers.values(), *zones],
+                       Wiki(force=args.force), report)
+    attach_zone_colors(zones, report)
 
     dataset = {
         "items": items,
@@ -884,7 +910,10 @@ def main() -> None:
     print(f"  emplacements pr\u00e9cis lus       {spots}")
     print(f"  sources dérivées résolues    {report.counts.get('sources dérivées résolues', 0)}")
     print(f"  items purement dérivés       {len(derives)}")
-    print(f"  zones                        {len(zones)}")
+    with_icon = sum(1 for z in zones if z.get("icon"))
+    print(f"  zones                        {len(zones)}"
+          f" ({with_icon} avec pastille, "
+          f"{report.counts.get('zones avec couleur', 0)} avec couleur)")
     print(f"  contenants et créatures      {len(providers)}"
           f" ({report.counts.get('providers avec contenu', 0)} avec contenu, "
           f"{report.counts.get('providers avec image', 0)} avec image, "

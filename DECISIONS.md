@@ -496,3 +496,50 @@ forme sous laquelle le problème m'a été rapporté. Le séparateur redevient d
 vrai texte, ` » `, qui existe dans les deux fontes ; le token disparaît. Une
 mesure de largeur de glyphe ne suffisait pas à trancher : c'est la table `cmap`
 d'Ark Pixel qui dit que `»` est présent et `›` absent.
+
+
+## Une pastille et une couleur par zone, toutes deux prises au wiki
+
+Le wiki a déjà choisi : chaque secteur et chaque monde-portail a sa pastille
+ronde. Les inventer aurait été à la fois du travail et un risque de
+contradiction avec l'image affichée juste à côté.
+
+### Où est la ronde
+`{{Sector}}` met la pastille directement dans son `image =`. `{{PortalWorld}}`,
+lui, y met une capture carrée et pose la ronde juste après le modèle, en
+`[[File:Icon Flathill.png|128px|left]]`. Le point commun est le **préfixe
+« Icon » du nom de fichier** : `parse_zone_icon` le cherche dans l'infobox comme
+dans les liens de la page, et retombe sur l'image de l'infobox quand aucune
+n'est préfixée — trois zones sont dans ce cas, elles auront une image carrée
+que le CSS arrondit.
+
+Les titres de zones à télécharger viennent de deux endroits : les mondes-portails
+sont déclarés par l'infobox de leur secteur, et le reste — Divarication, North
+Pole, Temple of Stone — n'existe que comme sous-titre d'un `== Locations ==`.
+On relit donc les pages items déjà en cache plutôt que de coder ces noms en dur.
+Une requête de plus.
+
+### Extraire la couleur : le pixel majoritaire est un piège
+Ces pastilles sont des PNG tramés. Leur pixel le plus fréquent est le **noir de
+leur contour**, et le tramage éclate chaque teinte en voisines : le orange de
+Manufacturing West existe en `#ffa610` et en `#ad5500` sans qu'aucun ne domine.
+
+`dominant_color` isole donc les pixels colorés (saturation ≥ 0,35), en fait un
+histogramme de teintes sur 36 secteurs de 10°, garde le secteur le plus lourd et
+ses deux voisins, puis moyenne leurs RGB — ce qui recompose ce que le tramage
+avait dispersé. Une icône sans couleur (Flathill l'est vraiment) tombe sur une
+moyenne des tons moyens, contour noir et reflets blancs écartés.
+
+Un détail a coûté un test : j'avais plafonné la valeur à 0,97 pour écarter le
+blanc. Mais le blanc s'écarte par sa **saturation**, et un orange vif est
+légitimement à v = 1 — le plafond jetait la moitié de la teinte cherchée.
+
+Résultat : 28 zones sur 31 ont pastille et couleur. Office Sector `#347caa`,
+Manufacturing West `#c57c1b`, Shadowgate `#67328c`, Reactors `#3fa643`.
+
+### L'usage : un filet, pas du texte
+La couleur sert de **filet vertical** au bloc de zone et de cerclage à la
+pastille, jamais de couleur de texte : elle vient d'une image et rien ne garantit
+son contraste sur les deux thèmes. Un filet, lui, n'a qu'à être visible.
+
+`pillow` rejoint les dépendances du scraper.

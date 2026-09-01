@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from parse import (  # noqa: E402
     link_targets, list_entries, normalize_name, parse_drop_table,
     parse_infobox_image, parse_locations, parse_object_images, parse_sector,
-    parse_sector_enemies,
+    parse_sector_enemies, parse_zone_icon,
     parse_sources, parse_unlock, sections, slugify, strip_links,
 )
 
@@ -338,3 +338,24 @@ def test_parse_object_images_reads_the_shared_list_page():
         "Wooden Crate": "Object - Wooden Crate.png",
         "Books": "Object - Books.png",
     }
+
+
+def test_parse_zone_icon_prefers_the_round_pastille():
+    """`{{Sector}}` la met dans son infobox, `{{PortalWorld}}` juste après."""
+    sector = "{{Sector\n| image = Icon office sector.png\n}}\nTexte."
+    assert parse_zone_icon(sector) == "Icon office sector.png"
+
+    world = ("{{PortalWorld\n| image = Flathill.png\n}}\n"
+             "[[File:Icon Flathill.png|128px|left]]\n'''Flathill''' est…")
+    assert parse_zone_icon(world) == "Icon Flathill.png"
+
+
+def test_parse_zone_icon_strips_a_written_out_file_prefix():
+    page = "{{PortalWorld\n| image = File:Icon Vignettes.png\n}}"
+    assert parse_zone_icon(page) == "Icon Vignettes.png"
+
+
+def test_parse_zone_icon_falls_back_to_whatever_image_exists():
+    page = "{{PortalWorld\n| image = Temple of Stone homeworld.jpg\n}}"
+    assert parse_zone_icon(page) == "Temple of Stone homeworld.jpg"
+    assert parse_zone_icon("Une page sans la moindre image.") is None

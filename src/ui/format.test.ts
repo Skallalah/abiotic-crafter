@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   abbreviation, fold, KIND_KEYWORD, sourceLabel, sourceLine, spotLine, stackText,
+  zoneTag,
 } from "./format";
 import type { Item, SourceKind } from "../data/types";
 import { Model } from "../core/tree";
@@ -102,5 +103,31 @@ describe("spotLine", () => {
     const li = spotLine("In the Botanical Wing.");
     expect(li.querySelector("b")).toBeNull();
     expect(li.textContent).toBe("In the Botanical Wing.");
+  });
+});
+
+
+describe("zoneTag", () => {
+  const model = new Model(mockupDataset());
+
+  it("porte la pastille et la couleur de la zone", () => {
+    const tag = zoneTag(model, "Office Sector");
+    expect(tag.textContent).toBe("Office Sector");
+    expect(tag.querySelector("img")!.getAttribute("src")).toBe("/Icon_office_sector.png");
+    expect(tag.style.getPropertyValue("--zone")).toBe("#3177a3");
+  });
+
+  it("se contente du nom quand le wiki n'a ni l'une ni l'autre", () => {
+    const tag = zoneTag(model, "Manufacturing West");
+    expect(tag.textContent).toBe("Manufacturing West");
+    expect(tag.querySelector("img")).toBeNull();
+    expect(tag.style.getPropertyValue("--zone")).toBe("");
+  });
+
+  it("ne prête ni pastille ni couleur à « Other methods »", () => {
+    // ce n'est pas un lieu du jeu, seulement un fourre-tout du bilan
+    const tag = zoneTag(model, "Other methods");
+    expect(tag.querySelector("img")).toBeNull();
+    expect(tag.style.getPropertyValue("--zone")).toBe("");
   });
 });

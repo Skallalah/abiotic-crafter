@@ -340,3 +340,27 @@ describe("contenants et créatures", () => {
     }
   });
 });
+
+
+describe("zones", () => {
+  it("donne à chaque secteur sa pastille et sa couleur", () => {
+    for (const name of ["Office Sector", "Manufacturing West", "Cascade Laboratories",
+                        "Hydroplant", "Security Sector", "Reactors"]) {
+      const zone = model.zone(name)!;
+      expect(zone.icon, name).toBeTruthy();
+      expect(zone.color, name).toMatch(/^#[0-9a-f]{6}$/);
+    }
+  });
+
+  it("tire la couleur de la pastille, elle n'est jamais choisie à la main", () => {
+    // une zone sans image ne peut pas avoir de couleur : les deux vont ensemble
+    for (const zone of dataset.zones) {
+      if (zone.color) expect(zone.icon, zone.name).toBeTruthy();
+    }
+  });
+
+  it("couvre presque toutes les zones", () => {
+    const withIcon = dataset.zones.filter((z) => z.icon).length;
+    expect(withIcon).toBeGreaterThanOrEqual(dataset.zones.length - 3);
+  });
+});

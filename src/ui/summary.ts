@@ -4,7 +4,7 @@ import { groupByZone, type ZoneEntry } from "../core/zones";
 import type { ItemId, Source } from "../data/types";
 import {
   badges, keyword, KIND_KEYWORD, MAX_SPOTS, originLines, sourceLine, sourceList,
-  spotLine, stackText, tile,
+  spotLine, stackText, tile, zoneTag,
 } from "./format";
 
 /**
@@ -218,11 +218,13 @@ export class Summary {
     for (const group of groupByZone(this.model, totals)) {
       const block = document.createElement("div");
       block.className = "zone";
+      const color = this.model.zone(group.name)?.color;
+      if (color) block.style.setProperty("--zone", color);
 
       const title = document.createElement("h4");
       const count = document.createElement("small");
       count.textContent = `${group.entries.length} resource${group.entries.length > 1 ? "s" : ""}`;
-      title.append(group.name, count);
+      title.append(zoneTag(this.model, group.name), count);
       block.appendChild(title);
 
       for (const entry of group.entries) {

@@ -133,9 +133,14 @@ interface Drop {
   via?: "drop" | "harvest";    // une créature : ce qu'elle lâche vs ce qu'on récolte
 }
 
-interface Zone { name: string; order: number; parent?: string }
-// `parent` porte le secteur d'un monde-portail (Flathill → Office Sector),
-// lu depuis les champs portalWorld1..6 de l'infobox {{Sector}}.
+interface Zone {
+  name: string;
+  order: number;
+  parent?: string;             // le secteur d'un monde-portail (Flathill → Office Sector),
+                               // lu dans les champs portalWorld1..6 de l'infobox {{Sector}}
+  icon?: string;               // pastille ronde du wiki, fichier de data/icons/
+  color?: string;              // "#rrggbb", EXTRAITE de la pastille
+}
 
 interface Dataset {
   items: Record<ItemId, Item>;
@@ -177,6 +182,7 @@ Paginer par `offset`. Si les tables couvrent items + recettes + stack, l'étape 
 Cargo ne porte **aucune zone** : toute la géographie est dans la prose. On télécharge donc les 9 pages secteur, **toutes** les pages items, et les pages des objets fouillables et des créatures, par lots de 50 via `action=query&prop=revisions` (≈36 requêtes).
 
 Le périmètre « objets » vient de quatre listes réunies : `Objects.name`, les `_pageName` de `LootTables` hors espace `Data:`, les `_pageName` de `Enemies`, et les listes `=== Resource Nodes ===` des pages secteur — c'est la dernière qui rattrape les caisses absentes de Cargo (Office Wood Crate, Reactors Wood Crate). Les titres inexistants reviennent `missing` et sont ignorés. On y lit :
+- pour une **zone**, sa pastille ronde. Les deux modèles ne la rangent pas au même endroit : `{{Sector}}` la met dans son `image =`, `{{PortalWorld}}` y met une capture carrée et pose la ronde juste après en `[[File:Icon Flathill.png]]`. Le point commun est le préfixe « Icon » du nom de fichier. Les titres de zones viennent des infobox de secteur pour les mondes-portails, et des sous-titres de `== Locations ==` pour le reste — Divarication, North Pole, Temple of Stone n'apparaissent nulle part ailleurs.
 - l'`image =` de l'infobox — une caisse n'a pas de ligne dans `Items`, donc pas de champ `image` : sans ça sa fenêtre ne pourrait pas répondre à « à quoi ça ressemble ». À défaut : l'icône de l'item homonyme (Trash Bin, Toolbox sont aussi des items), puis les `{{destroyableObject}}` de la page « Destroyable Objects », vers laquelle huit caisses ne sont qu'une redirection.
 - le tableau `== Drops ==`, quand il existe : onze caisses n'ont aucune ligne Cargo, et le tableau porte une chance que `Loot` ne donne jamais. Quand cette chance n'est pas un pourcentage simple (« 100% of 2<br>50% of 2-3 »), elle est conservée telle quelle dans `chanceText` — en tirer un nombre serait inventer. Les `<ref>` de la cellule sont retirés : l'un d'eux faisait 255 caractères d'explication éditoriale.
 - le `== Locations ==`, avec le même parseur que pour les items.
@@ -328,6 +334,7 @@ Mots-clés d'obtention, colorés pour repérer la nature d'une provenance sans l
 - Couleur de tuile déterminée par `researchMaterial` (Tech→teal, Metal→metal, Glass→glass, Bio→green) ; les items avec une source `drop` → red ; l'objet racine et le gear → amber. L'icône se superpose à la tuile ; si l'image manque, la tuile montre l'abréviation (3 lettres, générée depuis le nom).
 - Aucune animation d'apparition. Seule transition tolérée : `border-color` au survol des cartes craftables.
 - Focus clavier visible (outline ambre 2 px).
+- **Chaque zone a sa pastille et sa couleur**, toutes deux venues du wiki : la couleur est *extraite* de l'image (teinte dominante), jamais choisie à la main, si bien que les deux ne peuvent pas se contredire. La pastille précède le nom partout où une zone est nommée — titres du bilan, blocs des fenêtres de détail —, et sa couleur devient le filet vertical du bloc. 28 zones sur 31 en ont une ; les trois autres sont des lieux que le wiki ne documente pas et qui n'affichent que leur nom.
 
 ### 6.1 Thèmes
 

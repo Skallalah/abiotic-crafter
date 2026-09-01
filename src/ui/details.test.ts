@@ -65,7 +65,7 @@ describe("fenêtre d'un contenant", () => {
     // chaque emplacement est rangé sous sa zone, et une zone sans emplacement
     // connu reste visible
     const zones = [...crate.querySelectorAll(".zoneblock")];
-    expect(zones.map((z) => z.querySelector("b")!.textContent))
+    expect(zones.map((z) => z.querySelector(".zonetag")!.textContent))
       .toEqual(["Office Sector", "Manufacturing West"]);
     expect(zones[0]!.querySelector(".spots")!.textContent).toContain("Data Farm");
     expect(zones[1]!.querySelector(".spots")).toBeNull();

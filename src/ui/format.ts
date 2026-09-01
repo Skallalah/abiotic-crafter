@@ -153,6 +153,35 @@ export function itemLink(model: Model, id: string, onSelect: (id: string) => voi
   return button;
 }
 
+/**
+ * Nom d'une zone, précédé de sa pastille.
+ *
+ * L'icône et la couleur viennent toutes deux du wiki — la couleur est extraite
+ * de l'image, si bien qu'elles ne peuvent pas se contredire. La couleur est
+ * posée en `--zone` sur l'élément : le cerclage de la pastille s'en sert, et
+ * les appelants peuvent la reprendre pour un filet ou un fond.
+ *
+ * « Other methods » n'est pas une zone du jeu : ni pastille, ni couleur.
+ */
+export function zoneTag(model: Model, name: string): HTMLElement {
+  const zone = model.zone(name);
+  const tag = document.createElement("span");
+  tag.className = "zonetag";
+  if (zone?.color) tag.style.setProperty("--zone", zone.color);
+
+  if (zone?.icon) {
+    const img = document.createElement("img");
+    img.className = "zoneicon";
+    img.src = `/${zone.icon}`;
+    img.alt = "";
+    img.loading = "lazy";
+    img.addEventListener("error", () => img.remove());
+    tag.appendChild(img);
+  }
+  tag.append(name);
+  return tag;
+}
+
 /** Mot-clé coloré isolé, pour les lignes qui n'ont pas de source à décrire. */
 export function keyword(text: string, kind: string): HTMLElement {
   const span = document.createElement("span");
