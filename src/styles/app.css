@@ -43,7 +43,10 @@
     border-bottom: 1px solid var(--line);
   }
   .pane-head h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; font-stretch: 85%; color: var(--ink-2); }
-  .pane-body { overflow: auto; padding: 8px 0; }
+  /* jamais de défilement horizontal dans une colonne : un contenu qui
+     dépasse de 2 px (l'ascenseur 16 px a mangé la marge) est rogné, pas
+     doté d'une barre */
+  .pane-body { overflow-x: hidden; overflow-y: auto; padding: 8px 0; }
 
   /* left list */
   .search {
