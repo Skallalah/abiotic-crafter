@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  abbreviation, fold, KIND_KEYWORD, sourceLabel, sourceLine, stackText,
+  abbreviation, fold, KIND_KEYWORD, sourceLabel, sourceLine, spotLine, stackText,
 } from "./format";
 import type { Item, SourceKind } from "../data/types";
 import { Model } from "../core/tree";
@@ -85,5 +85,22 @@ describe("mots-clés d'obtention", () => {
     for (const kind of kinds) {
       expect(KIND_KEYWORD[kind], `mot-clé manquant pour « ${kind} »`).toBeTruthy();
     }
+  });
+});
+
+
+describe("spotLine", () => {
+  it("met la sous-zone en avant et garde un séparateur copiable", () => {
+    // une première version tirait le séparateur d'un ::before : tout ce qu'on
+    // copiait depuis la page revenait collé, « Level 2Data Farms. »
+    const li = spotLine("Level 2 › Data Farms.");
+    expect(li.querySelector("b")!.textContent).toBe("Level 2");
+    expect(li.textContent).toBe("Level 2 » Data Farms.");
+  });
+
+  it("laisse tel quel un emplacement sans sous-zone", () => {
+    const li = spotLine("In the Botanical Wing.");
+    expect(li.querySelector("b")).toBeNull();
+    expect(li.textContent).toBe("In the Botanical Wing.");
   });
 });

@@ -571,11 +571,16 @@ def build_providers(resolver: Resolver, sources: dict[str, list[dict]],
                 continue
             drops.append({**drop, "item": item_id})
 
+        # une zone porte ses propres emplacements : les mettre à plat rendait
+        # « Vehicle Lot 07 » indiscernable de « Botanical Wing », à sept
+        # secteurs de distance
+        zones: list[dict] = [{"zone": z} for z in zones_of.get(normalize_name(name), [])]
+
         provider: dict = {
             "id": slugify(name),
             "name": name,
             "kind": kinds.get(name, "container"),
-            "zones": list(zones_of.get(normalize_name(name), [])),
+            "zones": zones,
             "drops": drops,
         }
 
@@ -585,13 +590,13 @@ def build_providers(resolver: Resolver, sources: dict[str, list[dict]],
             image = parse_infobox_image(wikitext, page)
             if image:
                 provider["icon"] = icon_filename(image)
-            spots: list[str] = []
             for entry in parse_locations(wikitext, page):
-                if entry["zone"] not in provider["zones"]:
-                    provider["zones"].append(entry["zone"])
-                spots += entry.get("where", [])
-            if spots:
-                provider["where"] = spots
+                known = next((z for z in zones if z["zone"] == entry["zone"]), None)
+                if known is None:
+                    known = {"zone": entry["zone"]}
+                    zones.append(known)
+                if entry.get("where"):
+                    known["where"] = entry["where"]
 
         if "icon" not in provider:
             fallback = (item_icons.get(resolver.get(name) or "")
@@ -833,6 +838,8 @@ def main() -> None:
     report.counts["providers avec contenu"] = sum(1 for p in providers.values() if p["drops"])
     report.counts["providers avec image"] = sum(1 for p in providers.values() if p.get("icon"))
     report.counts["providers avec zone"] = sum(1 for p in providers.values() if p["zones"])
+    report.counts["providers avec emplacements"] = sum(
+        1 for p in providers.values() if any(z.get("where") for z in p["zones"]))
 
     known_zones = {s.get("zone") for it in items.values() for s in it["sources"]} - {None}
     zones = build_zones(known_zones, report)
@@ -881,7 +888,8 @@ def main() -> None:
     print(f"  contenants et créatures      {len(providers)}"
           f" ({report.counts.get('providers avec contenu', 0)} avec contenu, "
           f"{report.counts.get('providers avec image', 0)} avec image, "
-          f"{report.counts.get('providers avec zone', 0)} avec zone)")
+          f"{report.counts.get('providers avec zone', 0)} avec zone, "
+          f"{report.counts.get('providers avec emplacements', 0)} avec emplacements)")
     print(f"  sources liées à une fenêtre  {report.counts.get('sources liées à une fenêtre', 0)}"
           f" ({report.counts.get('cibles sans fenêtre', 0)} cibles sans fenêtre)")
     print(f"  phrases à relire             {len(review)} → {NEEDS_REVIEW.relative_to(ROOT)}")

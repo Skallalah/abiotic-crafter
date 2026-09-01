@@ -73,8 +73,12 @@ export function mockupDataset(circuitBoardPrimary: "craft" | "loot" = "loot"): D
   const providers: Record<string, Provider> = {
     computer: {
       id: "computer", name: "Computer", kind: "destroyable",
-      wikiTitle: "Computer", zones: ["Office Sector"],
-      where: ["Level 2 › Data Farm"],
+      wikiTitle: "Computer",
+      zones: [
+        { zone: "Office Sector", where: ["Level 2 › Data Farm"] },
+        // une seconde zone, sans emplacement : elle doit rester visible
+        { zone: "Manufacturing West" },
+      ],
       drops: [
         { item: "circuit_board", qtyMin: 1, qtyMax: 1, chance: 1 },
         { item: "case_fan", qtyMin: 1, qtyMax: 2, chance: 0.5 },

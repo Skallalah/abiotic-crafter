@@ -467,3 +467,32 @@ retouches, demandées après coup et vérifiées à la mesure :
   `#1a4f8a` sur ceux vers un contenant. Deux couleurs plutôt qu'une : un clic
   gauche sur l'un sélectionne l'objet, sur l'autre il ouvre une fenêtre, et rien
   d'autre ne le disait.
+
+
+## « Où le trouver » se lit par lieu, pas en deux listes
+
+La fenêtre du Computer affichait ses sept secteurs sur une ligne, puis ses douze
+emplacements à la file en dessous. « In the Vehicle Lot 07 » suivait « In the
+Botanical Wing » sans que rien ne dise lequel appartenait à quel secteur — sept
+secteurs d'écart. Le wikitext, lui, est parfaitement structuré : une section par
+zone, ses puces dessous. C'est `build_providers` qui aplatissait, en concaténant
+les `where` de toutes les zones dans une seule liste.
+
+`Provider.zones` passe donc de `string[]` à `{ zone, where? }[]` : une zone porte
+ses propres emplacements. La fenêtre n'a plus qu'une section « Where to find
+it », un nom de lieu en gras et sous lui ce qu'on y sait. Une zone sans
+emplacement connu reste affichée — le secteur est déjà une information.
+
+La fenêtre d'un **item** avait le même défaut, et le même remède : ses sources
+sont groupées par zone, dans l'ordre de progression du bilan, avec « Other
+methods » en dernier. Les deux fenêtres et la colonne de droite racontent
+désormais la même géographie.
+
+### Le séparateur de sous-zone redevient du texte
+Il était rendu par un `::before` tirant son glyphe du token `--spot-sep`, pour
+qu'un thème puisse en changer. Correct à l'écran, mais **tout ce qu'on copiait
+depuis la page revenait collé** — « Level 2Data Farms. », qui est exactement la
+forme sous laquelle le problème m'a été rapporté. Le séparateur redevient du
+vrai texte, ` » `, qui existe dans les deux fontes ; le token disparaît. Une
+mesure de largeur de glyphe ne suffisait pas à trancher : c'est la table `cmap`
+d'Ark Pixel qui dit que `»` est présent et `›` absent.

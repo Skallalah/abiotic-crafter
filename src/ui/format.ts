@@ -250,13 +250,19 @@ export function sourceList(
 export const SPOT_SEP = " › ";
 
 /**
- * Un emplacement, avec sa sous-zone mise en avant : « Level 2 › Bio Lab D. ».
+ * Ce qui le remplace à l'écran. Deux raisons de ne pas recopier le `›` :
+ * la fonte pixel du thème rétro n'a pas de U+203A, et un caractère qui retombe
+ * sur une autre fonte au milieu d'une ligne se voit tout de suite. `»` existe
+ * dans les deux fontes.
+ */
+const SHOWN_SEP = " » ";
+
+/**
+ * Un emplacement, avec sa sous-zone mise en avant : « Level 2 » Bio Lab D. ».
  *
- * Le chevron n'est pas recopié depuis la donnée : c'est de la typographie, et
- * il devient un `<span class="sep">` dont le glyphe vient du token
- * `--spot-sep`. Un thème peut ainsi en changer — la fonte pixel du thème rétro
- * n'a pas de U+203A, et un caractère qui retombe sur une autre fonte au milieu
- * d'une ligne se voit tout de suite.
+ * Le séparateur est du vrai texte et non un `::before` : une première version
+ * le tirait du CSS, et tout ce qu'on copiait depuis la page revenait collé —
+ * « Level 2Data Farms. ».
  */
 export function spotLine(spot: string): HTMLLIElement {
   const li = document.createElement("li");
@@ -264,9 +270,7 @@ export function spotLine(spot: string): HTMLLIElement {
   if (cut > 0) {
     const area = document.createElement("b");
     area.textContent = spot.slice(0, cut);
-    const sep = document.createElement("span");
-    sep.className = "sep";
-    li.append(area, sep, spot.slice(cut + SPOT_SEP.length));
+    li.append(area, SHOWN_SEP + spot.slice(cut + SPOT_SEP.length));
   } else {
     li.textContent = spot;
   }

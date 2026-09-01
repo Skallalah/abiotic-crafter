@@ -63,10 +63,6 @@
   --frame: #d4d0c8;
   --title-bg: linear-gradient(90deg, #694700, #f0b641);
   --title-ink: #000000;
-
-  /* la fonte pixel n'a pas de U+203A : le chevron simple deviendrait un trou
-     dans la ligne, comblé par une autre fonte */
-  --spot-sep: "»";
 }
 
 /* -------------------------------------------------------------------- fonte

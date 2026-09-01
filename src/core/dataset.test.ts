@@ -262,7 +262,7 @@ describe("contenants et créatures", () => {
     const crate = model.provider("manufacturing_wood_crate")!;
     expect(crate).toBeDefined();
     expect(crate.icon).toBeTruthy();
-    expect(crate.zones).toContain("Manufacturing West");
+    expect(crate.zones.map((z) => z.zone)).toContain("Manufacturing West");
     expect(crate.drops.map((d) => d.item)).toContain("box_of_screws");
   });
 
@@ -307,6 +307,29 @@ describe("contenants et créatures", () => {
     }
     expect(broken).toEqual([]);
     expect(linked).toBeGreaterThan(500);
+  });
+
+  it("range chaque emplacement sous sa propre zone", () => {
+    // Le Computer est le cas qui l'a montré : douze emplacements dans sept
+    // secteurs, mis à plat, « Vehicle Lot 07 » suivait « Botanical Wing » sans
+    // que rien ne dise lequel était où.
+    const zones = new Map(
+      model.provider("computer")!.zones.map((z) => [z.zone, z.where ?? []]),
+    );
+    expect(zones.get("Cascade Laboratories")!.join(" ")).toContain("Vehicle Lot 07");
+    expect(zones.get("Fragments")!.join(" ")).toContain("Botanical Wing");
+    expect(zones.get("Office Sector")!.join(" ")).not.toContain("Botanical Wing");
+  });
+
+  it("ne répète pas un emplacement à l'intérieur d'une zone", () => {
+    // À l'inverse, la même phrase dans deux zones est légitime : la page du
+    // Medkit dit « Throughout the location. » sous quatre secteurs.
+    for (const provider of Object.values(dataset.providers)) {
+      for (const zone of provider.zones) {
+        const spots = zone.where ?? [];
+        expect(new Set(spots).size, `${provider.id} / ${zone.zone}`).toBe(spots.length);
+      }
+    }
   });
 
   it("ne garde aucun contenant qui n'aurait rien à montrer", () => {

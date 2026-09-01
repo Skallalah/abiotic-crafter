@@ -82,9 +82,6 @@
   --frame: var(--line);
   --title-bg: var(--line);
   --title-ink: var(--ink);
-  /* séparateur de sous-zone, « Level 2 › Bio Lab D. » : c'est de la
-     typographie, pas de la donnée — le thème peut en changer */
-  --spot-sep: "›";
   /* pointillé du plan de travail : lisible sur --bg, quel qu'il soit */
   --grid: var(--line);
 }

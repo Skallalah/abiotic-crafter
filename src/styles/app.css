@@ -367,7 +367,6 @@ button.open:hover { color: var(--accent-ink); }
   color: var(--ink-2); font-size: 12px; line-height: 1.35;
 }
 .spots b { color: var(--ink); font-weight: 600; }
-.spots .sep::before { content: " " var(--spot-sep) " "; }
 .spots .more-sources { padding-left: 0; }
 
   /* ---------- fenêtres de détail (hors mockup) ---------- */
@@ -425,7 +424,12 @@ button.open:hover { color: var(--accent-ink); }
   .details-body .flavor {
     margin: 10px 0 0; color: var(--ink-2); font-size: 12.5px; font-style: italic;
   }
-  .details-body .zonelist { font-size: 13px; }
+  /* un lieu, et sous lui ce qu'on y sait de précis */
+  .zoneblock { margin-top: 8px; }
+  .zoneblock:first-child { margin-top: 0; }
+  .zoneblock > b { color: var(--ink); font-weight: 600; font-size: 13px; }
+  .zoneblock .sources { margin-top: 1px; }
+  .zoneblock .spots { margin-top: 2px; }
   .details-body .bench { color: var(--ink-2); font-size: 12px; font-stretch: 85%; }
   .details-body .row { grid-template-columns: 24px 1fr auto; }
   .details-body .row:hover { background: var(--panel-2); }

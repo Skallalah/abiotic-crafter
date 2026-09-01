@@ -104,15 +104,25 @@ export type ProviderKind =
  * N'est pas un `Item` : une Manufacturing Wood Crate n'a ni recette, ni poids,
  * ni place dans l'inventaire. Elle a une image, des zones et un contenu.
  */
+/**
+ * Une zone où l'objet se trouve, avec ce qu'on y sait de précis.
+ *
+ * Les emplacements appartiennent à leur zone : mis à plat, « Vehicle Lot 07 »
+ * devenait indiscernable de « Botanical Wing », à sept secteurs de distance.
+ */
+export interface ProviderZone {
+  zone: string;
+  /** Emplacements précis dans cette zone, même convention que `Source.where`. */
+  where?: string[];
+}
+
 export interface Provider {
   id: ProviderId;
   name: string;
   kind: ProviderKind;
   wikiTitle?: string;
   icon?: string;
-  zones: string[];
-  /** Emplacements précis, même convention que `Source.where`. */
-  where?: string[];
+  zones: ProviderZone[];
   drops: Drop[];
 }
 

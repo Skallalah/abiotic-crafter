@@ -2,7 +2,8 @@ import WinBox from "winbox/src/js/winbox.js";
 import "winbox/dist/css/winbox.min.css";
 
 import type { Model } from "../core/tree";
-import type { Drop, ItemId, Provider, ProviderId } from "../data/types";
+import { OTHER_METHODS } from "../core/zones";
+import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
   badges, itemLink, MAX_SPOTS, sourceLine, sourceList, spotLine, tile,
 } from "./format";
@@ -138,22 +139,16 @@ export class DetailsWindows {
     }
 
     if (item.sources.length > 0) {
-      const lines = item.sources.map((source) => {
-        const li = sourceLine(this.model, source);
-        if (source.zone) {
-          const zone = document.createElement("b");
-          zone.textContent = source.zone;
-          li.prepend(zone, " — ");
-        }
-        return li;
-      });
-      fragment.appendChild(this.section("Where to find", sourceList(lines)));
-      const spots = item.sources.flatMap((s) => s.where ?? []);
-      if (spots.length > 0) {
-        fragment.appendChild(this.section(
-          "Exact spots", sourceList(unique(spots).map(spotLine), MAX_SPOTS, "spots"),
+      const zones = this.byZone(item.sources);
+      const block = document.createElement("div");
+      for (const [zone, sources] of zones) {
+        block.appendChild(this.zoneBlock(
+          zone,
+          sourceList(sources.map((source) => sourceLine(this.model, source))),
+          sources.flatMap((source) => source.where ?? []),
         ));
       }
+      fragment.appendChild(this.section("Where to find", block));
     }
 
     const recipes = this.model.recipesFor(id);
@@ -201,15 +196,11 @@ export class DetailsWindows {
                                    providerTile(provider)));
 
     if (provider.zones.length > 0) {
-      const line = document.createElement("div");
-      line.className = "zonelist";
-      line.textContent = provider.zones.join(" · ");
-      fragment.appendChild(this.section("Where it is", line));
-    }
-    if (provider.where?.length) {
-      fragment.appendChild(this.section(
-        "Exact spots", sourceList(unique(provider.where).map(spotLine), MAX_SPOTS, "spots"),
-      ));
+      const block = document.createElement("div");
+      for (const entry of provider.zones) {
+        block.appendChild(this.zoneBlock(entry.zone, null, entry.where ?? []));
+      }
+      fragment.appendChild(this.section("Where to find it", block));
     }
 
     const drops = [...provider.drops].sort(byChance);
@@ -278,6 +269,50 @@ export class DetailsWindows {
       foot.appendChild(link);
     }
     return foot;
+  }
+
+  /**
+   * Les sources d'un item groupées par zone, dans l'ordre de progression.
+   *
+   * Sans zone (salvage, marchand non localisé) : la même pseudo-zone que le
+   * bilan, et en dernier — la fenêtre ne doit pas raconter une autre géographie
+   * que la colonne de droite.
+   */
+  private byZone(sources: readonly Source[]): [string, Source[]][] {
+    const groups = new Map<string, Source[]>();
+    for (const source of sources) {
+      const zone = source.zone ?? OTHER_METHODS;
+      const list = groups.get(zone);
+      if (list) list.push(source);
+      else groups.set(zone, [source]);
+    }
+    return [...groups].sort(([a], [b]) => this.rank(a) - this.rank(b));
+  }
+
+  private rank(zone: string): number {
+    return zone === OTHER_METHODS ? Number.MAX_SAFE_INTEGER : this.model.zoneRank(zone);
+  }
+
+  /**
+   * Un lieu, et **sous lui** ce qu'on y sait de précis.
+   *
+   * Les emplacements étaient jusqu'ici tous entassés sous les zones, si bien
+   * qu'un Computer listait « Vehicle Lot 07 » et « Botanical Wing » à la suite
+   * sans dire lequel appartenait à quel secteur — sept secteurs d'écart.
+   */
+  private zoneBlock(zone: string, ways: HTMLElement | null, spots: string[]): HTMLElement {
+    const block = document.createElement("div");
+    block.className = "zoneblock";
+
+    const name = document.createElement("b");
+    name.textContent = zone;
+    block.appendChild(name);
+
+    if (ways) block.appendChild(ways);
+    if (spots.length > 0) {
+      block.appendChild(sourceList(unique(spots).map(spotLine), MAX_SPOTS, "spots"));
+    }
+    return block;
   }
 
   private section(title: string, content: HTMLElement): HTMLElement {

@@ -61,7 +61,14 @@ describe("fenêtre d'un contenant", () => {
     expect(crate.textContent).toContain("Destroyable object");
     expect(crate.textContent).toContain("Case Fan");
     expect(crate.textContent).toContain("50%");
-    expect(crate.textContent).toContain("Data Farm");
+
+    // chaque emplacement est rangé sous sa zone, et une zone sans emplacement
+    // connu reste visible
+    const zones = [...crate.querySelectorAll(".zoneblock")];
+    expect(zones.map((z) => z.querySelector("b")!.textContent))
+      .toEqual(["Office Sector", "Manufacturing West"]);
+    expect(zones[0]!.querySelector(".spots")!.textContent).toContain("Data Farm");
+    expect(zones[1]!.querySelector(".spots")).toBeNull();
   });
 
   it("sélectionne l'item cliqué sans refermer la fenêtre", () => {

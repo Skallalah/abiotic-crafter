@@ -115,9 +115,13 @@ interface Provider {
   kind: "container" | "destroyable" | "pickup" | "salvage" | "butcher" | "enemy";
   wikiTitle?: string;
   icon?: string;
-  zones: string[];             // les mêmes que celles du bilan, relues à l'envers
-  where?: string[];            // emplacements précis, même convention que Source
+  zones: ProviderZone[];       // les mêmes que celles du bilan, relues à l'envers
   drops: Drop[];
+}
+
+interface ProviderZone {
+  zone: string;
+  where?: string[];            // emplacements précis DE CETTE ZONE
 }
 
 interface Drop {
@@ -258,7 +262,7 @@ Trois sections, dans cet ordre, calculées sur **l'arbre tel qu'il est déplié*
 3. **Où trouver, par zone** — zones dans l'ordre de `zones[].order`. Sous chaque zone : les ressources de base qui s'y trouvent avec `where` et quantité, puis en style atténué (`.optional`) les intermédiaires duals `primary:"craft"` lootables ici, avec « optional: saves crafting N <ingrédient> ». Sources sans zone (`salvage`, `vendor`) sont regroupées sous une pseudo-zone « Autres méthodes » en dernier.
    Un item **dérivé** (§3) n'a aucune zone à lui : « démonter un extincteur » ne dit pas où trouver l'extincteur. Il est donc rangé sous les zones de son **origine**, qui devient le sujet de la ligne (« ramasser Fire Extinguisher / puis démonter pour obtenir Canister »). Un item qui a déjà une zone n'hérite de rien, sinon Metal Scrap et ses six origines de salvage apparaîtraient partout. Un seul niveau de dérivation, ce qui évite aussi les cycles.
 
-**Emplacements précis.** Sous les provenances, les entrées de `where` sont listées une par ligne, sous-zone en gras, **3 visibles** et le reste derrière le même bouton « + N more ». Le wiki en donne jusqu'à sept par zone ; joints en un pavé, ils noyaient les lignes d'obtention juste au-dessus.
+**Emplacements précis.** Sous les provenances de leur zone, les entrées de `where` sont listées une par ligne, sous-zone en gras suivie de `»` — du vrai texte, pour que ce qu'on copie depuis la page reste lisible —, **3 visibles** et le reste derrière le même bouton « + N more ». Le wiki en donne jusqu'à sept par zone ; joints en un pavé, ils noyaient les lignes d'obtention juste au-dessus.
 
 **Présentation des provenances.** Partout où plusieurs manières d'obtenir un item
 sont listées (lignes de zone, collecte d'une origine, alternative loot d'un
@@ -280,9 +284,11 @@ Les fenêtres sont **déplaçables par leur barre de titre et refermables une à
 
 Un **double-clic sur la barre de titre enroule** la fenêtre sur elle-même : il ne reste que son titre, **à la place où on l'avait posée**. Un second double-clic la rouvre. C'est ce qui la distingue du `minimize` de WinBox, qui l'enverrait dans une pile en bas de l'écran : garder trois caisses côte à côte réduites à leur titre relève du même tri que fermer celles dont on n'a plus besoin.
 
-**Fenêtre d'un contenant ou d'une créature** : son image en grand, sa nature (« Destroyable object — break it »), ses zones, ses emplacements précis, puis son contenu — une ligne par item, du plus probable au moins probable, avec quantité et chance. Pour une créature, ce qu'elle lâche et ce qu'on récolte sur elle sont deux listes distinctes.
+**« Où le trouver » se lit toujours par lieu.** Un nom de zone, et **sous lui** ce qu'on y sait : les manières d'y obtenir l'objet, puis ses emplacements précis. Jamais une ligne de zones d'un côté et un fourre-tout d'emplacements de l'autre — le Computer apparaît dans sept secteurs et donnait douze emplacements à la file, « Vehicle Lot 07 » suivant « Botanical Wing » sans que rien ne dise lequel était où. Une zone dont on ne connaît aucun emplacement reste affichée : le secteur est déjà une information.
 
-**Fenêtre d'un item** : image, catégorie, poids, stack, matériau de recherche, description ; où le trouver (les mêmes lignes de provenance qu'au §5.4, contenants cliquables compris) ; ses recettes avec bench, unlock et ingrédients ; ce qui le consomme ; un bouton « Observe this item » qui en fait l'objet courant.
+**Fenêtre d'un contenant ou d'une créature** : son image en grand, sa nature (« Destroyable object — break it »), où le trouver, puis son contenu — une ligne par item, du plus probable au moins probable, avec quantité et chance. Pour une créature, ce qu'elle lâche et ce qu'on récolte sur elle sont deux listes distinctes.
+
+**Fenêtre d'un item** : image, catégorie, poids, stack, matériau de recherche, description ; où le trouver, dans le même ordre de zones que le bilan et avec la pseudo-zone « Other methods » en dernier ; ses recettes avec bench, unlock et ingrédients ; ce qui le consomme ; un bouton « Observe this item » qui en fait l'objet courant.
 
 Chaque item cité dans une fenêtre est un lien : le clic gauche le **sélectionne** comme objet courant — le même chemin que la liste de gauche — et le clic droit ouvre sa propre fenêtre.
 
@@ -363,12 +369,9 @@ reprennent la trame un-pixel-sur-deux et les flèches de l'époque.
 
 Police : **Ark Pixel 12 px proportionnel**, sous-ensemble latin, **SIL Open Font
 License 1.1** — licence qui autorise la redistribution, contrairement aux clones
-de MS Sans Serif (« gratuit pour usage personnel »). Deux conséquences
-assumées : les huit tailles de police d'`app.css` sont ramenées à une seule, une
-fonte pixel n'étant nette qu'à sa taille de dessin ; et le séparateur de
-sous-zone passe de `›` à `»` via le token `--spot-sep`, la fonte n'ayant pas de
-U+203A — un glyphe manquant se comble par une autre fonte au milieu de la ligne,
-et ça se voit.
+de MS Sans Serif (« gratuit pour usage personnel »). Conséquence
+assumée : les huit tailles de police d'`app.css` sont ramenées à une seule, une
+fonte pixel n'étant nette qu'à sa taille de dessin.
 
 ---
 
