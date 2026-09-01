@@ -346,6 +346,12 @@ un item aussi bien que son nom).
   refuse de s'ouvrir). Caché, c'est caché.
 - `blur` : le flou, le survol révèle — regarder est un geste délibéré.
 - `show` : tout en clair ; seules les listes restent filtrées.
+
+**« Hide [REDACTED] lines »** (panneau Settings, décoché par défaut) : au lieu
+de montrer la censure, taire la ligne entière. Le réglage vit sur
+`<html data-censor>` et tout le travail est fait en CSS (`:has`) : les `li` et
+`.row` contenant un `.redacted`/`.censored` disparaissent, et un bloc de zone
+dont toutes les lignes sont tues disparaît avec elles — aucun re-rendu.
 Rien ne disparaît jamais d'une recette, quel que soit le mode. La
 racine de l'arbre n'est jamais voilée — l'ouvrir est déjà une révélation. Les
 listes, elles, filtrent : la liste de gauche ne montre que l'atteignable (avec

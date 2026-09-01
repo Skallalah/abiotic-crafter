@@ -1,6 +1,32 @@
 import { anchorBelow } from "./discover";
 import { mountThemePicker } from "./theme";
 
+/** Distinct de la session, comme le thème : un réglage d'interface. */
+const CENSOR_KEY = "gate-crafting-index/censor";
+
+/**
+ * Le réglage « cacher les lignes [REDACTED] » vit sur `<html data-censor>` :
+ * tout le travail est fait par le CSS (`:has`), aucun re-rendu nécessaire —
+ * les lignes tues disparaissent, où qu'elles soient rendues.
+ */
+export function censorHidden(): boolean {
+  try {
+    return localStorage.getItem(CENSOR_KEY) === "on";
+  } catch {
+    return false;
+  }
+}
+
+export function applyCensor(on: boolean): void {
+  if (on) document.documentElement.dataset.censor = "on";
+  else delete document.documentElement.dataset.censor;
+  try {
+    localStorage.setItem(CENSOR_KEY, on ? "on" : "off");
+  } catch {
+    // le réglage tient pour la session en cours
+  }
+}
+
 /**
  * L'onglet Settings, tout à droite de la barre : les réglages d'interface.
  *
@@ -26,6 +52,19 @@ export class SettingsPanel {
     document.body.appendChild(this.panel);
 
     mountThemePicker(select);
+
+    // cacher plutôt que caviarder : une ligne touchée par un [REDACTED]
+    // n'apparaît plus du tout
+    const censorRow = document.createElement("label");
+    censorRow.className = "settings-row";
+    const censor = document.createElement("input");
+    censor.type = "checkbox";
+    censor.checked = censorHidden();
+    censor.title = "Redacted lines disappear instead of showing [REDACTED]";
+    censor.addEventListener("change", () => applyCensor(censor.checked));
+    censorRow.append(censor, " Hide [REDACTED] lines");
+    this.panel.appendChild(censorRow);
+    applyCensor(censor.checked);   // remet l'attribut d'aplomb au chargement
 
     // panneau et bouton vont ensemble : ouvert = bouton enfoncé (`.open`)
     const show = (visible: boolean) => {

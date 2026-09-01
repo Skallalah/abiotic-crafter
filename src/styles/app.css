@@ -51,6 +51,17 @@
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
   }
   .search::placeholder { color: var(--ink-2); }
+  /* Réglage « Hide [REDACTED] lines » (Settings) : au lieu de montrer la
+     censure, on tait la ligne entière — li de sources ou d'emplacements,
+     rangée de recette ou du bilan. Un bloc de zone dont toutes les lignes
+     sont tues n'a plus rien à dire, il disparaît avec elles. */
+  [data-censor="on"] li:has(.redacted, .censored),
+  [data-censor="on"] .row:has(.redacted, .censored) { display: none; }
+  [data-censor="on"] .zoneblock:has(.redacted, .censored):not(:has(li:not(:has(.redacted, .censored)))),
+  [data-censor="on"] .zone:has(.redacted, .censored):not(:has(.row:not(:has(.redacted, .censored)))) {
+    display: none;
+  }
+
   /* santé et sensibilités d'une créature, côte à côte — même système
      typographique que la fiche .props : 12px, étiquette grise condensée,
      valeur en demi-gras. Les deux blocs se font face, ils doivent se lire

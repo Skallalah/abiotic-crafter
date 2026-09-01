@@ -6,6 +6,7 @@ beforeEach(() => {
   localStorage.clear();
   document.body.innerHTML = `<button id="settings">Settings</button>`;
   document.documentElement.removeAttribute("data-theme");
+  document.documentElement.removeAttribute("data-censor");
 });
 
 describe("l'onglet Settings", () => {
@@ -17,6 +18,27 @@ describe("l'onglet Settings", () => {
     expect(select.value).toBe("win98");
     expect(document.documentElement.dataset.theme).toBe("win98");
     expect(THEMES[0]!.id).toBe("win98");
+  });
+
+  it("cache les lignes [REDACTED] sur demande, et s'en souvient", () => {
+    new SettingsPanel(document.getElementById("settings") as HTMLButtonElement);
+    const box = document.querySelector<HTMLInputElement>(
+      ".settings-panel input[type=checkbox]")!;
+    // défaut : on montre la censure, on ne la cache pas
+    expect(box.checked).toBe(false);
+    expect(document.documentElement.dataset.censor).toBeUndefined();
+
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    expect(document.documentElement.dataset.censor).toBe("on");
+
+    // une nouvelle instance relit le réglage et repose l'attribut
+    document.documentElement.removeAttribute("data-censor");
+    document.body.innerHTML = `<button id="settings">Settings</button>`;
+    new SettingsPanel(document.getElementById("settings") as HTMLButtonElement);
+    expect(document.documentElement.dataset.censor).toBe("on");
+    expect(document.querySelector<HTMLInputElement>(
+      ".settings-panel input[type=checkbox]")!.checked).toBe(true);
   });
 
   it("tombe de son bouton et se referme d'un clic dehors", () => {

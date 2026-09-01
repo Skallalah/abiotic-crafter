@@ -957,3 +957,15 @@ Inquisitor, Ornate, Runic) — `parse_unlocked_by` la lit, `Item.unlockedBy`
 porte la clé, et le point fixe n'accepte une source `from: caisse` que si la
 clé est elle-même disponible. La caisse, elle, reste visible : elle existe où
 elle est posée.
+
+## « Hide [REDACTED] lines » : cacher est un réglage, pas un re-rendu
+
+Demandé : pouvoir faire disparaître les lignes touchées par un [REDACTED]
+plutôt que d'afficher la censure. Tout le balisage censuré porte déjà
+`.redacted`/`.censored`, et toutes les « lignes » de l'app sont des `li` ou
+des `.row` : le réglage n'est donc qu'un attribut `data-censor` sur `<html>`
+posé par la case de Settings, et quatre règles CSS `:has()` — les lignes
+touchées disparaissent où qu'elles soient rendues (fenêtres, bilan,
+emplacements), et un bloc de zone vidé de toutes ses lignes disparaît avec
+elles. Les comptes (« Used in 12 crafts », « + N more ») restent ceux du
+rendu complet : ils ne nomment rien, et mentir sur les nombres serait pire.
