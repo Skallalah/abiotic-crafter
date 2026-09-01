@@ -104,6 +104,12 @@
   box-shadow: var(--bevel-out);
 }
 [data-theme="win98"] .canvas-help:active { box-shadow: var(--bevel-in); }
+/* panneau ouvert = bouton tenu enfoncé, le vrai comportement d'époque */
+[data-theme="win98"] .topbar .discover.open,
+[data-theme="win98"] .canvas-help.open {
+  box-shadow: var(--bevel-in);
+  background: var(--panel-2);
+}
 
 [data-theme="win98"] .discover-panel {
   border: 0;

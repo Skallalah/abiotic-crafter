@@ -27,18 +27,23 @@ export class SettingsPanel {
 
     mountThemePicker(select);
 
+    // panneau et bouton vont ensemble : ouvert = bouton enfoncé (`.open`)
+    const show = (visible: boolean) => {
+      this.panel.hidden = !visible;
+      button.classList.toggle("open", visible);
+      if (visible) anchorBelow(button, this.panel);
+    };
     button.addEventListener("click", (event) => {
       event.stopPropagation();
-      this.panel.hidden = !this.panel.hidden;
-      if (!this.panel.hidden) anchorBelow(button, this.panel);
+      show(this.panel.hidden);
     });
     document.addEventListener("click", (event) => {
       if (!this.panel.hidden && !this.panel.contains(event.target as Node)) {
-        this.panel.hidden = true;
+        show(false);
       }
     });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !this.panel.hidden) this.panel.hidden = true;
+      if (event.key === "Escape" && !this.panel.hidden) show(false);
     });
   }
 }

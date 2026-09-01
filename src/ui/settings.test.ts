@@ -28,8 +28,10 @@ describe("l'onglet Settings", () => {
     button.click();
     expect(panel.hidden).toBe(false);
     expect(panel.style.top).not.toBe("");     // ancré sous le bouton
+    expect(button.classList.contains("open")).toBe(true);   // bouton enfoncé
 
     document.body.click();
     expect(panel.hidden).toBe(true);
+    expect(button.classList.contains("open")).toBe(false);
   });
 });

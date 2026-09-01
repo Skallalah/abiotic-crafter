@@ -295,6 +295,10 @@
   font-size: 12px; padding: 3px 8px;
 }
 .topbar .discover:hover { color: var(--ink); border-color: var(--ink-2); }
+/* panneau ouvert = bouton tenu enfoncé */
+.topbar .discover.open, .canvas-help.open {
+  background: var(--panel-2); color: var(--ink); border-color: var(--accent);
+}
 
 .discover-panel {
   position: fixed; top: 44px; right: 12px; z-index: 100;

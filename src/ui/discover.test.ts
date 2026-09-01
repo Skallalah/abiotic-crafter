@@ -48,6 +48,7 @@ describe("le panneau", () => {
   it("montre le découvert coché, la frontière floutée, et rien au-delà", () => {
     const { button } = mount();
     expect(button.textContent).toBe("Discovered Zones 1/5");
+    expect(button.classList.contains("open")).toBe(true);   // panneau ouvert = enfoncé
 
     const office = row("Office Sector")!;
     expect(office.classList.contains("on")).toBe(true);

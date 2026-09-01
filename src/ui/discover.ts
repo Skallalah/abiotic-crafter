@@ -103,15 +103,15 @@ export class DiscoverPanel {
 
     button.addEventListener("click", (event) => {
       event.stopPropagation();
-      this.toggleOpen();
+      this.show(this.panel.hidden);
     });
     document.addEventListener("click", (event) => {
       if (!this.panel.hidden && !this.panel.contains(event.target as Node)) {
-        this.panel.hidden = true;
+        this.show(false);
       }
     });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !this.panel.hidden) this.panel.hidden = true;
+      if (event.key === "Escape" && !this.panel.hidden) this.show(false);
     });
 
     this.render();
@@ -123,14 +123,14 @@ export class DiscoverPanel {
 
   /** Utile aux autres composants : « N items beyond your zones » ouvre ici. */
   open(): void {
-    this.panel.hidden = false;
-    anchorBelow(this.button, this.panel);
-    this.render();
+    this.show(true);
   }
 
-  private toggleOpen(): void {
-    this.panel.hidden = !this.panel.hidden;
-    if (!this.panel.hidden) {
+  /** Panneau et bouton vont ensemble : ouvert = bouton enfoncé (`.open`). */
+  private show(visible: boolean): void {
+    this.panel.hidden = !visible;
+    this.button.classList.toggle("open", visible);
+    if (visible) {
       anchorBelow(this.button, this.panel);
       this.render();
     }

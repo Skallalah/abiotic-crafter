@@ -135,19 +135,25 @@ document.getElementById("collapseAll")!.addEventListener("click", () => {
   save();
 });
 
-// le mémo d'aide : un [?] en bas à droite de l'encart, qui s'ouvre à sa gauche
+// le mémo d'aide : un [?] en bas à droite de l'encart, qui s'ouvre à sa
+// gauche — bouton enfoncé tant que le mémo est ouvert, comme les panneaux
 const helpPanel = document.getElementById("helpPanel")!;
-document.getElementById("help")!.addEventListener("click", (event) => {
+const helpButton = document.getElementById("help")!;
+const showHelp = (visible: boolean) => {
+  helpPanel.hidden = !visible;
+  helpButton.classList.toggle("open", visible);
+};
+helpButton.addEventListener("click", (event) => {
   event.stopPropagation();
-  helpPanel.hidden = !helpPanel.hidden;
+  showHelp(helpPanel.hidden);
 });
 document.addEventListener("click", (event) => {
   if (!helpPanel.hidden && !helpPanel.contains(event.target as Node)) {
-    helpPanel.hidden = true;
+    showHelp(false);
   }
 });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") helpPanel.hidden = true;
+  if (event.key === "Escape") showHelp(false);
 });
 
 document.getElementById("recenter")!.addEventListener("click", () => {
