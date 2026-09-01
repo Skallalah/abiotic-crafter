@@ -409,20 +409,29 @@ button.censored, .censored { cursor: default; }
 @media (prefers-reduced-motion: no-preference) {
   .node.parent { transition: opacity .12s, border-color .12s; }
 }
-/* l'aide vit dans l'encart d'exploration, pas dans la barre du haut.
-   Sur pastille de panneau : posée à même le fond gris du thème rétro, elle
-   était illisible (~2,5:1). */
-.canvas-hint {
-  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-  z-index: 2; max-width: calc(100% - 24px); width: max-content;
-  padding: 5px 12px;
+/* l'aide vit dans l'encart d'exploration : un [?] en bas à droite, qui
+   ouvre son mémo juste à sa gauche — une instruction par ligne */
+.canvas-help {
+  position: absolute; bottom: 12px; right: 14px; z-index: 3;
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
   background: var(--panel); border: 1px solid var(--line);
-  border-radius: var(--radius);
-  text-align: center; color: var(--ink-2); font-size: 12px;
-  pointer-events: none;
+  color: var(--ink-2); font-size: 14px; font-weight: 700;
 }
-.canvas-hint .up { color: var(--teal-ink); }
-.canvas-hint b, .canvas-hint kbd { color: var(--ink); }
+.canvas-help:hover { color: var(--ink); border-color: var(--ink-2); }
+.help-panel {
+  position: absolute; bottom: 12px; right: 52px; z-index: 3;
+  padding: 10px 14px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  color: var(--ink-2); font-size: 12px;
+}
+.help-panel ul {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.help-panel .up { color: var(--teal-ink); }
+.help-panel b, .help-panel kbd { color: var(--ink); }
 
 /* ------------------------------------------------------------------
    Objets dérivés : l'origine est ce qu'on va réellement ramasser.

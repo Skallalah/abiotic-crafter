@@ -130,6 +130,21 @@ document.getElementById("collapseAll")!.addEventListener("click", () => {
   save();
 });
 
+// le mémo d'aide : un [?] en bas à droite de l'encart, qui s'ouvre à sa gauche
+const helpPanel = document.getElementById("helpPanel")!;
+document.getElementById("help")!.addEventListener("click", (event) => {
+  event.stopPropagation();
+  helpPanel.hidden = !helpPanel.hidden;
+});
+document.addEventListener("click", (event) => {
+  if (!helpPanel.hidden && !helpPanel.contains(event.target as Node)) {
+    helpPanel.hidden = true;
+  }
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") helpPanel.hidden = true;
+});
+
 document.getElementById("recenter")!.addEventListener("click", () => {
   canvas.recenter();
   save();

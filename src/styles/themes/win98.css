@@ -95,11 +95,14 @@
 
 /* ------------------------------------------------------------------ chrome */
 
-[data-theme="win98"] .canvas-hint {
+/* le [?] carré des barres de titre de l'époque, et son mémo en relief */
+[data-theme="win98"] .canvas-help,
+[data-theme="win98"] .help-panel {
   border: 0;
   border-radius: 0;
   box-shadow: var(--bevel-out);
 }
+[data-theme="win98"] .canvas-help:active { box-shadow: var(--bevel-in); }
 
 [data-theme="win98"] .discover-panel {
   border: 0;

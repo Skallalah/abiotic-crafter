@@ -45,7 +45,18 @@
       <button id="recenter">Recenter</button>
     </div>
     <div id="stage" class="stage"></div>
-    <div class="canvas-hint">Click a craftable card to expand it · <span class="up">dashed links above</span> = what consumes this item · <b>right-click anything</b> for a movable window · double-click its title bar to roll it up · drag to pan · wheel to zoom · <kbd>/</kbd> to search</div>
+    <div id="helpPanel" class="help-panel" hidden>
+      <ul>
+        <li>Click a craftable card to expand it</li>
+        <li><span class="up">Dashed links above</span> = what consumes this item</li>
+        <li><b>Right-click anything</b> for a movable window</li>
+        <li>Double-click a window's title bar to roll it up</li>
+        <li>Drag to pan</li>
+        <li>Wheel to zoom</li>
+        <li><kbd>/</kbd> to search</li>
+      </ul>
+    </div>
+    <button id="help" class="canvas-help" type="button" title="How to use">?</button>
   </main>
 
   <aside class="pane right">
