@@ -51,6 +51,16 @@
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
   }
   .search::placeholder { color: var(--ink-2); }
+  /* barre de catégories : icônes dans l'encre du logo, All en tête */
+  .catbar { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .catbar button {
+    display: flex; padding: 4px 6px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+    color: var(--logo-ink);
+  }
+  .catbar button svg { display: block; width: 16px; height: 16px; }
+  .catbar button:hover { background: var(--panel-2); }
+  .catbar button.on { background: var(--panel-2); border-color: var(--accent); }
   .itemlist { list-style: none; margin: 0; padding: 0; }
   .itemlist button {
     width: 100%; display: flex; align-items: center; gap: 10px;

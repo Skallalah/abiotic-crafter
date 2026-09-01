@@ -898,3 +898,16 @@ au point d'entrée unique des sources et sur les zones des providers) : les
 fantômes fusionnent dans leur zone réelle. 28 zones, toutes avec pastille et
 couleur ; « Uncharted » retombe à North Pole et Temple of Stone, les deux seuls
 lieux que le wiki ne relie vraiment à rien.
+
+## Icônes de catégories dessinées main
+
+Le wiki n'a aucune image de catégorie — `category` n'est qu'une colonne texte
+de Cargo. Les pictogrammes de la barre de catégories (`src/ui/icons.ts`) sont
+donc des chemins SVG 16×16 dessinés main, peints en `currentColor` sous
+`color: var(--logo-ink)` : chaque thème choisit son encre sans une couleur en
+dur (le test des tokens veille). « Divers » passe en fin de rangée — c'est le
+fourre-tout, pas une catégorie qu'on cherche — et sert d'icône de secours à
+toute catégorie qu'un futur scrape ferait apparaître. En vue mono-catégorie,
+l'intertitre du groupe reste affiché : même rendu partout, on sait où on est.
+La sélection s'efface d'elle-même si un lien montant amène sur un objet d'une
+autre catégorie, comme la recherche le fait déjà.
