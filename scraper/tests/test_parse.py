@@ -6,7 +6,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from parse import (  # noqa: E402
     link_targets, list_entries, normalize_name, parse_drop_table,
     parse_infobox_image, parse_locations, parse_object_images, parse_sector,
-    parse_sector_enemies, parse_sector_links, parse_zone_icon,
+    parse_person_zones, parse_sector_enemies, parse_sector_links, parse_zone_icon,
+    parse_zone_items, zone_mentions,
     parse_sources, parse_unlock, sections, slugify, strip_links,
 )
 
@@ -367,3 +368,26 @@ def test_parse_sector_links_reads_the_adjacency_fields():
             "| sector3 = \n| portalWorld1 = Flathill\n}}")
     assert parse_sector_links(page) == ["Manufacturing West", "Cascade Laboratories"]
     assert parse_sector_links("{{PortalWorld\n| image = x.png\n}}") == []
+
+
+def test_parse_zone_items_reads_portal_world_infoboxes():
+    """Flathill n'a pas de section == Items == : son infobox est la seule liste."""
+    page = "{{PortalWorld\n| item1 = Power Cell\n| item2 = Nachos\n| item3 = \n}}"
+    assert parse_zone_items(page) == ["Power Cell", "Nachos"]
+
+
+def test_parse_person_zones_reads_where_a_trader_lives():
+    page = "{{Person\n|image=T.png\n|role=F.O.R.G.E.\n|appearance1=Manufacturing West\n}}"
+    assert parse_person_zones(page) == ["Manufacturing West"]
+
+
+def test_zone_mentions_reads_prose_locations():
+    """Les pages de créatures nomment leurs zones en puces, sans sous-titres."""
+    page = ("== Locations ==\n"
+            "* Three are in the central Wildlife Pen in Cascade Laboratories.\n"
+            "* One is found in a garage in the [[Hydroplant]].\n"
+            "Nothing here should surprise anyone.\n")
+    zones = ["Cascade Laboratories", "Hydroplant", "Rise", "Office Sector"]
+    # « Rise » ne doit pas matcher « surprise », et rien hors de == Locations ==
+    assert zone_mentions(page, zones) == ["Cascade Laboratories", "Hydroplant"]
+    assert zone_mentions("Du lore qui cite [[Rise]] hors section.", zones) == []

@@ -412,7 +412,7 @@ describe("découverte (§5.7), sur les vraies données", () => {
     const availability = computeAvailability(
       model, state("Office Sector", "Flathill", "Far Garden"));
     for (const id of ["energy_pistol", "capacitor", "night_essence",
-                      "military_electronics", "magbow"]) {
+                      "military_electronics", "magbow", "carapace_helm"]) {
       expect(availability.item(id), id).toBe(false);
     }
     // et l'Energy Pistol redevient atteignable là où vivent vraiment les leechs
@@ -424,6 +424,21 @@ describe("découverte (§5.7), sur les vraies données", () => {
   it("suit les améliorations : l'A.E.G.I.S. n'est plus « jamais localisable »", () => {
     const availability = computeAvailability(model, state("Office Sector"));
     expect(availability.item("a_e_g_i_s_helmet")).toBe(false);
+  });
+
+  it("localise les ventes par la page du PNJ et les créatures par leur prose", () => {
+    // « trading with The Blacksmith » → Manufacturing West, via {{Person}} ;
+    // la Peccary Sow → ses zones, via les puces de son == Locations ==
+    const blacksmith = model.item("diode").sources
+      .find((s) => s.kind === "vendor" && s.target === "The Blacksmith");
+    expect(blacksmith?.zone).toBe("Manufacturing West");
+    const office = computeAvailability(model, state("Office Sector"));
+    expect(office.item("diode")).toBe(false);
+    expect(office.provider("peccary_sow")).toBe(false);
+    const later = computeAvailability(
+      model, state("Office Sector", "Manufacturing West", "Cascade Laboratories"));
+    expect(later.item("diode")).toBe(true);
+    expect(later.provider("peccary_sow")).toBe(true);
   });
 
   it("toutes zones découvertes = l'app entière, par construction", () => {

@@ -8,7 +8,9 @@ n'existe que dans la prose. On télécharge donc :
     `== Locations ==` : une caisse n'a pas de ligne dans la table `Items`, donc
     pas de champ `image`, et sa fenêtre de détail n'aurait rien à montrer ;
   - les pages des zones — mondes-portails compris — pour leur pastille ronde,
-    dont on tire aussi leur couleur.
+    dont on tire aussi leur couleur ;
+  - les pages des PNJ marchands, seules à dire où ils vivent : « trading with
+    [[The Blacksmith]] » n'a pas de géographie sans elles.
 
 Le périmètre était limité aux items des recettes, mais build.py fait aussi
 entrer dans le dataset les objets dont un item dérive (démonter un extincteur
@@ -23,7 +25,10 @@ import argparse
 import json
 
 from fetch_cargo import load
-from parse import parse_sector, parse_sector_portal_worlds, strip_links, zone_sections
+from parse import (
+    parse_sector, parse_sector_portal_worlds, parse_sources, strip_links,
+    zone_sections,
+)
 from wiki import RAW, Wiki
 
 PAGES_DIR = RAW / "pages"
@@ -100,6 +105,22 @@ def zone_titles(sectors: list[str]) -> list[str]:
     return sorted(t for t in titles if t)
 
 
+def npc_titles() -> list[str]:
+    """Cibles des phrases de vente des pages items déjà en cache.
+
+    Une phrase « can be obtained by trading with [[X]] » nomme un PNJ : sa page
+    ({{Person}}, champ appearance1..N) est la seule à dire où il vit. On relit
+    les pages en cache plutôt que de coder les marchands en dur.
+    """
+    titles: set[str] = set()
+    for path in PAGES_DIR.glob("*.wikitext"):
+        prose, _unknown = parse_sources(path.read_text())
+        for sentence in prose:
+            if sentence.get("kind") == "vendor":
+                titles.update(sentence.get("targets", []))
+    return sorted(strip_links(t).strip() for t in titles if t)
+
+
 def fetch_pages(wiki: Wiki, titles: list[str]) -> int:
     """Écrit data/raw/pages/<title>.wikitext. Renvoie le nombre de pages vues."""
     PAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -159,6 +180,10 @@ def main() -> None:
     zones = zone_titles(sectors)
     print(f"pages zones : {len(zones)}")
     n += fetch_pages(wiki, zones)
+
+    npcs = npc_titles()
+    print(f"pages PNJ : {len(npcs)}")
+    n += fetch_pages(wiki, npcs)
     print(f"{n} pages écrites dans {PAGES_DIR}")
     print(f"{wiki.requests_made} requêtes, {wiki.cache_hits} depuis le cache")
 

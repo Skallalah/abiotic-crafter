@@ -19,10 +19,10 @@ import fetch_wikitext
 from fetch_cargo import load
 from colors import dominant_color
 from parse import (
-    normalize_name, parse_drop_table, parse_infobox_image, parse_locations,
-    parse_object_images, parse_sector, parse_sector_enemies, parse_sector_links,
-    parse_sector_portal_worlds, parse_sources, parse_unlock, parse_zone_icon,
-    slugify, strip_links,
+    link_targets, normalize_name, parse_drop_table, parse_infobox_image, parse_locations,
+    parse_object_images, parse_person_zones, parse_sector, parse_sector_enemies,
+    parse_sector_links, parse_sector_portal_worlds, parse_sources, parse_unlock,
+    parse_zone_icon, parse_zone_items, slugify, strip_links, zone_mentions,
 )
 from wiki import RAW, ROOT, Wiki
 
@@ -287,12 +287,17 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
                 enemy_items[normalize_name(row["name"] or row["_pageName"])].append(item_id)
                 add(item_id, {"kind": "drop", "target": row["name"] or row["_pageName"]})
 
-    # 4. zones, depuis les pages secteur
+    # 4. zones — les 9 secteurs ET les mondes-portails : leurs infobox
+    # déclarent ennemis et items au même format, et un monde-portail n'a que
+    # ça (Flathill n'a pas de section == Items ==, son infobox liste Power
+    # Cell, Symphonist…). Ne lire que les secteurs laissait ces zones muettes.
+    sectors = json.loads((RAW / "sectors.json").read_text())
     zones_seen: list[str] = []
-    for title in json.loads((RAW / "sectors.json").read_text()):
+    for title in fetch_wikitext.zone_titles(sectors):
         wikitext = fetch_wikitext.read_page(title)
         if not wikitext:
-            report.warn(f"page secteur absente du cache : {title}")
+            if title in sectors:
+                report.warn(f"page secteur absente du cache : {title}")
             continue
         zones_seen.append(title)
         buckets = parse_sector(wikitext)
@@ -310,6 +315,32 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
         for enemy in parse_sector_enemies(wikitext):
             for item_id in enemy_items.get(normalize_name(enemy), []):
                 add(item_id, {"kind": "drop", "zone": title, "target": enemy})
+
+        # les items de l'infobox se ramassent dans la zone
+        for name in parse_zone_items(wikitext):
+            item_id = resolver.get(name)
+            if item_id:
+                add(item_id, {"kind": "pickup", "zone": title})
+                report.bump("items lus dans les infobox de zone")
+
+    # « trading with [[The Blacksmith]] » n'a pas de géographie : c'est la page
+    # du PNJ ({{Person}}, appearance1..N) qui dit où il vit. À défaut
+    # d'infobox (le Quantum Exchanger est une machine), le premier lien de la
+    # page qui désigne une zone connue fait foi.
+    npc_cache: dict[str, str | None] = {}
+
+    def vendor_zone(name: str | None) -> str | None:
+        if not name:
+            return None
+        if name not in npc_cache:
+            page = fetch_wikitext.read_page(name) or ""
+            zones = parse_person_zones(page)
+            if not zones:
+                known = {normalize_name(z): z for z in origins.zones.values()}
+                zones = [known[normalize_name(t)] for t in link_targets(page)
+                         if normalize_name(t) in known]
+            npc_cache[name] = zones[0] if zones else None
+        return npc_cache[name]
 
     # 5. prose == Sources == et section == Locations == des pages item
     for path in sorted((RAW / "pages").glob("*.wikitext")):
@@ -338,6 +369,11 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
                 sentence["target"] = label
             if zone:
                 sentence["zone"] = zone
+            if sentence["kind"] == "vendor" and "zone" not in sentence:
+                npc = vendor_zone(sentence.get("target"))
+                if npc:
+                    sentence["zone"] = npc
+                    report.bump("ventes localisées par la page du PNJ")
 
             target = normalize_name(sentence.get("target") or "")
             same_kind = [s for s in sources.get(item_id, [])
@@ -529,7 +565,7 @@ def provider_pages() -> tuple[dict[str, str], dict[str, str]]:
 
 
 def build_providers(resolver: Resolver, sources: dict[str, list[dict]],
-                    report: Report) -> dict[str, dict]:
+                    zone_names: list[str], report: Report) -> dict[str, dict]:
     """Objets fouillables et créatures — ce que la fenêtre de détail montre.
 
     Rien ici n'invente de géographie : les zones viennent d'abord de l'index des
@@ -599,6 +635,12 @@ def build_providers(resolver: Resolver, sources: dict[str, list[dict]],
                     zones.append(known)
                 if entry.get("where"):
                     known["where"] = entry["where"]
+            if not zones:
+                # les pages de créatures décrivent leurs lieux en prose, sans
+                # sous-titres de zone : la Peccary Sow en nomme trois ainsi
+                for name_ in zone_mentions(wikitext, zone_names):
+                    zones.append({"zone": name_})
+                    report.bump("zones de provider lues en prose")
 
         if "icon" not in provider:
             fallback = (item_icons.get(resolver.get(name) or "")
@@ -621,13 +663,26 @@ def link_targets_to_providers(sources: dict[str, list[dict]],
     runtime confondrait l'item « Toolbox » et le contenant « Toolbox ».
     """
     by_name = {normalize_name(p["name"]): p["id"] for p in providers.values()}
+
+    def resolve(target: str) -> str | None:
+        key = normalize_name(target)
+        if key in by_name:
+            return by_name[key]
+        # « Snowman (Enemy) » désigne le provider « The Snowman » : le wiki
+        # qualifie entre parenthèses ce que la table Enemies nomme autrement
+        stripped = re.sub(r"\s*\(enemy\)$", "", key).strip()
+        for candidate in (stripped, f"the {stripped}"):
+            if candidate in by_name:
+                return by_name[candidate]
+        return None
+
     linked = orphan = 0
     for bucket in sources.values():
         for source in bucket:
             target = source.get("target")
             if not target:
                 continue
-            provider_id = by_name.get(normalize_name(target))
+            provider_id = resolve(target)
             if provider_id:
                 source["targetId"] = provider_id
                 linked += 1
@@ -851,7 +906,7 @@ def main() -> None:
     origins = OriginResolver(resolver, all_zones, benches)
     sources, review = build_sources(resolver, origins, report)
 
-    providers = build_providers(resolver, sources, report)
+    providers = build_providers(resolver, sources, all_zones, report)
     link_targets_to_providers(sources, providers, report)
 
     scope = {r["output"]["item"] for r in recipes}
@@ -919,6 +974,8 @@ def main() -> None:
                if it["sources"] and all(s.get("from") for s in it["sources"])]
     spots = sum(len(s.get("where", [])) for it in items.values() for s in it["sources"])
     print(f"  emplacements pr\u00e9cis lus       {spots}")
+    print(f"  items d'infobox de zone      {report.counts.get('items lus dans les infobox de zone', 0)}")
+    print(f"  ventes localisées (PNJ)      {report.counts.get('ventes localisées par la page du PNJ', 0)}")
     print(f"  sources dérivées résolues    {report.counts.get('sources dérivées résolues', 0)}")
     print(f"  items purement dérivés       {len(derives)}")
     with_icon = sum(1 for z in zones if z.get("icon"))

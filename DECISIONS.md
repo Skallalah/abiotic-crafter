@@ -621,3 +621,30 @@ filtre, sinon elle ne mesure pas ce qu'elle prétend. Le cas rapporté est un
 test de non-régression sur les vraies données ; 112 items restent « jamais
 localisables », et un craft gardé visible par cette clôture montre ses
 ingrédients inatteignables floutés — l'app avoue ce qui manque.
+
+
+### « Pourquoi je vois encore Carapace Helm ? » — la clôture n'était pas le problème
+Le Helm restait visible parce que sa chaîne mourait *même toutes zones
+cochées* : la clôture le protégeait à bon droit — mais elle mourait pour de
+mauvaises raisons, des trous de données comblables. Trois gisements ouverts :
+
+- **les infobox des mondes-portails** : mêmes champs `enemy1..12` et `item1..12`
+  que les secteurs, jamais croisés. Flathill déclare Symphonist et Power Cell,
+  le Far Garden son Exor Monk. 161 sources d'items gagnées, et l'étape 4 lit
+  désormais toutes les pages de zones, pas les 9 secteurs ;
+- **les pages des PNJ marchands** : « trading with [[The Blacksmith]] » n'a de
+  géographie que sur la page du PNJ ({{Person}}, `appearance1..N` ; à défaut,
+  premier lien de la page désignant une zone connue — le Quantum Exchanger est
+  une machine). Les cibles des phrases de vente sont relues des pages en cache,
+  pas codées en dur : 20 pages, 37 ventes localisées ;
+- **les lieux en prose des créatures** : la Peccary Sow nomme trois zones en
+  simples puces sous `== Locations ==`, sans sous-titres — invisible pour
+  `parse_locations`. Un repli `zone_mentions` cherche les noms de zones connus
+  dans la section, casse respectée (« Rise » ne matche pas « surprise »).
+
+Effet mesuré : providers avec zone 78 → 123, « jamais localisables » 112 → 35
+(16 fabricables, cuisines mourant sur des poissons ou des items-compagnons —
+résidu honnête). Le Carapace Helm est gaté normalement : caché avec trois
+zones, sa chaîne vivante à découverte complète via la forge de Manufacturing
+West. C'est la leçon du signalement : quand la clôture garde trop de monde,
+ce n'est pas la clôture qu'on élargit, c'est la donnée qu'on complète.

@@ -178,6 +178,26 @@ def parse_sector_links(wikitext: str) -> list[str]:
     return _infobox_list(wikitext, "sector")
 
 
+def parse_zone_items(wikitext: str) -> list[str]:
+    """Champs item1..N de l'infobox d'une zone — {{Sector}} comme {{PortalWorld}}.
+
+    Les mondes-portails n'ont pas de section `== Items ==` : leur infobox est
+    la seule liste de ce qu'on y ramasse (Power Cell à Flathill, Anteverse
+    Wheat au Far Garden). Ne pas la lire laissait ces zones muettes.
+    """
+    return _infobox_list(wikitext, "item")
+
+
+def parse_person_zones(wikitext: str) -> list[str]:
+    """Champs appearance1..N de l'infobox {{Person}} d'un PNJ.
+
+    « Trading with [[The Blacksmith]] » ne dit pas où : c'est la page du
+    marchand qui le sait. Sans elle, tout ce qui s'achète restait sans
+    géographie et la découverte ne pouvait pas le filtrer.
+    """
+    return _infobox_list(wikitext, "appearance")
+
+
 def _infobox_list(wikitext: str, prefix: str) -> list[str]:
     out: list[str] = []
     for _n, value in re.findall(rf"\|\s*{prefix}(\d+)\s*=\s*([^\n|}}]*)", wikitext):
@@ -379,6 +399,29 @@ def parse_locations(wikitext: str, page_name: str = "") -> list[dict]:
         if spots:
             entry["where"] = spots
         out.append(entry)
+    return out
+
+
+def zone_mentions(wikitext: str, zone_names: list[str]) -> list[str]:
+    """Zones citées en prose dans la section de localisation d'une page.
+
+    Les pages de créatures ne structurent pas leurs lieux en sous-titres de
+    zone : la Peccary Sow dit « Three are in the central Wildlife Pen in
+    Cascade Laboratories » en simple puce. On cherche donc les noms de zones
+    connus dans le corps de `== Locations ==`, en respectant leur casse — «
+    Rise » ne doit pas matcher « surprise ».
+    """
+    body = ""
+    for title, section in sections(wikitext, 2).items():
+        if title.strip().lower() in ZONE_SECTION_TITLES:
+            body = section
+            break
+    if not body:
+        return []
+    out: list[str] = []
+    for zone in zone_names:
+        if re.search(rf"(?<![A-Za-z]){re.escape(zone)}(?![a-z])", body) and zone not in out:
+            out.append(zone)
     return out
 
 
