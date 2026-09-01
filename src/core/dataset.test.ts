@@ -443,15 +443,33 @@ describe("découverte (§5.7), sur les vraies données", () => {
 
   it("distingue un drop conditionnel d'un drop ordinaire du même rat", () => {
     // la table du Lab Rat : « Lodestone Fragment — Completing Canaan… » est
-    // une condition, « Black Gunk ×2 » un drop ordinaire
+    // une condition, « Black Gunk ×2 » un drop ordinaire. Et les rats
+    // n'arrivent qu'avec Manufacturing (delayedPresence, cf. overrides).
     const availability = computeAvailability(
-      model, state("Office Sector", "Flathill", "Far Garden"));
+      model, state("Office Sector", "Manufacturing West"));
     expect(availability.item("black_gunk")).toBe(true);
+    expect(availability.item("lodestone_fragment")).toBe(false);
     const rat = model.provider("lab_rat")!;
     const ids = rat.drops.map((d) => d.item);
     expect(new Set(ids).size).toBe(ids.length);   // plus de lignes en double
     expect(rat.drops.find((d) => d.item === "lodestone_fragment")!.chanceText)
       .toContain("Completing");
+  });
+
+  it("retarde la présence du Lab Rat à Office : l'override delayedPresence", () => {
+    // l'infobox d'Office le déclare, mais les rats n'y apparaissent qu'une
+    // fois Manufacturing atteint — le wiki ne le dit qu'en prose floue
+    const rat = model.provider("lab_rat")!;
+    expect(rat.zones.some((z) => z.zone === "Office Sector")).toBe(false);
+    const office = computeAvailability(model, state("Office Sector"));
+    expect(office.item("rat_scanner")).toBe(false);
+    expect(office.provider("lab_rat")).toBe(false);
+    const later = computeAvailability(model, state("Office Sector", "Manufacturing West"));
+    expect(later.item("rat_scanner")).toBe(true);
+    // la ligne « KILL Lab Rat » d'Office reste affichée, marquée conditionnelle
+    const gunk = model.item("black_gunk").sources.find(
+      (s) => s.kind === "drop" && s.target === "Lab Rat" && s.zone === "Office Sector");
+    expect(gunk?.conditional).toBe(true);
   });
 
   it("ne cultive jamais une créature : récolter un cadavre est un kill", () => {

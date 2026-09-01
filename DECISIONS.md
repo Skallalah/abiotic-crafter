@@ -846,3 +846,20 @@ La source de secteur sans nom, moins précise, est élaguée par le prune
 habituel. Les déblocages d'inventaire ne rendent pas la source conditionnelle :
 c'est de la progression mineure au sein d'une zone déjà atteinte, pas du
 contenu d'une autre zone.
+
+
+### « Les rats ne sont pas là au début » — la limite du wiki, et l'override
+Signalé : le Lab Rat est marqué présent dans Office Sector, alors qu'en jeu il
+n'y apparaît qu'une fois Manufacturing West atteint. Pas détectable : l'infobox
+d'Office l'affirme (`enemy3 = Lab Rat`) et le seul contre-signal est une prose
+sans déclencheur — « they begin to appear […] as the player progress ». Rien à
+parser, même la table de drops n'en dit rien.
+
+C'est le cas d'école de `data/overrides.json` : une correction humaine
+par-dessus la donnée régénérée. Nouveau levier générique **`delayedPresence`**
+(cible + zone) : les sources de drop du couple deviennent `conditional` —
+affichées, mais ne prouvant aucune disponibilité, la machinerie des
+« Completing Canaan » resservie telle quelle — et la zone quitte le provider,
+dont la disponibilité passe par les zones où on le rencontre vraiment d'abord.
+Effet mesuré : Rat Scanner et Rat Pack cessent d'être « disponibles » à Office
+seul, et reviennent avec Manufacturing — exactement la réalité du jeu.

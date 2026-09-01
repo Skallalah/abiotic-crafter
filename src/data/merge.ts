@@ -1,4 +1,4 @@
-import type { Dataset, Item, Overrides, Recipe } from "./types";
+import type { Dataset, DelayedPresence, Item, Overrides, Recipe } from "./types";
 
 /**
  * Fusionne les corrections manuelles par-dessus les données scrapées (§3).
@@ -29,7 +29,33 @@ export function mergeOverrides(scraped: Dataset, overrides: Overrides): Dataset 
   const zones = overrides.zones ?? scraped.zones;
   const providers = overrides.providers ?? scraped.providers ?? {};
 
-  return { items, recipes, zones, providers };
+  const dataset = { items, recipes, zones, providers };
+  for (const late of overrides.delayedPresence ?? []) applyDelay(dataset, late);
+  return dataset;
+}
+
+/**
+ * « Le Lab Rat n'apparaît dans Office Sector que plus tard. » Le wiki
+ * l'affirme présent (infobox du secteur) et ne date l'arrivée qu'en prose
+ * floue : la correction est humaine. Les drops du couple deviennent
+ * `conditional` — affichés, mais ne prouvant aucune disponibilité — et la
+ * zone quitte le provider, dont la disponibilité passe par les zones où on
+ * le rencontre vraiment d'abord.
+ */
+function applyDelay(dataset: Dataset, late: DelayedPresence): void {
+  for (const item of Object.values(dataset.items)) {
+    for (const source of item.sources) {
+      if (source.kind === "drop" && source.target === late.target
+          && source.zone === late.zone) {
+        source.conditional = true;
+      }
+    }
+  }
+  for (const provider of Object.values(dataset.providers)) {
+    if (provider.name === late.target) {
+      provider.zones = provider.zones.filter((z) => z.zone !== late.zone);
+    }
+  }
 }
 
 function newMeta(): Item["meta"] {

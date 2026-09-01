@@ -161,9 +161,23 @@ export interface Dataset {
 /** Override partiel : mêmes champs, tous optionnels, `id` implicite par clé. */
 export type ItemOverride = Partial<Omit<Item, "id" | "meta">>;
 
+/**
+ * « Le wiki liste cette créature dans cette zone, mais elle n'y apparaît que
+ * plus tard dans la progression. » Le fait n'existe qu'en prose floue (« as
+ * the player progress ») : c'est une correction humaine. Effets : les sources
+ * de drop du couple deviennent `conditional` (affichées, mais ne prouvant
+ * rien), et la zone quitte le provider — sa disponibilité passe par ses
+ * autres zones, celles où on le rencontre vraiment d'abord.
+ */
+export interface DelayedPresence {
+  target: string;
+  zone: string;
+}
+
 export interface Overrides {
   items?: Record<ItemId, ItemOverride>;
   recipes?: Recipe[];
   zones?: Zone[];
   providers?: Record<ProviderId, Provider>;
+  delayedPresence?: DelayedPresence[];
 }

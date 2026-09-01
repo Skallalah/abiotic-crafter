@@ -8,5 +8,12 @@
     "box_of_screws": {
       "primary": "craft"
     }
-  }
+  },
+  "delayedPresence": [
+    {
+      "_pourquoi": "l'infobox d'Office les déclare, mais ils n'y apparaissent qu'une fois Manufacturing West atteint — le wiki ne le dit qu'en prose floue",
+      "target": "Lab Rat",
+      "zone": "Office Sector"
+    }
+  ]
 }

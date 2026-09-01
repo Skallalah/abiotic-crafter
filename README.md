@@ -55,6 +55,10 @@ vont dans `data/overrides.json`, fusionné par-dessus au chargement : fusion cha
 { "items": { "box_of_screws": { "primary": "craft" } } }
 ```
 
+`delayedPresence` corrige les créatures que le wiki déclare dans une zone où
+elles n'apparaissent que plus tard (le Lab Rat à Office Sector) : le couple
+cible + zone reste affiché mais ne prouve plus aucune disponibilité.
+
 Les phrases de source que le parseur n'a pas su classer sont listées dans
 `data/raw/needs_review.txt` après chaque build.
 
