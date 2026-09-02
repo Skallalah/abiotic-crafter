@@ -1034,3 +1034,16 @@ motif (Jimmy Sanders porte la même, en « stationary trader ») :
 (IS-0117), c'en est la meilleure borne mesurable, comme pour les
 delayedPresence. Le verrou couvre aussi les ventes venues de la prose, pas
 seulement l'inventaire {{Trade}}.
+
+## Colorimétrie du canevas win98 : les lignes d'abord
+
+Signalé : dans l'écran de craft, « on voit pas bien les lignes ». Cause
+littérale : les connecteurs de l'arbre empruntaient `--line` (#808080)… la
+couleur exacte du fond du plan de travail. Corrections, dans le thème
+seulement : traits de l'arbre en argent clair (#d4d0c8, la couleur des
+cartes) ; liens montants et leur légende en teal clair (le #125751 d'origine
+tenait à peine 2:1 sur le gris) ; la boîte explosée devient un puits gris un
+cran plus sombre gravé en creux (bevel-in) — l'ambre lavé faisait olive
+boueux — avec son établi en encre claire. Un essai de bureau teal #008080
+d'époque a été fait et retiré séance tenante : « trop moche », le fond gris
+reste.

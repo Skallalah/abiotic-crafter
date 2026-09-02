@@ -4,7 +4,9 @@
 
    Le fond du plan de travail est un gris neutre plutôt que le teal #008080 de
    l'époque : la grille pointée reste lisible dessus et on peut le regarder une
-   heure. L'argent est éclairci de #c0c0c0 à #d4d0c8, gris des thèmes classiques
+   heure. Les traits de l'arbre, eux, passent à l'argent clair : --line
+   (#808080) était littéralement la couleur du fond, les connecteurs étaient
+   invisibles. L'argent est éclairci de #c0c0c0 à #d4d0c8, gris des thèmes classiques
    de Windows 2000 : le texte y gagne près d'un point de contraste sans perdre
    l'époque. Le reste vise le rendu d'origine — angles droits, biseaux à quatre
    arêtes, fonte pixel. L'ambre reste la couleur d'accent de l'app et traverse
@@ -190,6 +192,21 @@
 
 /* ------------------------------------------------------------------- arbre */
 
+/* les traits de l'arbre, en argent clair : --line se fondait dans le fond */
+[data-theme="win98"] .tree ul::before,
+[data-theme="win98"] .tree li::before,
+[data-theme="win98"] .tree li::after {
+  border-color: #d4d0c8;
+}
+/* les liens montants gardent leur teal, mais en clair : le sombre d'origine
+   (#125751) tenait à peine 2:1 sur le gris du fond */
+[data-theme="win98"] .parents li::before,
+[data-theme="win98"] .parents li::after,
+[data-theme="win98"] .parents .drop {
+  border-color: #a7ded8;
+}
+[data-theme="win98"] .parents .caption { color: #bfe9e4; opacity: 1; }
+
 [data-theme="win98"] .node {
   border: 0;
   border-radius: 0;
@@ -220,13 +237,16 @@
 [data-theme="win98"] .node.root .qty,
 [data-theme="win98"] .node.parent .qty { background: var(--accent); }
 
-/* la boîte explosée devient un cadre de regroupement, gravé dans le panneau */
+/* la boîte explosée : un puits gravé en creux dans le fond, un cran plus
+   sombre — l'ambre lavé faisait olive boueux sur gris */
 [data-theme="win98"] .exploded {
   border: 0;
   border-radius: 0;
-  background: var(--wash);
-  box-shadow: inset 1px 1px #9d9890, inset -1px -1px #ffffff;
+  background: #767472;
+  box-shadow: var(--bevel-in);
 }
+/* l'établi se lit sur ce gris creusé, l'encre sombre s'y perdait */
+[data-theme="win98"] .exploded .bench { color: #efece6; }
 [data-theme="win98"] .parents .more {
   border: 0;
   border-radius: 0;
