@@ -256,6 +256,22 @@ def parse_enemy_stats(wikitext: str) -> dict | None:
     return stats or None
 
 
+_TRADER_GATE = re.compile(
+    r"will only be available as an? .{0,60}?trader\W{0,3}after the main objective",
+    re.I | re.S)
+
+
+def parse_trader_gate(wikitext: str) -> bool:
+    """« …available as a traveling trader after the main objective is done ».
+
+    Ulrich Thule et Jimmy Sanders ne commercent qu'après la fin du jeu ; leur
+    page le dit mot pour mot, au-dessus de leur {{Trade}}. Sans ce verrou, le
+    Carbon Plating d'Ulrich (contre un simple café) « prouvait » des crafts de
+    fin de partie dès le Office Sector, sa première apparition.
+    """
+    return bool(_TRADER_GATE.search(wikitext))
+
+
 _UNLOCKED_BY = re.compile(
     r"An?\s+\[\[([^\]|]+)(?:\|[^\]]*)?\]\]\s+is required to unlock and open", re.I)
 

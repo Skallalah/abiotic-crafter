@@ -1021,3 +1021,16 @@ deux fois : un `display` posé par le thème doit être `:not([hidden])` pour
 ne pas écraser le style UA de `hidden` (déjà vu sur le pli des catégories),
 et `firefox --headless --screenshot` capture au `load` — instrumenter en
 synchrone pour lire les mesures.
+
+## Les marchands de fin de jeu attendent Albatross
+
+Signalé : le Carbon Plating d'Ulrich Thule — vendu contre un simple café, et
+crédité à Office Sector, sa première apparition — « prouvait » 58 crafts de
+fin de partie dès le début. Sa page dit pourtant : « will only be available
+as a traveling trader after the main objective is done ». La phrase est un
+motif (Jimmy Sanders porte la même, en « stationary trader ») :
+`parse_trader_gate` la lit, et toutes les offres du marchand gagnent
+`requiresZone: Albatross` — la page d'Albatross décrit le combat final
+(IS-0117), c'en est la meilleure borne mesurable, comme pour les
+delayedPresence. Le verrou couvre aussi les ventes venues de la prose, pas
+seulement l'inventaire {{Trade}}.

@@ -532,6 +532,26 @@ describe("découverte (§5.7), sur les vraies données", () => {
       "inquisitor_crate", "ornate_crate", "runic_crate"]);
   });
 
+  it("verrouille les marchands de fin de jeu sur Albatross", () => {
+    // « Ulrich Thule will only be available as a traveling trader after the
+    // main objective is done » — et l'objectif se conclut sur Albatross
+    // (sa page : le combat final contre IS-0117). Sans le verrou, son
+    // Carbon Plating contre un café « prouvait » 58 crafts dès Office.
+    const sale = model.item("carbon_plating").sources
+      .find((s) => s.kind === "vendor" && s.target === "Ulrich Thule")!;
+    expect(sale.requiresZone).toBe("Albatross");
+    const office = computeAvailability(model, state("Office Sector"));
+    expect(office.item("carbon_plating")).toBe(false);
+    expect(office.item("liquid_crystal")).toBe(false);
+    expect(office.item("laser_katana")).toBe(false);
+    // Jimmy Sanders porte la même phrase, au mot « stationary » près
+    const soda = model.item("the_bad_soda").sources
+      .find((s) => s.kind === "vendor" && s.target === "Jimmy Sanders")!;
+    expect(soda.requiresZone).toBe("Albatross");
+    const end = computeAvailability(model, state("Office Sector", "Albatross"));
+    expect(end.item("carbon_plating")).toBe(true);
+  });
+
   it("ne cultive jamais une créature : récolter un cadavre est un kill", () => {
     // « harvesting the remains of an Exor » donnait un mot-clé GROW sur un
     // ennemi ; la table Enemies elle-même range ça en harvest

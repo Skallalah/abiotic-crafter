@@ -24,7 +24,8 @@ from parse import (
     parse_unlocked_by,
     parse_object_images, parse_person_zones, parse_sector, parse_sector_enemies,
     parse_sector_links, parse_sector_portal_worlds, parse_sources,
-    parse_trade_offers, parse_unlock, parse_zone_icon, parse_zone_items, slugify,
+    parse_trade_offers, parse_trader_gate, parse_unlock, parse_zone_icon,
+    parse_zone_items, slugify,
     strip_links, zone_mentions,
 )
 from wiki import RAW, ROOT, Wiki
@@ -64,6 +65,10 @@ PROVIDER_KINDS = {
     "salvaging": "salvage",
     "butchering": "butcher",
 }
+
+# Où l'objectif principal se termine : la page d'Albatross décrit le combat
+# final (IS-0117). Sert de borne aux marchands « after the main objective ».
+ENDGAME_ZONE = "Albatross"
 
 CATEGORY_FIXES = {"": "Divers", "farming": "Farming"}
 
@@ -424,8 +429,12 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
     # personne. La page du PNJ relie la clé (« {{Trade|warren}} ») à son nom,
     # et son appearance1 à sa zone.
     trade_key = re.compile(r"\{\{\s*Trade\s*\|\s*(\w+)\s*\}\}")
+    # les marchands de fin de jeu : leur page verrouille tout leur commerce
+    gated_traders: set[str] = set()
     for npc in fetch_wikitext.npc_titles():
         npc_page = fetch_wikitext.read_page(npc) or ""
+        if parse_trader_gate(npc_page):
+            gated_traders.add(npc)
         npc_zones = parse_person_zones(npc_page)
         for key in trade_key.findall(npc_page):
             inventory = fetch_wikitext.read_page(f"Template:Trade/{key}") or ""
@@ -519,6 +528,17 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
 
     prune_sources(sources)
     report.counts["zones lues"] = len(zones_seen)
+    # « after the main objective is done » : l'objectif principal se conclut
+    # sur Albatross (sa page : « the final fight with IS-0117 starts ») — la
+    # dernière zone visitée est donc la meilleure borne mesurable, comme pour
+    # les delayedPresence. Le verrou couvre aussi les ventes venues de la
+    # prose (« through trading with Ulrich Thule »), pas que l'inventaire.
+    for bucket in sources.values():
+        for source in bucket:
+            if source["kind"] == "vendor" and source.get("target") in gated_traders:
+                source["requiresZone"] = ENDGAME_ZONE
+                report.bump("offres de marchands de fin de jeu verrouillées")
+
     return sources, review, locks
 
 

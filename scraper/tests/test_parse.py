@@ -498,3 +498,15 @@ def test_parse_unlocked_by_reads_the_lock_sentence():
     # une porte à keypad n'est pas une caisse à clé
     assert parse_unlocked_by(
         "A [[Keypad Hacker (Tier 2)]] is required to open the door.") is None
+
+
+def test_parse_trader_gate_reads_the_endgame_sentence():
+    from parse import parse_trader_gate
+    assert parse_trader_gate(
+        "{{PAGENAME}} will only be available as a [[Trading|traveling trader]] "
+        "after the main objective is done.")
+    assert parse_trader_gate(
+        "{{PAGENAME}} will only be available as a stationary [[Trading|trader]] "
+        "after the main objective is done.")
+    # un marchand ordinaire ne l'est pas
+    assert not parse_trader_gate("Warren trades all day long in the cafeteria.")
