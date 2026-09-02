@@ -108,6 +108,18 @@ describe("le plan de courses", () => {
     expect(rows(".plan-row.done").length).toBe(1);
   });
 
+  it("clic droit sur une ligne du plan : la fenêtre de détail s'ouvre", () => {
+    const plan = mount();
+    plan.add("glowstick");
+    const row = document.querySelector<HTMLElement>(".winbox .plan-row")!;
+    expect(row.dataset.item).toBeTruthy();
+    row.dispatchEvent(new window.MouseEvent("contextmenu",
+      { bubbles: true, cancelable: true }));
+    const titles = [...document.querySelectorAll(".winbox .wb-title")]
+      .map((t) => t.textContent);
+    expect(titles).toContain("Test Tube");
+  });
+
   it("voile un objectif hors de portée — le plan n'est pas une fuite", () => {
     const nothing = computeAvailability(model,
       { enabled: true, zones: new Set(), spoilers: "hide" });
@@ -116,5 +128,7 @@ describe("le plan de courses", () => {
     const goal = rows(".plan-goals .row")[0]!;
     expect(goal.querySelector(".censored")).toBeTruthy();
     expect(goal.textContent).not.toContain("Glowstick");
+    // et la ligne voilée reste inerte au clic droit
+    expect(goal.dataset.item).toBeUndefined();
   });
 });

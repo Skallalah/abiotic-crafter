@@ -213,6 +213,11 @@ export class PlanWindow {
     for (const goal of this.goals) {
       const row = document.createElement("div");
       row.className = "row";
+      // clic droit sur la ligne = fenêtre de détail, comme au bilan — sauf
+      // sujet voilé, qui doit rester inerte
+      if (availability.item(goal.id) || availability.spoilers !== "hide") {
+        row.dataset.item = goal.id;
+      }
       const thumb = tile(this.model, this.model.item(goal.id));
       veilTile(availability, goal.id, thumb);
 
@@ -249,6 +254,9 @@ export class PlanWindow {
     const item = this.model.item(id);
     const row = document.createElement("div");
     row.className = `row plan-row${this.done.has(id) ? " done" : ""}`;
+    if (availability.item(id) || availability.spoilers !== "hide") {
+      row.dataset.item = id;
+    }
 
     const check = document.createElement("button");
     check.type = "button";
