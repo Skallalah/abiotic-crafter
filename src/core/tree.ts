@@ -46,6 +46,12 @@ export class Model {
     return id in this.ds.providers;
   }
 
+  /** Les contenants à ouvrir — pas les cassables ni les créatures. */
+  containers(): Provider[] {
+    return Object.values(this.ds.providers)
+      .filter((p) => p.kind === "container");
+  }
+
   /** Toutes les recettes de craft d'un item, dans l'ordre du fichier. */
   recipesFor(id: ItemId): Recipe[] {
     return this.craftRecipes.get(id) ?? [];

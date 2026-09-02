@@ -257,6 +257,17 @@ describe("recherche (§8)", () => {
 
 
 describe("contenants et créatures", () => {
+  it("marque env les pickups certifiés par === Environment ===", () => {
+    // Oil est listé dans le décor d'Office Sector par la page secteur
+    const office = model.item("oil").sources
+      .find((s) => s.zone === "Office Sector" && s.kind === "pickup")!;
+    expect(office.env).toBe(true);
+    // et le marqueur couvre une vraie part du dataset, pas trois items
+    const tagged = Object.values(dataset.items)
+      .flatMap((i) => i.sources).filter((s) => s.env).length;
+    expect(tagged).toBeGreaterThan(100);
+  });
+
   it("donne une fenêtre à la Manufacturing Wood Crate, image comprise", () => {
     // le cas qui motive la fonctionnalité : « break Manufacturing Wood Crate »
     // ne disait ni à quoi elle ressemble, ni où elle est, ni ce qu'elle contient

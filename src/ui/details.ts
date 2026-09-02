@@ -5,7 +5,7 @@ import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 import { BODY_ICONS, DAMAGE_FALLBACK, DAMAGE_TYPES, svgIcon } from "./icons";
 import { armRetrobar } from "./retrobar";
-import { OTHER_METHODS, sourceZones } from "../core/zones";
+import { OTHER_METHODS, containerSources, sourceZones } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
   ASSET_BASE, badges, itemLink, MAX_SPOTS, sourceLines, sourceList, spotLine,
@@ -200,8 +200,10 @@ export class DetailsWindows {
       fragment.appendChild(p);
     }
 
-    if (item.sources.length > 0) {
-      const zones = this.byZone(item.sources);
+    // même sans source déclarée, un contenant peut lâcher l'item (byZone
+    // complète par les tables de loot) : la section vaut d'être tentée
+    {
+      const zones = this.byZone(id, item.sources);
       const block = document.createElement("div");
       let hidden = 0;
       for (const [zone, sources] of zones) {
@@ -436,7 +438,7 @@ export class DetailsWindows {
    * fenêtre ne doit pas raconter une autre géographie que la colonne de
    * droite.
    */
-  private byZone(sources: readonly Source[]): [string, Source[]][] {
+  private byZone(id: ItemId, sources: readonly Source[]): [string, Source[]][] {
     const groups = new Map<string, Source[]>();
     const add = (zone: string, source: Source) => {
       const list = groups.get(zone);
@@ -449,6 +451,20 @@ export class DetailsWindows {
         : sourceZones(this.model, source, this.availability);
       if (zones.length === 0) add(OTHER_METHODS, source);
       for (const zone of zones) add(zone, source);
+    }
+    // les contenants qui lâchent l'item, d'après les tables de loot — sans
+    // filtre de découverte : la fenêtre montre tout, les voiles font le reste
+    for (const { zone, source } of containerSources(this.model, id)) {
+      add(zone, source);
+    }
+    // dans un bloc, le disponible d'abord : la troncature « +N more » ne
+    // doit pas cacher la seule méthode utilisable derrière six [REDACTED]
+    const veiled = (s: Source) =>
+      (s.targetId && !this.availability.provider(s.targetId))
+      || (s.from && this.model.has(s.from) && !this.availability.item(s.from))
+        ? 1 : 0;
+    for (const list of groups.values()) {
+      list.sort((a, b) => veiled(a) - veiled(b));
     }
     return [...groups].sort(([a], [b]) => this.rank(a) - this.rank(b));
   }

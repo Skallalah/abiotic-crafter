@@ -50,6 +50,12 @@ export interface Source {
   /** Monnaie d'un échange de marchand, résolue vers un item du dataset. */
   costItem?: ItemId;
   costQty?: string;
+  /**
+   * Pickup certifié « posé dans le décor » par la liste === Environment ===
+   * de la page secteur — par opposition à un pickup d'infobox de zone, qui ne
+   * promet que « trouvable ici » sans dire ni au sol ni en caisse.
+   */
+  env?: boolean;
 }
 
 export interface Item {

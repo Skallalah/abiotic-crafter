@@ -283,6 +283,10 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
                     existing.setdefault("where", [])
                     if spot not in existing["where"]:
                         existing["where"].append(spot)
+                # le marqueur « dans le décor » survit à la fusion, quel que
+                # soit l'ordre d'arrivée (prose d'item, infobox, Environment)
+                if source.get("env"):
+                    existing["env"] = True
                 return
         bucket.append(source)
 
@@ -376,7 +380,13 @@ def build_sources(resolver: Resolver, origins: OriginResolver,
 
         for kind in ("pickup", "drop", "grow"):
             for name in buckets.get(kind, []):
-                add(resolver.get(name), {"kind": kind, "zone": title})
+                source = {"kind": kind, "zone": title}
+                # === Environment === : le wiki certifie l'objet posé dans le
+                # décor du secteur — un pickup d'infobox ne promet que
+                # « trouvable ici », sans dire ni au sol ni en caisse
+                if kind == "pickup":
+                    source["env"] = True
+                add(resolver.get(name), source)
 
         # la liste === Trading === dit qu'un item s'achète ici, pas à qui :
         # la page du PNJ marchand de la zone, quand il n'y en a qu'un, le dit

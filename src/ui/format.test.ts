@@ -48,10 +48,18 @@ describe("mots-clés d'obtention", () => {
     expect(li.textContent).toBe("kill Security Bot");
   });
 
-  it("n'affiche que le mot-clé quand la source ne nomme rien", () => {
-    const li = sourceLine(model, { kind: "pickup", zone: "Office Sector" });
-    expect(li.textContent).toBe("loot");
-    expect(li.textContent).not.toMatch(/[—-]\s*$/);
+  it("dit ce que la donnée sait d'une source qui ne nomme rien", () => {
+    // certifié « dans le décor » par la page secteur (=== Environment ===)
+    const env = sourceLine(model,
+      { kind: "pickup", zone: "Office Sector", env: true });
+    expect(env.textContent).toBe("loot in the environment");
+    // pickup d'infobox : trouvable ici, sans plus de précision
+    const vague = sourceLine(model, { kind: "pickup", zone: "Office Sector" });
+    expect(vague.textContent).toBe("loot somewhere in the zone");
+    // des emplacements suivent : le mot-clé seul suffit, même certifié décor
+    const spotted = sourceLine(model,
+      { kind: "pickup", zone: "Office Sector", env: true, where: ["Data Farm"] });
+    expect(spotted.textContent).toBe("loot");
   });
 
   it("nomme l'objet démonté et sa quantité pour un salvage", () => {

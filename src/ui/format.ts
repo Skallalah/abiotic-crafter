@@ -119,10 +119,15 @@ export function sourceLine(
 
   const object = sourceObject(model, source);
   if (!object) {
-    // un mot-clé seul se lit — « LOOT » sous une zone, les emplacements
-    // suivent — sauf « BUY », qui appelle un vendeur : à défaut de nom,
-    // on dit au moins qu'il y en a un
+    // un mot-clé seul ne dit rien : on précise ce que la donnée sait.
+    // « BUY » appelle un vendeur ; un pickup certifié Environment (page
+    // secteur) est posé dans le décor ; un pickup d'infobox, sans le
+    // moindre emplacement, ne promet que « quelque part par ici »
     if (source.kind === "vendor") li.append(" from a local trader");
+    else if (source.kind === "pickup" && source.zone && !source.where?.length) {
+      // rien d'autre à dire : ce que la donnée sait, décor certifié ou vague
+      li.append(source.env ? " in the environment" : " somewhere in the zone");
+    }
     return li;
   }
 

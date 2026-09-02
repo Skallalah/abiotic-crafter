@@ -1089,3 +1089,30 @@ ligne simple dans la zone de son origine.
 Garde anti-fuite inchangée : avec une disponibilité active, une origine non
 disponible ne révèle rien (la méthode reste en Autres méthodes, voilée), et
 les zones héritées non découvertes sont tues.
+
+## « LOOT » nus : le décor certifié, et les contenants des tables de loot
+
+Un « LOOT » sans objet ni emplacement ne disait rien (126 cas). Enquête wiki :
+100 viennent de la sous-section === Environment === des pages secteur — une
+certification « posé dans le décor » que le scraper lisait déjà mais perdait à
+l'écriture. Le pickup en garde désormais la trace (`env: true`, fusion du
+drapeau dans `add()` quel que soit l'ordre prose/infobox/Environment) et
+s'affiche « LOOT in the environment » ; un pickup d'infobox, qui ne promet
+que « trouvable ici », dit « LOOT somewhere in the zone ». Le texte ne sort
+que si la source est vraiment nue : des emplacements précis parlent
+d'eux-mêmes.
+
+En face, les tables de loot Cargo savent quelles boîtes ouvrir :
+`containerSources` complète chaque item avec les contenants (`kind:
+container` seulement — pas les cassables, déjà attribués par les Resource
+Nodes, ni les créatures) dont la table contient l'item, dédoublonnés des
+sources explicites. Un contenant localisé rend une ligne « LOOT Toolbox »
+sous chacune de ses zones ; un contenant SANS zone est un vrai générique —
+présent dans toutes les zones, la condition sine qua non — et tombe en
+Autres méthodes (décision utilisateur). Appliqué au bilan comme à la fenêtre
+d'item, même géographie ; volume mesuré avant coup : 12 contenants dont 5
+génériques, 29 items touchés.
+
+Dans la fenêtre, les sources disponibles passent avant les voilées : la
+troncature « +N more » cachait la seule méthode utilisable d'Oil derrière
+six [REDACTED].

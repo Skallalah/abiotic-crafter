@@ -3,7 +3,7 @@ import { derivedDataset, discoveryDataset, mockupDataset } from "./fixtures";
 import { computeAvailability } from "./discovery";
 import { Model, type RecipeChoice } from "./tree";
 import { computeTotals } from "./totals";
-import { groupByZone, OTHER_METHODS, sourceZones } from "./zones";
+import { containerSources, groupByZone, OTHER_METHODS, sourceZones } from "./zones";
 
 const NO_CHOICE: RecipeChoice = new Map();
 const model = new Model(derivedDataset());
@@ -108,6 +108,58 @@ describe("sourceZones — la géographie d'une méthode", () => {
     const office = computeAvailability(world,
       { enabled: true, zones: new Set(["Office Sector"]) });
     expect(sourceZones(world, crate, office)).toEqual([]);
+  });
+});
+
+describe("containerSources — les tables de loot complètent les LOOT nus", () => {
+  const withContainers = () => {
+    const ds = derivedDataset();
+    ds.providers = {
+      toolbox: { id: "toolbox", name: "Toolbox", kind: "container",
+        zones: [{ zone: "Office Sector" }], drops: [{ item: "metal_scrap" }] },
+      // sans zone = dans toutes les zones : un vrai générique
+      locker: { id: "locker", name: "Locker", kind: "container",
+        zones: [], drops: [{ item: "metal_scrap" }] },
+      // un cassable n'est pas un contenant à ouvrir
+      crate: { id: "crate", name: "Crate", kind: "destroyable",
+        zones: [{ zone: "Office Sector" }], drops: [{ item: "metal_scrap" }] },
+    };
+    return ds;
+  };
+  const m = new Model(withContainers());
+
+  it("localisé sous sa zone, générique en Autres méthodes, cassable ignoré", () => {
+    expect(containerSources(m, "metal_scrap")).toEqual([
+      { zone: "Office Sector",
+        source: { kind: "pickup", target: "Toolbox", targetId: "toolbox" } },
+      { zone: OTHER_METHODS,
+        source: { kind: "pickup", target: "Locker", targetId: "locker" } },
+    ]);
+  });
+
+  it("ignore un contenant déjà cité par une source explicite", () => {
+    const ds = withContainers();
+    ds.items.metal_scrap!.sources.push(
+      { kind: "pickup", target: "Toolbox", targetId: "toolbox" });
+    expect(containerSources(new Model(ds), "metal_scrap")
+      .some((c) => c.source.targetId === "toolbox")).toBe(false);
+  });
+
+  it("au bilan : la ligne rejoint la zone, le générique fait une entrée à part", () => {
+    const groups = groupByZone(m, computeTotals(m, "gadget", NO_CHOICE));
+    const office = groups.find((g) => g.name === "Office Sector")!;
+    expect(office.entries.find((e) => e.id === "metal_scrap")!
+      .sources.some((s) => s.targetId === "toolbox")).toBe(true);
+    const other = groups.find((g) => g.name === OTHER_METHODS)!;
+    expect(other.entries.find((e) => e.id === "metal_scrap")!
+      .sources.some((s) => s.targetId === "locker")).toBe(true);
+  });
+
+  it("zone non découverte : le contenant se tait, le générique reste", () => {
+    const nothing = computeAvailability(m, { enabled: true, zones: new Set() });
+    const got = containerSources(m, "metal_scrap", nothing);
+    expect(got.some((c) => c.source.targetId === "toolbox")).toBe(false);
+    expect(got.some((c) => c.source.targetId === "locker")).toBe(true);
   });
 });
 

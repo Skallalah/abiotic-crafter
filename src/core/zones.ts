@@ -67,6 +67,42 @@ export function sourceZones(
 }
 
 /**
+ * Les contenants dont la table de loot (Cargo) contient l'item — le
+ * complément des « LOOT » nus : la donnée sait déjà quelles boîtes ouvrir.
+ *
+ * Un contenant localisé rend une ligne par zone ; un contenant SANS zone est
+ * un vrai générique — des casiers dans toutes les zones, la condition sine
+ * qua non — et tombe en Autres méthodes. Un contenant déjà cité par une
+ * source explicite de l'item est ignoré (dédoublonnage).
+ */
+export function containerSources(
+  model: Model,
+  id: ItemId,
+  availability?: Availability,
+): { zone: string; source: Source }[] {
+  const out: { zone: string; source: Source }[] = [];
+  const cited = new Set(
+    model.item(id).sources.flatMap((s) => [s.targetId, s.target]));
+  for (const provider of model.containers()) {
+    if (!provider.drops.some((d) => d.item === id)) continue;
+    if (cited.has(provider.id) || cited.has(provider.name)) continue;
+    if (availability && !availability.provider(provider.id)) continue;
+    const source: Source = {
+      kind: "pickup", target: provider.name, targetId: provider.id,
+    };
+    if (provider.zones.length === 0) {
+      out.push({ zone: OTHER_METHODS, source });
+      continue;
+    }
+    for (const { zone } of provider.zones) {
+      if (availability && !availability.zone(zone)) continue;
+      out.push({ zone, source });
+    }
+  }
+  return out;
+}
+
+/**
  * Regroupe le bilan par secteur (§5.4.3).
  *
  * Les ressources de base viennent en premier dans chaque zone, puis les
@@ -127,6 +163,12 @@ export function groupByZone(
         if (zones.length === 0) add(OTHER_METHODS, source);
         for (const zone of zones) add(zone, source);
       }
+    }
+
+    // les tables de loot complètent : les contenants qui lâchent l'item,
+    // sous leur zone — un générique (sans zone = partout) en Autres méthodes
+    for (const { zone, source } of containerSources(model, id, availability)) {
+      add(zone, source);
     }
 
     // rien de visible nulle part : l'item requis reste au bilan, sa
