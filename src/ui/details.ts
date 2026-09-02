@@ -5,7 +5,7 @@ import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 import { BODY_ICONS, DAMAGE_FALLBACK, DAMAGE_TYPES, svgIcon } from "./icons";
 import { armRetrobar } from "./retrobar";
-import { OTHER_METHODS } from "../core/zones";
+import { OTHER_METHODS, sourceZones } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
   ASSET_BASE, badges, itemLink, MAX_SPOTS, sourceLines, sourceList, spotLine,
@@ -430,17 +430,25 @@ export class DetailsWindows {
   /**
    * Les sources d'un item groupées par zone, dans l'ordre de progression.
    *
-   * Sans zone (salvage, marchand non localisé) : la même pseudo-zone que le
-   * bilan, et en dernier — la fenêtre ne doit pas raconter une autre géographie
-   * que la colonne de droite.
+   * Une source sans zone rejoint les zones de son origine localisée
+   * (`sourceZones`) — « ouvrir une Toolbox » s'affiche sous Office, où sont
+   * les Toolbox — sinon la même pseudo-zone que le bilan, en dernier : la
+   * fenêtre ne doit pas raconter une autre géographie que la colonne de
+   * droite.
    */
   private byZone(sources: readonly Source[]): [string, Source[]][] {
     const groups = new Map<string, Source[]>();
-    for (const source of sources) {
-      const zone = source.zone ?? OTHER_METHODS;
+    const add = (zone: string, source: Source) => {
       const list = groups.get(zone);
       if (list) list.push(source);
       else groups.set(zone, [source]);
+    };
+    for (const source of sources) {
+      const zones = source.zone
+        ? [source.zone]
+        : sourceZones(this.model, source, this.availability);
+      if (zones.length === 0) add(OTHER_METHODS, source);
+      for (const zone of zones) add(zone, source);
     }
     return [...groups].sort(([a], [b]) => this.rank(a) - this.rank(b));
   }

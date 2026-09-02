@@ -36,12 +36,44 @@ export interface ZoneGroup {
 }
 
 /**
+ * Zones où une source s'exerce vraiment : la sienne quand elle en a une,
+ * sinon celles de son origine — « ouvrir une Toolbox » se fait là où sont les
+ * Toolbox, pas dans les limbes. L'origine peut être un contenant (`targetId`)
+ * ou un item (`from`) ; leurs zones s'unissent. Vide : la méthode reste
+ * réellement sans géographie (Autres méthodes).
+ *
+ * Avec `availability`, une origine non disponible ne révèle rien (la source
+ * reste en Autres méthodes, voilée comme aujourd'hui) et les zones non
+ * découvertes sont tues.
+ */
+export function sourceZones(
+  model: Model,
+  source: Source,
+  availability?: Availability,
+): string[] {
+  if (source.zone) return [source.zone];
+  const zones = new Set<string>();
+  const provider = source.targetId ? model.provider(source.targetId) : undefined;
+  if (provider && (!availability || availability.provider(provider.id))) {
+    for (const z of provider.zones) zones.add(z.zone);
+  }
+  if (source.from && model.has(source.from)
+      && (!availability || availability.item(source.from))) {
+    for (const s of model.item(source.from).sources) {
+      if (s.zone) zones.add(s.zone);
+    }
+  }
+  return [...zones].filter((z) => !availability || availability.zone(z));
+}
+
+/**
  * Regroupe le bilan par secteur (§5.4.3).
  *
  * Les ressources de base viennent en premier dans chaque zone, puis les
  * intermédiaires duals qu'on a choisi de crafter mais qu'on peut ramasser ici.
- * Les sources sans zone (salvage, marchand non localisé) tombent dans une
- * pseudo-zone placée en dernier.
+ * Une source sans zone rejoint les zones de son origine quand elle est
+ * localisée (`sourceZones`) ; ce qui reste vraiment sans géographie tombe
+ * dans une pseudo-zone placée en dernier.
  */
 export function groupByZone(
   model: Model,
@@ -58,35 +90,49 @@ export function groupByZone(
 
   const spread = (id: ItemId, qty: number, optional: boolean) => {
     const byZone = new Map<string, Source[]>();
+    const add = (zone: string, source: Source) => {
+      const list = byZone.get(zone);
+      if (list) list.push(source);
+      else byZone.set(zone, [source]);
+    };
     for (const source of model.item(id).sources) {
       const zone = source.zone ?? OTHER_METHODS;
       // une source en zone non découverte n'existe pas pour le bilan
       if (availability && !availability.zone(zone)) continue;
-      const list = byZone.get(zone);
-      if (list) list.push(source);
-      else byZone.set(zone, [source]);
+      add(zone, source);
     }
 
-    // Un item qu'on n'obtient qu'en transformant un autre n'a aucune zone à lui :
-    // « démonter un extincteur » ne dit pas où trouver l'extincteur. On le range
-    // donc sous les zones de son origine, marqué `via`. Un item déjà localisé
-    // n'est pas touché — sinon Metal Scrap et ses six origines de salvage
-    // apparaîtraient partout.
-    if (!byZone.has(OTHER_METHODS) || byZone.size > 1) {
-      // rien de visible nulle part : l'item requis reste au bilan, sa
-      // géographie non révélée, sous la pseudo-zone « Beyond known zones »
-      if (byZone.size === 0) push(BEYOND, { id, qty, sources: [], optional });
-      for (const [zone, sources] of byZone) push(zone, { id, qty, sources, optional });
-      return;
+    // Un item qu'on n'obtient qu'en transformant un autre n'a aucune zone à
+    // lui : « démonter un extincteur » ne dit pas où trouver l'extincteur. On
+    // le range donc sous les zones de son origine, marqué `via` — la ligne
+    // raconte le chemin entier (ramasser l'extincteur, PUIS le démonter).
+    if (byZone.size === 1 && byZone.has(OTHER_METHODS)) {
+      const indirect = indirectZones(model, id, availability);
+      if (indirect.size > 0) {
+        for (const [zone, via] of indirect) {
+          push(zone, { id, qty, sources: via.sources, optional, via });
+        }
+        return;
+      }
     }
-    const indirect = indirectZones(model, id, availability);
-    if (indirect.size === 0) {
-      for (const [zone, sources] of byZone) push(zone, { id, qty, sources, optional });
-      return;
+
+    // Une méthode sans zone rejoint les zones de son origine localisée :
+    // « ouvrir une Toolbox » se joue à Office, où sont les Toolbox. Seul ce
+    // qui reste vraiment sans géographie garde la pseudo-zone.
+    const limbo = byZone.get(OTHER_METHODS);
+    if (limbo) {
+      byZone.delete(OTHER_METHODS);
+      for (const source of limbo) {
+        const zones = sourceZones(model, source, availability);
+        if (zones.length === 0) add(OTHER_METHODS, source);
+        for (const zone of zones) add(zone, source);
+      }
     }
-    for (const [zone, via] of indirect) {
-      push(zone, { id, qty, sources: via.sources, optional, via });
-    }
+
+    // rien de visible nulle part : l'item requis reste au bilan, sa
+    // géographie non révélée, sous la pseudo-zone « Beyond known zones »
+    if (byZone.size === 0) push(BEYOND, { id, qty, sources: [], optional });
+    for (const [zone, sources] of byZone) push(zone, { id, qty, sources, optional });
   };
 
   for (const [id, qty] of totals.base) spread(id, qty, false);

@@ -293,6 +293,20 @@ describe("découverte dans les fenêtres", () => {
     expect(censored.dataset.provider).toBeUndefined();
   });
 
+  it("range une méthode sans zone sous le secteur de son origine", () => {
+    // « break Mfg Crate » ne dit pas où, la caisse si : la fenêtre la montre
+    // sous Manufacturing West, pas sous « Other methods »
+    document.body.innerHTML = `<div data-item="office_tracker"></div>`;
+    instances.push(new DetailsWindows(world, () => {}, "https://wiki/",
+      computeAvailability(world, { enabled: false, zones: new Set() })));
+    rightClick(document.querySelector("[data-item]")!);
+    const box = boxes()[0]!;
+    const mw = [...box.querySelectorAll(".zoneblock")].find((b) =>
+      b.textContent!.includes("Manufacturing West"))!;
+    expect(mw.textContent).toContain("Mfg Crate");
+    expect(box.textContent).not.toContain("Other methods");
+  });
+
   it("mode Hide : une ligne [REDACTED] tait aussi son contexte", () => {
     // la condition « Completing Canaan… » nommerait ce qu'on vient de taire
     document.body.innerHTML = `<div data-provider="mfg_crate"></div>`;

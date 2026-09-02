@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { derivedDataset, mockupDataset } from "./fixtures";
+import { derivedDataset, discoveryDataset, mockupDataset } from "./fixtures";
+import { computeAvailability } from "./discovery";
 import { Model, type RecipeChoice } from "./tree";
 import { computeTotals } from "./totals";
-import { groupByZone, OTHER_METHODS } from "./zones";
+import { groupByZone, OTHER_METHODS, sourceZones } from "./zones";
 
 const NO_CHOICE: RecipeChoice = new Map();
 const model = new Model(derivedDataset());
@@ -64,17 +65,49 @@ describe("groupByZone — placement indirect", () => {
     expect(glue.via).toBeUndefined();
   });
 
-  it("n'ajoute aucune zone indirecte à un item déjà localisé", () => {
+  it("rattache une méthode sans zone au secteur de son origine", () => {
+    // metal_scrap se casse à Office ET se démonte d'un extincteur : la
+    // méthode salvage rejoint Manufacturing West, où vivent les extincteurs,
+    // au lieu de traîner en « Autres méthodes »
     const office = zone("Office Sector")!;
     expect(office.entries.some((e) => e.id === "metal_scrap")).toBe(true);
-    const mw = zone("Manufacturing West")!;
-    expect(mw.entries.some((e) => e.id === "metal_scrap" && e.via)).toBe(false);
+    const scrap = zone("Manufacturing West")!.entries
+      .find((e) => e.id === "metal_scrap")!;
+    expect(scrap.via).toBeUndefined();
+    expect(scrap.sources.every((s) => s.kind === "salvage")).toBe(true);
+    expect(zone(OTHER_METHODS)?.entries.some((e) => e.id === "metal_scrap"))
+      .toBeFalsy();
   });
 
   it("ne change pas le bilan lui-même", () => {
     expect(Object.fromEntries(totals.base)).toEqual({
       canister: 1, glue: 2, metal_scrap: 4,
     });
+  });
+});
+
+describe("sourceZones — la géographie d'une méthode", () => {
+  const world = new Model(discoveryDataset());
+  // « break Mfg Crate » : la source ne porte pas de zone, la caisse si
+  const crate = world.item("office_tracker").sources[1]!;
+
+  it("hérite des zones du contenant visé", () => {
+    expect(sourceZones(world, crate)).toEqual(["Manufacturing West"]);
+  });
+
+  it("rend telle quelle une source déjà localisée", () => {
+    expect(sourceZones(world, world.item("looted_office").sources[0]!))
+      .toEqual(["Office Sector"]);
+  });
+
+  it("reste muette quand l'origine n'a aucun lieu", () => {
+    expect(sourceZones(world, world.item("unknown").sources[0]!)).toEqual([]);
+  });
+
+  it("ne révèle rien d'une origine hors des zones découvertes", () => {
+    const office = computeAvailability(world,
+      { enabled: true, zones: new Set(["Office Sector"]) });
+    expect(sourceZones(world, crate, office)).toEqual([]);
   });
 });
 

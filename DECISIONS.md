@@ -1067,3 +1067,25 @@ Le plan vit dans sa propre clé (`gate-crafting-index/plan`), distincte de la
 session comme tous les réglages, filtrée contre le dataset au chargement. Un
 objectif hors de portée reste épinglé mais voilé : l'épingle est un choix de
 l'utilisateur, le voile empêche la fuite.
+
+## Une méthode sans zone rejoint le secteur de son origine
+
+Signalé sur Oil : « LOOT dans Office » d'un côté, « ouvrir des Toolbox » perdu
+en Autres méthodes de l'autre — alors que les Toolbox sont à Office. Nouveau
+helper `sourceZones` (core/zones.ts) : une source sans zone hérite des zones
+de son origine, contenant (`targetId` → zones du provider) et item (`from` →
+sources zonées de l'item), unies ; appliqué au bilan (`groupByZone`) comme à
+la fenêtre d'item, qui doivent raconter la même géographie. Ce qui reste
+vraiment sans lieu garde la pseudo-zone.
+
+Cela renverse la prudence antérieure (« Metal Scrap et ses six origines de
+salvage apparaîtraient partout ») sur demande explicite : mesuré sur les
+vraies données, Metal Scrap gagne six zones, toutes exactes (une enclume à
+démonter s'y trouve) ; le bilan ne montre de toute façon que les items de
+l'arbre courant. La présentation `via` (« LOOT … then salvage ») reste
+réservée aux items purement dérivés — un item localisé reçoit la méthode en
+ligne simple dans la zone de son origine.
+
+Garde anti-fuite inchangée : avec une disponibilité active, une origine non
+disponible ne révèle rien (la méthode reste en Autres méthodes, voilée), et
+les zones héritées non découvertes sont tues.
