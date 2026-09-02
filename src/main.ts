@@ -32,8 +32,8 @@ interface Session {
 
 new SettingsPanel(document.getElementById("settings") as HTMLButtonElement);
 
-// Firefox seulement : l'ascenseur win98 reconstruit (armRetrobar s'abstient
-// ailleurs — Chrome a le vrai, en CSS)
+// l'ascenseur win98 en DOM, le même pour tous les navigateurs (le CSS
+// commun ne sait pas dessiner de scrollbar, cf. retrobar.ts)
 for (const pane of document.querySelectorAll<HTMLElement>(".pane")) {
   const paneBody = pane.querySelector<HTMLElement>(".pane-body");
   if (paneBody) armRetrobar(paneBody, pane);

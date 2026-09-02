@@ -1,22 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { armRetrobar, needsRetrobar } from "./retrobar";
+import { armRetrobar } from "./retrobar";
 
 beforeEach(() => { document.body.innerHTML = ""; });
 
 describe("l'ascenseur Firefox reconstruit", () => {
-  it("ne s'arme que là où le CSS -moz est compris (jamais en jsdom)", () => {
-    expect(needsRetrobar()).toBe(false);
-    const host = document.createElement("div");
-    armRetrobar(document.createElement("div"), host);
-    expect(host.querySelector(".retrobar")).toBeNull();
-  });
-
-  it("forcé : pose le rail, caché tant que rien ne déborde", () => {
+  it("pose le rail, caché tant que rien ne déborde", () => {
     const host = document.createElement("div");
     const container = document.createElement("div");
     host.appendChild(container);
     document.body.appendChild(host);
-    armRetrobar(container, host, true);
+    armRetrobar(container, host);
     const rail = host.querySelector<HTMLElement>(".retrobar")!;
     expect(rail.hidden).toBe(true);       // jsdom : scrollHeight = clientHeight = 0
     expect(rail.querySelector(".rb-up")).toBeTruthy();
@@ -33,7 +26,7 @@ describe("l'ascenseur Firefox reconstruit", () => {
     const moves: number[] = [];
     (container as unknown as { scrollBy: (o: { top: number }) => void }).scrollBy =
       (o) => moves.push(o.top);
-    armRetrobar(container, host, true);
+    armRetrobar(container, host);
     const down = host.querySelector<HTMLButtonElement>(".rb-down")!;
     down.dispatchEvent(new Event("pointerdown"));
     expect(moves).toEqual([48]);

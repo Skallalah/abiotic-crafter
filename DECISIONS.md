@@ -1004,16 +1004,20 @@ valides ; le bon discriminant est un pseudo -moz-, vrai chez Firefox seul), et
 des boutons ▲▼ en DOM, écrits sur la foi d'un test fait sous émulation
 devtools, retirés sitôt la vraie cause corrigée : les boutons natifs
 `::-webkit-scrollbar-button` se peignent très bien une fois la ligne ôtée.
-Sur Firefox, les barres natives sont sans issue : ni flèches, ni trame, et
-un rendu overlay GTK qui reste un fil fade quoi qu'on colore (vérifié au
-screenshot headless ; 98.css ne tente rien pour Firefox non plus). Demandé
-avec insistance : l'ascenseur y est donc **reconstruit en DOM**
-(`src/ui/retrobar.ts`) — barre native masquée (`scrollbar-width: none` dans
-le bloc @supports -moz), rail complet ▲/piste tramée/pouce draggable/▼,
-clic-piste = une page, maintien = répétition. Il ne s'arme que là où le CSS
--moz est compris (jamais sur Chrome, qui garde ses vraies barres), se cache
-quand rien ne déborde, et sa géométrie suit les offsets de l'hôte. Deux
-leçons payées deux fois : un `display` posé par le thème doit être
-`:not([hidden])` pour ne pas écraser le style UA de `hidden` (déjà vu sur le
-pli des catégories), et `firefox --headless --screenshot` capture au `load`
-— instrumenter en synchrone pour lire les mesures.
+Sur Firefox, les barres natives sont sans issue : il refuse
+`::-webkit-scrollbar` par choix (bugs Mozilla 1432935 / 1460109, vérifié en
+ligne — 98.css n'a d'ailleurs aucun support Firefox pour ses scrollbars) et
+n'offre que deux couleurs, ni flèches ni trame. Et plutôt que d'entretenir
+LE MÊME composant en deux rendus (webkit chez Chrome, DOM chez Firefox),
+l'ascenseur win98 est **un seul rail DOM pour tous les navigateurs**
+(`src/ui/retrobar.ts`, l'approche SimpleBar/OverlayScrollbars) : barre
+native masquée en win98 par `scrollbar-width: none` — standard des deux
+moteurs —, rail ▲/piste tramée/pouce draggable/▼, pas de 48 px **animés**
+(`behavior: smooth`, comme la barre de Chrome), répétition au maintien,
+clic-piste = une page. Il se cache quand rien ne déborde ; Modern Slop ne le
+peint pas et garde ses barres natives fines. Le popover de découverte, sans
+hôte pour un rail, se contente d'une barre fine teintée. Deux leçons payées
+deux fois : un `display` posé par le thème doit être `:not([hidden])` pour
+ne pas écraser le style UA de `hidden` (déjà vu sur le pli des catégories),
+et `firefox --headless --screenshot` capture au `load` — instrumenter en
+synchrone pour lire les mesures.

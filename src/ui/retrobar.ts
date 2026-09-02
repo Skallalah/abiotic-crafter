@@ -1,13 +1,15 @@
 /**
- * L'ascenseur Windows 98 de Firefox, reconstruit en DOM.
+ * L'ascenseur Windows 98, reconstruit en DOM — LE composant, tous navigateurs.
  *
- * Chrome dessine le vrai : `::-webkit-scrollbar` + boutons, il ne passe
- * jamais ici. Firefox, lui, ne sait NI flèches, NI trame, NI largeur
- * d'époque — ses barres natives restent un fil overlay quoi qu'on colore
- * (98.css ne tente même pas). On masque donc sa barre (`scrollbar-width:
- * none`, dans le bloc @supports -moz du thème) et on pose un rail complet :
- * ▲, piste tramée, pouce en relief draggable, ▼. Le thème win98 seul le
- * peint ; ailleurs il reste `display: none` et ne gêne pas.
+ * Il n'existe aucun moyen commun de dessiner une scrollbar en CSS : Firefox
+ * refuse `::-webkit-scrollbar` par choix (bugs Mozilla 1432935 / 1460109) et
+ * n'offre que deux couleurs sans flèches ni trame. Plutôt que d'entretenir
+ * deux rendus du même composant (webkit chez Chrome, DOM chez Firefox), la
+ * barre native est masquée partout en win98 (`scrollbar-width: none`,
+ * standard des deux moteurs) et ce rail la remplace : ▲, piste tramée où
+ * cliquer vaut une page, pouce en relief draggable, ▼ — l'approche des
+ * bibliothèques du genre (SimpleBar, OverlayScrollbars). Le thème win98 seul
+ * le peint ; ailleurs il reste `display: none` et ne gêne pas.
  */
 
 /** Un pas de flèche — trois lignes de liste, comme à l'époque. */
@@ -15,11 +17,6 @@ const STEP = 48;
 const REPEAT_MS = 66;
 /** Le pouce ne descend jamais sous cette taille, sinon on ne l'attrape plus. */
 const MIN_THUMB = 20;
-
-/** Firefox seulement : le même discriminant que le CSS. */
-export function needsRetrobar(): boolean {
-  return typeof CSS !== "undefined" && CSS.supports("selector(::-moz-range-thumb)");
-}
 
 function repeatable(button: HTMLElement, step: () => void): void {
   let timer = 0;
@@ -36,12 +33,9 @@ function repeatable(button: HTMLElement, step: () => void): void {
 /**
  * Pose le rail sur `host` (un ancêtre positionné qui ne défile pas : le
  * `.pane` d'une colonne, la `.winbox` d'une fenêtre) et le synchronise avec
- * `container`, l'élément qui défile. `force` sert aux tests.
+ * `container`, l'élément qui défile.
  */
-export function armRetrobar(container: HTMLElement, host: HTMLElement,
-                            force = false): void {
-  if (!force && !needsRetrobar()) return;
-
+export function armRetrobar(container: HTMLElement, host: HTMLElement): void {
   const rail = document.createElement("div");
   rail.className = "retrobar";
   const up = document.createElement("button");
@@ -83,14 +77,18 @@ export function armRetrobar(container: HTMLElement, host: HTMLElement,
     thumb.style.top = `${Math.round(range * container.scrollTop / overflow())}px`;
   };
 
-  repeatable(up, () => container.scrollBy({ top: -STEP }));
-  repeatable(down, () => container.scrollBy({ top: STEP }));
+  // `smooth` : la barre native de Chrome anime ses pas, le rail aussi
+  repeatable(up, () => container.scrollBy({ top: -STEP, behavior: "smooth" }));
+  repeatable(down, () => container.scrollBy({ top: STEP, behavior: "smooth" }));
 
   // cliquer la piste = une page, comme le vrai
   track.addEventListener("pointerdown", (event) => {
     if (event.target === thumb) return;
     const below = event.offsetY > thumb.offsetTop;
-    container.scrollBy({ top: (below ? 1 : -1) * container.clientHeight });
+    container.scrollBy({
+      top: (below ? 1 : -1) * container.clientHeight,
+      behavior: "smooth",
+    });
   });
 
   // glisser le pouce

@@ -156,7 +156,7 @@ export class DetailsWindows {
       mount: body,
       onclose: () => { this.open.delete(key); },
     });
-    // Firefox : l'ascenseur win98 en DOM sur le corps défilant
+    // l'ascenseur win98 en DOM sur le corps défilant
     const scroller = body.parentElement;
     if (scroller?.parentElement) armRetrobar(scroller, scroller.parentElement);
     shadeOnDoubleClick(win);
