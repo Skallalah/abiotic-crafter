@@ -118,6 +118,23 @@
 [data-theme="win98"] .catrow button:hover { background: var(--panel); }
 [data-theme="win98"] .catrow button.on:hover { background: var(--panel-2); }
 
+/* les coches et petits boutons du plan de courses, au même régime */
+[data-theme="win98"] .plan-check {
+  width: 13px; height: 13px;
+  background: #ffffff; border: 0; border-radius: 0;
+  box-shadow: var(--bevel-in);
+  color: #000000; font-size: 10px;
+}
+[data-theme="win98"] .goal-controls button,
+[data-theme="win98"] .plan-reset {
+  background: var(--panel);
+  color: var(--ink);
+  border: 0; border-radius: 0;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .goal-controls button:active,
+[data-theme="win98"] .plan-reset:active { box-shadow: var(--bevel-in); }
+
 /* la case à cocher d'époque : un carré blanc en creux, coche noire */
 [data-theme="win98"] .discover-panel input[type="checkbox"] {
   width: 13px; height: 13px;

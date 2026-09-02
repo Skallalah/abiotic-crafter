@@ -1047,3 +1047,23 @@ cran plus sombre gravé en creux (bevel-in) — l'ambre lavé faisait olive
 boueux — avec son établi en encre claire. Un essai de bureau teal #008080
 d'époque a été fait et retiré séance tenante : « trop moche », le fond gris
 reste.
+
+## Le plan de courses : somme des bilans, coche fongible
+
+La liste de courses multi-objectifs (§5.8) réutilise le moteur tel quel :
+`planTotals` somme les `computeTotals` entièrement dépliés de chaque objectif
+et `groupByZone` avale le résultat sans modification. Deux choix assumés :
+
+- **l'arrondi des recettes à lots se fait PAR objectif** (deux objectifs de
+  3 munitions « makes 4 » coûtent 2+2 crafts, pas 2) — c'est déjà la règle de
+  l'app quand deux branches d'un arbre réclament le même intermédiaire, et le
+  surplus est du bon côté ; documenté par un test ;
+- **la coche est par ressource, pas par zone** : une ressource est fongible —
+  la ramasser à Office la raye aussi dans les autres zones où la liste la
+  propose. Les lignes optionnelles (« saves crafting ») du bilan ne sont pas
+  reprises : le plan liste le requis.
+
+Le plan vit dans sa propre clé (`gate-crafting-index/plan`), distincte de la
+session comme tous les réglages, filtrée contre le dataset au chargement. Un
+objectif hors de portée reste épinglé mais voilé : l'épingle est un choix de
+l'utilisateur, le voile empêche la fuite.

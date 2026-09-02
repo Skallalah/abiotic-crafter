@@ -125,6 +125,20 @@ export class DetailsWindows {
     this.window(`provider:${id}`, provider.name, at, () => this.providerView(id));
   }
 
+  /** La fenêtre du plan de courses (§5.8) — singleton comme les autres. */
+  openPlan(render: () => DocumentFragment): void {
+    this.window("plan", "Plan", undefined, render);
+  }
+
+  /** Re-rend une fenêtre précise si elle est ouverte (le plan a changé). */
+  refreshWindow(key: string): void {
+    const open = this.open.get(key);
+    if (open) open.body.replaceChildren(open.render());
+  }
+
+  /** Posé par main.ts : « + Add to plan » au pied des fenêtres d'item. */
+  onPin?: (id: ItemId) => void;
+
   /** Ferme tout — utile aux tests et à un futur raccourci. */
   closeAll(): void {
     for (const { win } of [...this.open.values()]) win.close(true);
@@ -392,6 +406,14 @@ export class DetailsWindows {
       button.title = "Make it the current item";
       button.addEventListener("click", () => this.onSelect(observe));
       foot.appendChild(button);
+      if (this.onPin) {
+        const pin = document.createElement("button");
+        pin.type = "button";
+        pin.textContent = "+ Add to plan";
+        pin.title = "Pin this craft to the shopping list";
+        pin.addEventListener("click", () => this.onPin!(observe));
+        foot.appendChild(pin);
+      }
     }
     if (wikiTitle) {
       const link = document.createElement("a");

@@ -98,6 +98,22 @@ describe("fiche d'un provider", () => {
   });
 });
 
+describe("le pied d'une fenêtre d'item", () => {
+  it("porte « + Add to plan » quand main a câblé onPin", () => {
+    document.body.innerHTML = `<div data-item="glowstick"></div>`;
+    const pinned: string[] = [];
+    const windows = new DetailsWindows(model, () => {}, "https://wiki/", everything);
+    instances.push(windows);
+    windows.onPin = (id) => pinned.push(id);
+    document.querySelector<HTMLElement>("[data-item]")!
+      .dispatchEvent(new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    const pin = [...document.querySelectorAll<HTMLButtonElement>(".details-foot button")]
+      .find((b) => b.textContent === "+ Add to plan")!;
+    pin.click();
+    expect(pinned).toEqual(["glowstick"]);
+  });
+});
+
 describe("clic droit", () => {
   it("ouvre une fenêtre sur l'item et retient le menu du navigateur", () => {
     mount();

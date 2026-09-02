@@ -15,6 +15,7 @@ import { Canvas, type View } from "./ui/canvas";
 import { DetailsWindows } from "./ui/details";
 import { DiscoverPanel } from "./ui/discover";
 import { SettingsPanel } from "./ui/settings";
+import { PlanWindow } from "./ui/plan";
 import { armRetrobar } from "./ui/retrobar";
 import { ItemList } from "./ui/list";
 import { Summary } from "./ui/summary";
@@ -61,6 +62,7 @@ const discover = new DiscoverPanel(
     availability = computeAvailability(model, state);
     list.setAvailability(availability);
     details.setAvailability(availability);
+    plan.refresh();
     renderAll();
   },
 );
@@ -69,6 +71,15 @@ let availability: Availability = computeAvailability(model, discover.current());
 // le clic droit ouvre la fenêtre de détail ; elle sélectionne par le même
 // chemin que la liste de gauche, pour que « ça change l'objet vu » soit vrai
 const details = new DetailsWindows(model, (id) => setRoot(id), WIKI, availability);
+const plan = new PlanWindow(
+  model,
+  document.getElementById("plan") as HTMLButtonElement,
+  details,
+  () => choice,
+  () => availability,
+  (id) => setRoot(id),
+);
+details.onPin = (id) => { plan.add(id); renderTree(); };
 const list = new ItemList(model, (id) => setRoot(id), () => discover.open());
 list.setAvailability(availability);
 const summary = new Summary(model, (id) => setHighlight(id), (id) => setRoot(id));
@@ -83,10 +94,13 @@ const tree = new TreeView(model, canvas.stage, {
   highlight: (id) => setHighlight(id),
   open: (id) => setRoot(id),
   openParent: (id) => setRoot(id),
+  pin: (id) => { plan.add(id); renderTree(); },
+  pinned: (id) => plan.has(id),
   swapRecipe: (id) => {
     const count = model.recipesFor(id).length;
     choice.set(id, ((choice.get(id) ?? 0) + 1) % count);
-    // le bilan suit la recette choisie (§5.3)
+    // le bilan suit la recette choisie (§5.3) — et le plan avec lui
+    plan.refresh();
     renderAll();
     save();
   },

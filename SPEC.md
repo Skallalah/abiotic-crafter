@@ -363,6 +363,28 @@ besoin de ce qu'elle a besoin.
 
 ---
 
+## 5.8 Le plan de courses
+
+Une fenêtre « Plan » (bouton topbar « Plan N », fenêtre WinBox singleton) où
+l'on épingle plusieurs objectifs de craft : bouton « + » sur les cartes
+craftables de l'arbre (marqué quand l'item y est déjà ; jamais sur un nom
+voilé), et « + Add to plan » au pied des fenêtres d'item. Chaque objectif
+porte une quantité (−/+/✕).
+
+Le plan est la **somme des bilans entièrement dépliés** de chaque objectif
+(`planTotals`, src/core/plan.ts) : l'arrondi des recettes à lots se fait par
+objectif, comme entre deux branches d'un même arbre. Trois sections : les
+objectifs ; la liste de courses par zone (via `groupByZone`, mêmes voiles
+anti-spoil que le bilan, sans les lignes optionnelles) — chaque ressource est
+**cochable globalement** (fongible entre zones : la cocher la raye partout),
+avec compteur « K/M done » et Reset ; l'ordre de craft (`craftOrder`).
+
+Persistance : `gate-crafting-index/plan` (`{goals: [id, qty][], done: id[]}`),
+distincte de la session, assainie contre le dataset au chargement ; une
+ressource sortie du plan est décochée d'office. Un objectif devenu hors de
+portée reste épinglé, voilé — le plan est un choix de l'utilisateur, pas une
+fuite.
+
 ## 6. Design tokens
 
 Extraits de `mockup/index.html`, à placer dans `src/styles/tokens.css`. Ne pas en dévier sans raison.

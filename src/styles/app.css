@@ -411,6 +411,49 @@ button.censored, .censored { cursor: default; }
 .rb-track { position: relative; flex: 1; min-height: 0; }
 .rb-thumb { position: absolute; left: 0; width: 16px; }
 
+/* Plan de courses (§5.8) : la fenêtre des objectifs épinglés */
+.plan-goals .row { grid-template-columns: 24px 1fr auto; }
+.goal-controls { display: inline-flex; align-items: center; gap: 4px; }
+.goal-controls b { min-width: 30px; text-align: center; font-stretch: 80%; }
+.goal-controls button {
+  font-size: 11px; line-height: 1; padding: 2px 6px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+  color: var(--ink-2);
+}
+.goal-controls button:hover { color: var(--ink); border-color: var(--ink-2); }
+.plan-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px; font-size: 12px; color: var(--ink-2);
+}
+.plan-reset {
+  font-size: 11px; padding: 2px 8px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+  color: var(--ink-2);
+}
+.plan-reset:hover { color: var(--ink); }
+/* .zone .row et .details-body .row imposent 3 colonnes (et arrivent plus
+   bas dans le fichier) : la ligne cochable du plan en veut 4 — la double
+   classe l'emporte en spécificité */
+.row.plan-row, .details-body .row.plan-row {
+  grid-template-columns: 16px 24px 1fr auto;
+}
+.plan-check {
+  width: 15px; height: 15px; padding: 0; display: inline-grid; place-content: center;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 3px;
+  font-size: 11px; line-height: 1; color: var(--accent);
+}
+.plan-row.done .plabel { color: var(--ink-2); text-decoration: line-through; }
+.plan-row.done .plabel .badges { opacity: .5; }
+/* le bouton + des cartes de l'arbre, dans la famille du ↗ */
+.node button.pin {
+  margin-left: 3px; padding: 0 4px;
+  background: none; border: 0; font-weight: 700; color: var(--ink-2);
+  opacity: 0; font-size: 13px; line-height: 1;
+}
+.node:hover button.pin, .node button.pin:focus-visible { opacity: .75; }
+.node button.pin:hover { opacity: 1; color: var(--accent-ink); }
+.node button.pin.on { opacity: .75; color: var(--accent-ink); }
+
 /* Sélecteur de thème, dans l'onglet Settings (§6). */
 .settings-panel { width: 220px; }
 /* le premier intertitre n'a pas de section au-dessus à séparer */

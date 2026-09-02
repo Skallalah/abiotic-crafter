@@ -11,6 +11,9 @@ export interface TreeCallbacks {
   open: (id: ItemId) => void;
   /** Un lien montant a été suivi : l'objet cliqué devient la nouvelle racine. */
   openParent: (id: ItemId) => void;
+  /** Épingler au plan de courses, depuis le bouton + d'une carte (§5.8). */
+  pin: (id: ItemId) => void;
+  pinned: (id: ItemId) => boolean;
 }
 
 /**
@@ -234,6 +237,10 @@ export class TreeView {
     const censored = !state.availability.item(node.id)
       && state.availability.spoilers === "hide";
     if (!isRoot && !censored) name.appendChild(this.openButton(node.id));
+    // épinglable partout, racine comprise : c'est l'objectif le plus probable
+    if (!censored && this.model.isCraftable(node.id)) {
+      name.appendChild(this.pinButton(node.id));
+    }
 
     const sub = document.createElement("div");
     sub.className = "sub";
@@ -255,6 +262,21 @@ export class TreeView {
       if (explodable) this.callbacks.toggle(node.path);
     });
     return el;
+  }
+
+  private pinButton(id: ItemId): HTMLElement {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `pin${this.callbacks.pinned(id) ? " on" : ""}`;
+    button.textContent = "+";
+    button.title = this.callbacks.pinned(id)
+      ? "In the plan — add one more"
+      : "Add to plan";
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      this.callbacks.pin(id);
+    });
+    return button;
   }
 
   private openButton(id: ItemId): HTMLElement {
