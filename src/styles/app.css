@@ -58,10 +58,15 @@
   /* Réglage « Hide [REDACTED] lines » (Settings) : au lieu de montrer la
      censure, on tait la ligne entière — li de sources ou d'emplacements,
      rangée de recette ou du bilan. Un bloc de zone dont toutes les lignes
-     sont tues n'a plus rien à dire, il disparaît avec elles. */
-  [data-censor="on"] li:has(.redacted, .censored),
+     sont tues n'a plus rien à dire, il disparaît avec elles.
+     Enfant DIRECT seulement : les emplacements sont imbriqués dans le li de
+     leur source, et `li:has(.censored)` taisait la ligne LOOT entière
+     d'Anvil parce qu'un seul de ses trois emplacements citait une zone
+     voilée. Le voile (.censored/.redacted) est toujours posé en enfant
+     direct de sa ligne (veilName, redact) — l'ancêtre reste visible. */
+  [data-censor="on"] li:has(> .redacted, > .censored),
   [data-censor="on"] .row:has(.redacted, .censored) { display: none; }
-  [data-censor="on"] .zoneblock:has(.redacted, .censored):not(:has(li:not(:has(.redacted, .censored)))),
+  [data-censor="on"] .zoneblock:has(.redacted, .censored):not(:has(li:not(:has(> .redacted, > .censored)))),
   [data-censor="on"] .zone:has(.redacted, .censored):not(:has(.row:not(:has(.redacted, .censored)))) {
     display: none;
   }

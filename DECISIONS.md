@@ -1116,3 +1116,14 @@ génériques, 29 items touchés.
 Dans la fenêtre, les sources disponibles passent avant les voilées : la
 troncature « +N more » cachait la seule méthode utilisable d'Oil derrière
 six [REDACTED].
+
+## Censure : enfant direct, pas les ancêtres
+
+Signalé sur Anvil : « plus de LOOT dans sa description » avec le toggle
+« Hide [REDACTED] lines » actif. Les emplacements sont imbriqués dans le li
+de leur source (sourceLines), et `li:has(.censored)` matchait donc aussi la
+ligne LOOT entière dès qu'UN de ses trois emplacements citait une zone
+voilée (Manufacturing West). Le voile est toujours posé en enfant direct de
+sa ligne (veilName, redact) : la règle devient `li:has(> .censored)` — seule
+la ligne fautive se tait, l'ancêtre reste. Une ligne directement voilée
+(« salvage [REDACTED] ») se cache toujours, avec tout ce qu'elle imbrique.
