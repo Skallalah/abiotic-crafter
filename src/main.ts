@@ -15,6 +15,7 @@ import { Canvas, type View } from "./ui/canvas";
 import { DetailsWindows } from "./ui/details";
 import { DiscoverPanel } from "./ui/discover";
 import { SettingsPanel } from "./ui/settings";
+import { armRetrobar } from "./ui/retrobar";
 import { ItemList } from "./ui/list";
 import { Summary } from "./ui/summary";
 import { TreeView } from "./ui/tree-view";
@@ -30,6 +31,13 @@ interface Session {
 }
 
 new SettingsPanel(document.getElementById("settings") as HTMLButtonElement);
+
+// Firefox seulement : l'ascenseur win98 reconstruit (armRetrobar s'abstient
+// ailleurs — Chrome a le vrai, en CSS)
+for (const pane of document.querySelectorAll<HTMLElement>(".pane")) {
+  const paneBody = pane.querySelector<HTMLElement>(".pane-body");
+  if (paneBody) armRetrobar(paneBody, pane);
+}
 
 const model = new Model(dataset);
 

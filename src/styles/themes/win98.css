@@ -349,10 +349,39 @@
    les bonnes couleurs, pouce argent sur piste claire. Jamais sur Chrome :
    ces propriétés y débrancheraient les ascenseurs dessinés ci-dessus. */
 @supports selector(::-moz-range-thumb) {
+  /* la barre native disparaît : le rail .retrobar la remplace entièrement */
   [data-theme="win98"] .pane-body,
-  [data-theme="win98"] .wb-body,
+  [data-theme="win98"] .wb-body {
+    scrollbar-width: none;
+    padding-right: 16px;             /* la place du rail */
+  }
   [data-theme="win98"] .discover-panel {
     scrollbar-width: auto;
-    scrollbar-color: #b8b4ac #e9e7e3;
+    scrollbar-color: #807a72 #dedbd5;
   }
+  /* :not([hidden]) : notre display écraserait le style UA de [hidden],
+     le rail d'un conteneur qui ne déborde pas doit vraiment disparaître */
+  [data-theme="win98"] .retrobar:not([hidden]) { display: flex; }
+}
+
+[data-theme="win98"] .retrobar button,
+[data-theme="win98"] .rb-thumb {
+  background-color: #d4d0c8;
+  box-shadow: var(--bevel-out);
+}
+[data-theme="win98"] .retrobar button {
+  background-repeat: no-repeat;
+  background-position: center;
+}
+[data-theme="win98"] .retrobar button:active { box-shadow: var(--bevel-in); }
+[data-theme="win98"] .rb-up {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1z'/%3E%3C/svg%3E");
+}
+[data-theme="win98"] .rb-down {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M0 0h7v1H6v1H5v1H4v1H3V3H2V2H1V1H0z'/%3E%3C/svg%3E");
+}
+[data-theme="win98"] .rb-track {
+  background-color: #d4d0c8;
+  background-image: repeating-conic-gradient(#ffffff 0 25%, #d4d0c8 0 50%);
+  background-size: 2px 2px;
 }

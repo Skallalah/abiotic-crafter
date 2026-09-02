@@ -33,6 +33,7 @@
     min-height: 0;
   }
   .pane {
+    position: relative;              /* ancre le rail retrobar (Firefox) */
     background: var(--panel);
     border-right: 1px solid var(--line);
     display: flex; flex-direction: column; min-height: 0;
@@ -399,6 +400,16 @@ button.censored, .censored { cursor: default; }
   text-decoration: underline; text-underline-offset: 2px;
 }
 .itemlist .beyond button:hover { color: var(--accent-ink); }
+
+/* L'ascenseur Firefox reconstruit : invisible hors thème win98 */
+.retrobar {
+  position: absolute; display: none;
+  width: 16px; z-index: 5;
+  flex-direction: column;
+}
+.retrobar button { border: 0; padding: 0; margin: 0; width: 16px; height: 16px; flex: none; }
+.rb-track { position: relative; flex: 1; min-height: 0; }
+.rb-thumb { position: absolute; left: 0; width: 16px; }
 
 /* Sélecteur de thème, dans l'onglet Settings (§6). */
 .settings-panel { width: 220px; }

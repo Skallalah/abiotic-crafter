@@ -4,6 +4,7 @@ import "winbox/dist/css/winbox.min.css";
 import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 import { BODY_ICONS, DAMAGE_FALLBACK, DAMAGE_TYPES, svgIcon } from "./icons";
+import { armRetrobar } from "./retrobar";
 import { OTHER_METHODS } from "../core/zones";
 import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
@@ -155,6 +156,9 @@ export class DetailsWindows {
       mount: body,
       onclose: () => { this.open.delete(key); },
     });
+    // Firefox : l'ascenseur win98 en DOM sur le corps défilant
+    const scroller = body.parentElement;
+    if (scroller?.parentElement) armRetrobar(scroller, scroller.parentElement);
     shadeOnDoubleClick(win);
     this.open.set(key, { win, body, render });
   }

@@ -1004,5 +1004,16 @@ valides ; le bon discriminant est un pseudo -moz-, vrai chez Firefox seul), et
 des boutons ▲▼ en DOM, écrits sur la foi d'un test fait sous émulation
 devtools, retirés sitôt la vraie cause corrigée : les boutons natifs
 `::-webkit-scrollbar-button` se peignent très bien une fois la ligne ôtée.
-Sur Firefox, qui ne dessine ni flèches ni trame, le repli gardé donne une
-barre pleine largeur argent — le maximum possible là-bas.
+Sur Firefox, les barres natives sont sans issue : ni flèches, ni trame, et
+un rendu overlay GTK qui reste un fil fade quoi qu'on colore (vérifié au
+screenshot headless ; 98.css ne tente rien pour Firefox non plus). Demandé
+avec insistance : l'ascenseur y est donc **reconstruit en DOM**
+(`src/ui/retrobar.ts`) — barre native masquée (`scrollbar-width: none` dans
+le bloc @supports -moz), rail complet ▲/piste tramée/pouce draggable/▼,
+clic-piste = une page, maintien = répétition. Il ne s'arme que là où le CSS
+-moz est compris (jamais sur Chrome, qui garde ses vraies barres), se cache
+quand rien ne déborde, et sa géométrie suit les offsets de l'hôte. Deux
+leçons payées deux fois : un `display` posé par le thème doit être
+`:not([hidden])` pour ne pas écraser le style UA de `hidden` (déjà vu sur le
+pli des catégories), et `firefox --headless --screenshot` capture au `load`
+— instrumenter en synchrone pour lire les mesures.
