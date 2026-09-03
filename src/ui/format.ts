@@ -229,6 +229,12 @@ export function zoneTag(
       event.stopPropagation();
       onOpen(name, event);
     });
+    // le clic droit ouvre aussi : c'est le geste « fenêtre » partout ailleurs
+    button.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onOpen(name, event);
+    });
     tag = button;
   } else {
     tag = document.createElement("span");
@@ -288,6 +294,22 @@ export function veilName(availability: Availability, id: string, el: HTMLElement
   el.title = "Beyond your discovered zones";
   delete el.dataset.item;
   if (el instanceof HTMLButtonElement) el.disabled = true;
+}
+
+/**
+ * Le même réglage pour un élément qui nomme quelque chose d'indisponible sans
+ * que ce soit un item du dataset — un marchand que `requiresZone` retarde, par
+ * exemple. À l'appelant de savoir QUAND voiler ; ici, seulement comment.
+ */
+export function veilPlain(availability: Availability, el: HTMLElement): void {
+  if (availability.spoilers === "show") return;
+  if (availability.spoilers === "blur") {
+    spoil(el);
+    return;
+  }
+  el.replaceChildren(redactedBar());
+  el.classList.add("censored");
+  el.title = "Beyond your discovered zones";
 }
 
 /** Même réglage pour la vignette : son icône identifie l'item aussi bien que

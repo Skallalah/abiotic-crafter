@@ -271,6 +271,30 @@ describe("fenêtre d'un secteur", () => {
     expect(boxes()).toHaveLength(0);
   });
 
+  it("voile un marchand dont tous les échanges attendent une zone", () => {
+    // Ulrich Thule vend à Office, mais seulement une fois Albatross atteinte :
+    // son nom dans la fenêtre d'Office serait un spoiler
+    const ds = discoveryDataset();
+    ds.items.looted_office!.sources.push(
+      { kind: "vendor", zone: "Office Sector", target: "Late Trader",
+        requiresZone: "Manufacturing West" },
+      { kind: "vendor", zone: "Office Sector", target: "Early Trader" });
+    const world = new Model(ds);
+    document.body.innerHTML = "";
+    const windows = new DetailsWindows(world, () => {}, "https://wiki/",
+      computeAvailability(world, {
+        enabled: true, zones: new Set(["Office Sector"]), spoilers: "hide",
+      }));
+    instances.push(windows);
+    windows.openZone("Office Sector");
+    const box = boxes()[0]!;
+    expect(box.textContent).toContain("Early Trader");
+    expect(box.textContent).not.toContain("Late Trader");
+    // la ligne voilée porte la censure en enfant direct : le toggle la taira
+    const veiled = box.querySelector("li > .censored")!;
+    expect(veiled.textContent).toBe("[REDACTED]");
+  });
+
   it("mode Hide : un secteur non découvert ne s'ouvre pas", () => {
     const world = new Model(discoveryDataset());
     document.body.innerHTML = "";

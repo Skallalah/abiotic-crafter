@@ -13,7 +13,7 @@ import type {
 } from "../data/types";
 import {
   ASSET_BASE, abbreviation, badges, itemLink, keyword, MAX_SPOTS, sourceLines,
-  sourceList, spoil, spotLine, tile, veilName, veilTile, zoneTag,
+  sourceList, spoil, spotLine, tile, veilName, veilPlain, veilTile, zoneTag,
 } from "./format";
 
 const KIND_LABEL: Record<Provider["kind"], string> = {
@@ -440,7 +440,14 @@ export class DetailsWindows {
     if (contents.traders.length > 0) {
       const lines = contents.traders.map((trader) => {
         const li = document.createElement("li");
-        li.append(keyword("buy", "vendor"), ` from ${trader}`);
+        const name = document.createElement("span");
+        name.textContent = trader.name;
+        // un marchand dont tous les échanges attendent une zone (Ulrich vend à
+        // Office, mais seulement une fois Albatross atteinte) est un spoiler
+        if (!trader.sources.some((s) => this.availability.source(s))) {
+          veilPlain(this.availability, name);
+        }
+        li.append(keyword("buy", "vendor"), " from ", name);
         return li;
       });
       fragment.appendChild(this.section(

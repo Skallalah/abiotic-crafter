@@ -131,6 +131,11 @@ describe("zoneTag", () => {
     expect(tag.textContent).toBe("Office Sector");
     tag.click();
     expect(opened).toEqual(["Office Sector"]);
+    // le clic droit ouvre aussi — c'est le geste « fenêtre » partout ailleurs
+    const menu = new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    tag.dispatchEvent(menu);
+    expect(opened).toEqual(["Office Sector", "Office Sector"]);
+    expect(menu.defaultPrevented).toBe(true);
     // sans rappel, le span inerte de toujours — aucun appelant ne change
     expect(zoneTag(model, "Office Sector").tagName).toBe("SPAN");
     // une pseudo-zone n'a pas de fenêtre : inerte même avec un rappel

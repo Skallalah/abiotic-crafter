@@ -1146,7 +1146,10 @@ fenêtre (décision utilisateur) — le clic droit ouvre la fiche, le détail
 est à un geste. Conséquences assumées : un item que la zone ne lâche que
 par ses tables de loot n'apparaît dans aucune liste d'items (il se
 découvre en ouvrant le contenant, comme en jeu), et les marchands, qui
-n'ont pas de fiche, ne sont que des noms.
+n'ont pas de fiche, ne sont que des noms. Un marchand dont TOUS les
+échanges attendent une zone (`requiresZone` — Ulrich Thule vend à Office,
+mais seulement une fois Albatross atteinte) est voilé comme un item : son
+nom est un spoiler, `availability.source` le savait déjà.
 
 Côté items, seuls les pickups comptent : un objet qu'on y casse ou qu'on y
 tue apparaît via son provider, pas en double. La distinction « Lying

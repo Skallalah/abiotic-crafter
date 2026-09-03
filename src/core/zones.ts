@@ -122,7 +122,9 @@ export interface ZoneContents {
   containers: Provider[];
   creatures: Provider[];
   nodes: Provider[];
-  traders: string[];
+  /** Nom + les échanges qui le citent : la fenêtre demande à la découverte
+   *  si le marchand est déjà là (un `requiresZone` peut tous les retarder). */
+  traders: { name: string; sources: Source[] }[];
 }
 
 const CREATURE_KINDS = new Set<Provider["kind"]>(["enemy", "butcher"]);
@@ -130,12 +132,16 @@ const CREATURE_KINDS = new Set<Provider["kind"]>(["enemy", "butcher"]);
 export function zoneContents(model: Model, zone: string): ZoneContents {
   const env = new Set<ItemId>();
   const somewhere = new Set<ItemId>();
-  const traders = new Set<string>();
+  const traders = new Map<string, Source[]>();
   for (const item of Object.values(model.ds.items)) {
     for (const source of item.sources) {
       if (source.zone !== zone) continue;
       if (source.kind === "pickup") (source.env ? env : somewhere).add(item.id);
-      else if (source.kind === "vendor" && source.target) traders.add(source.target);
+      else if (source.kind === "vendor" && source.target) {
+        const list = traders.get(source.target);
+        if (list) list.push(source);
+        else traders.set(source.target, [source]);
+      }
     }
   }
   for (const id of env) somewhere.delete(id);
@@ -160,7 +166,9 @@ export function zoneContents(model: Model, zone: string): ZoneContents {
     containers: containers.sort(providersByName),
     creatures: creatures.sort(providersByName),
     nodes: nodes.sort(providersByName),
-    traders: [...traders].sort((a, b) => a.localeCompare(b, "en")),
+    traders: [...traders]
+      .map(([name, sources]) => ({ name, sources }))
+      .sort((a, b) => a.name.localeCompare(b.name, "en")),
   };
 }
 

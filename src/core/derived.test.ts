@@ -211,8 +211,12 @@ describe("zoneContents — l'inventaire d'un secteur", () => {
       .toEqual(["computer"]);
   });
 
-  it("liste chaque marchand de la zone une seule fois", () => {
-    expect(office.traders).toEqual(["Warren Bunning"]);
+  it("liste chaque marchand une fois, avec ses échanges", () => {
+    // la fenêtre doit pouvoir demander à la découverte s'il est déjà là
+    expect(office.traders.map((t) => t.name)).toEqual(["Warren Bunning"]);
+    // les deux échanges qui le citent, pour le test de disponibilité
+    expect(office.traders[0]!.sources).toHaveLength(2);
+    expect(office.traders[0]!.sources.every((s) => s.kind === "vendor")).toBe(true);
     expect(zoneContents(m, "Manufacturing West").traders).toEqual([]);
   });
 });
