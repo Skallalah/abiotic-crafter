@@ -1127,3 +1127,13 @@ voilée (Manufacturing West). Le voile est toujours posé en enfant direct de
 sa ligne (veilName, redact) : la règle devient `li:has(> .censored)` — seule
 la ligne fautive se tait, l'ancêtre reste. Une ligne directement voilée
 (« salvage [REDACTED] ») se cache toujours, avec tout ce qu'elle imbrique.
+
+## Censure au bilan : la même nuance que dans les fenêtres
+
+Suite du correctif Anvil : la règle jumelle `.row:has(.censored)` du bilan
+cachait la rangée entière d'Anvil sous Office — ses lignes de sources sont
+imbriquées dans la rangée, et un seul emplacement voilé suffisait ; il ne
+restait que l'en-tête de zone. Une rangée ne se tait plus que si son voile
+est à elle (sujet [REDACTED], drop censuré), pas confiné à un li imbriqué —
+la ligne fautive, elle, est déjà tue par la règle des li. La règle des blocs
+`.zone` suit : un bloc ne disparaît que si aucune rangée n'y survit.

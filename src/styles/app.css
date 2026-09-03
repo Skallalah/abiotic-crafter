@@ -65,9 +65,15 @@
      voilée. Le voile (.censored/.redacted) est toujours posé en enfant
      direct de sa ligne (veilName, redact) — l'ancêtre reste visible. */
   [data-censor="on"] li:has(> .redacted, > .censored),
-  [data-censor="on"] .row:has(.redacted, .censored) { display: none; }
+  [data-censor="on"] .row:has(.redacted, .censored):not(:has(li .redacted, li .censored)) {
+    display: none;
+  }
+  /* un bloc ne se tait que si aucune de ses lignes ne survit — une ligne
+     survit quand son voile est confiné à un li imbriqué (règle ci-dessus) */
   [data-censor="on"] .zoneblock:has(.redacted, .censored):not(:has(li:not(:has(> .redacted, > .censored)))),
-  [data-censor="on"] .zone:has(.redacted, .censored):not(:has(.row:not(:has(.redacted, .censored)))) {
+  [data-censor="on"] .zone:has(.redacted, .censored):not(:has(
+    .row:not(:has(.redacted, .censored)),
+    .row:has(li .redacted, li .censored))) {
     display: none;
   }
 
