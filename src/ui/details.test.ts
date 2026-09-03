@@ -293,6 +293,10 @@ describe("fenêtre d'un secteur", () => {
     // la ligne voilée porte la censure en enfant direct : le toggle la taira
     const veiled = box.querySelector("li > .censored")!;
     expect(veiled.textContent).toBe("[REDACTED]");
+    // le nom en clair mène à la fiche du marchand ; le voilé ne mène nulle part
+    expect(box.querySelector<HTMLElement>("[data-trader]")!.dataset.trader)
+      .toBe("Early Trader");
+    expect((veiled as HTMLElement).dataset.trader).toBeUndefined();
   });
 
   it("mode Hide : un secteur non découvert ne s'ouvre pas", () => {
@@ -307,6 +311,96 @@ describe("fenêtre d'un secteur", () => {
     expect(boxes()).toHaveLength(0);
     windows.openZone("Office Sector");
     expect(boxes()).toHaveLength(1);
+  });
+});
+
+describe("fenêtre d'un marchand", () => {
+  const vendorWorld = () => {
+    const ds = mockupDataset();
+    ds.items.glowstick!.sources.push({
+      kind: "vendor", zone: "Office Sector", target: "Warren Bunning",
+      costItem: "tech_scrap", costQty: "2",
+    });
+    ds.items.keyboard!.sources.push({
+      kind: "vendor", zone: "Manufacturing West", target: "Warren Bunning",
+    });
+    return new Model(ds);
+  };
+
+  function mountVendor(availability?: (m: Model) => ReturnType<typeof computeAvailability>) {
+    const world = vendorWorld();
+    document.body.innerHTML = "";
+    const selected: string[] = [];
+    const windows = new DetailsWindows(world, (id) => selected.push(id), "https://wiki/",
+      availability?.(world)
+        ?? computeAvailability(world, { enabled: false, zones: new Set() }));
+    instances.push(windows);
+    return { windows, selected };
+  }
+
+  it("nom, zones où il se trouve, et les échanges avec leur prix", () => {
+    const { windows, selected } = mountVendor();
+    windows.openTrader("Warren Bunning");
+    const box = boxes()[0]!;
+    expect(box.querySelector(".wb-title")!.textContent).toBe("Warren Bunning");
+    // il vend à Office ET à Manufacturing West
+    const zones = [...box.querySelectorAll(".zoneblock .zonetag")].map((z) => z.textContent);
+    expect(zones).toEqual(["Office Sector", "Manufacturing West"]);
+    // une ligne par échange, le prix à droite, la monnaie cliquable
+    const rows = [...box.querySelectorAll(".rows .row")];
+    expect(rows.map((r) => r.textContent)).toEqual([
+      expect.stringContaining("Glowstick") as unknown as string,
+      expect.stringContaining("Keyboard") as unknown as string,
+    ]);
+    expect(rows[0]!.textContent).toContain("for 2 Tech Scrap");
+    rows[0]!.querySelector<HTMLButtonElement>("[data-item='tech_scrap']")!.click();
+    expect(selected).toEqual(["tech_scrap"]);
+  });
+
+  it("s'ouvre au clic droit sur la ligne « buy Warren Bunning » d'un item", () => {
+    const { windows } = mountVendor();
+    windows.openItem("glowstick");
+    const line = boxes()[0]!.querySelector<HTMLElement>("[data-trader]")!;
+    expect(line.textContent).toBe("Warren Bunning");
+    line.dispatchEvent(new window.MouseEvent("contextmenu",
+      { bubbles: true, cancelable: true }));
+    const titles = [...document.querySelectorAll(".winbox .wb-title")]
+      .map((t) => t.textContent);
+    expect(titles).toContain("Warren Bunning");
+  });
+
+  it("mode Hide : l'échange retardé est voilé, sa monnaie tue", () => {
+    const { windows } = mountVendor((world) => {
+      // le glowstick ne se vend qu'une fois une zone lointaine atteinte —
+      // l'échange du keyboard, lui, reste disponible : la fenêtre s'ouvre
+      world.item("glowstick").sources.find((s) => s.kind === "vendor")!
+        .requiresZone = "Uncharted";
+      return computeAvailability(world, {
+        enabled: true, zones: new Set(["Office Sector", "Manufacturing West"]),
+        spoilers: "hide",
+      });
+    });
+    windows.openTrader("Warren Bunning");
+    const box = boxes()[0]!;
+    const gated = box.querySelector(".rows .row .censored")!.closest(".row")!;
+    expect(gated.textContent).not.toContain("Glowstick");
+    expect(gated.textContent).not.toContain("Tech Scrap");
+    expect((gated as HTMLElement).dataset.item).toBeUndefined();
+  });
+
+  it("mode Hide : un marchand entièrement retardé ne s'ouvre pas", () => {
+    const { windows } = mountVendor((world) => {
+      for (const item of ["glowstick", "keyboard"]) {
+        world.item(item).sources.find((s) => s.kind === "vendor")!
+          .requiresZone = "Uncharted";
+      }
+      return computeAvailability(world, {
+        enabled: true, zones: new Set(["Office Sector", "Manufacturing West"]),
+        spoilers: "hide",
+      });
+    });
+    windows.openTrader("Warren Bunning");
+    expect(boxes()).toHaveLength(0);
   });
 });
 

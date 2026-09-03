@@ -1159,3 +1159,19 @@ La pastille de zone cliquable est un opt-in par appelant (`zoneTag` prend
 un rappel) et non une délégation globale sur `data-zone` : le panneau de
 découverte pose déjà `data-zone` sur ses rangées, dont le clic veut dire
 « découvert(e) », pas « ouvre la fenêtre ».
+
+## Fiche de marchand : le voile se joue par échange
+
+Les marchands ne sont pas des providers — `traderOffers` les reconstruit
+depuis les sources vendor, et leur fiche (§5.10) suit le gabarit des
+contenants. La granularité du voile est L'ÉCHANGE, pas le marchand :
+`availability.source` (zone + requiresZone) voile chaque ligne retardée
+entière — nom, badges ET prix, car la monnaie nommerait ce que le retard
+cache (6 des 7 échanges de Grayson Isling attendent Hydroplant,
+Manufacturing West ou Cascade Labs ; seul le 9mm reste en clair à Office).
+Le compte « Offers (7) » reste juste : un nombre ne nomme rien.
+
+Au passage, les lignes « buy X » (fenêtres, bilan) deviennent des
+`traderLink` — et se voilent quand leur source est retardée : « buy Ulrich
+Thule » dans la fenêtre de Carbon Plating était la même fuite que dans la
+fenêtre d'Office, corrigée au même endroit (sourceLine).

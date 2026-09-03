@@ -397,10 +397,26 @@ détail des tables de loot — chaque tuile est vivante (clic gauche :
 sélection d'un item ou fiche d'un contenant ; clic droit : fiche), le détail
 est à un geste. « Lying around » (pickups certifiés `env`), « Somewhere in
 the zone » (pickups d'infobox), contenants, créatures (enemy + butcher),
-nœuds de ressources (destroyable + salvage + pickup), marchands (noms
-seulement — ils n'ont pas de fiche). Troncature « + N more » au-delà de 12
-tuiles par section. Une pseudo-zone du bilan n'a pas de fenêtre, et un
-secteur non découvert ne s'ouvre pas en mode Hide.
+nœuds de ressources (destroyable + salvage + pickup), marchands.
+Troncature « + N more » au-delà de 12 tuiles par section. Une pseudo-zone
+du bilan n'a pas de fenêtre, et un secteur non découvert ne s'ouvre pas en
+mode Hide.
+
+## 5.10 La fiche de marchand
+
+Un marchand n'est pas un `Provider` : il n'existe que comme cible des
+sources vendor (`Model.traderOffers`). Sa fiche (singleton `trader:<nom>`)
+montre où il se trouve (blocs de zone, non découvertes comptées sans être
+nommées) et ses échanges : une ligne par item vendu, prix à droite
+(« for 1 Robot Oil », monnaie cliquable). Son nom est cliquable partout
+où il apparaît — lignes « buy X » des fenêtres et du bilan, section
+marchands de la fenêtre de secteur — clic gauche comme clic droit
+(`traderLink`, `data-trader`).
+
+Spoilers : un échange que la donnée sait retardé (`requiresZone` non
+découverte, ou zone non découverte) se voile entier — item, badges, prix ;
+un marchand dont TOUS les échanges sont retardés ne se nomme nulle part et
+sa fiche ne s'ouvre pas en mode Hide.
 
 ## 6. Design tokens
 

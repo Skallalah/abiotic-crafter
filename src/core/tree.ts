@@ -52,6 +52,24 @@ export class Model {
       .filter((p) => p.kind === "container");
   }
 
+  /**
+   * Les échanges d'un marchand : ce qu'il vend, avec la source complète —
+   * zone, monnaie (`costItem`/`costQty`), retard (`requiresZone`). Un marchand
+   * n'est pas un `Provider` : il n'existe que comme cible des sources vendor.
+   */
+  traderOffers(name: string): { id: ItemId; source: Source }[] {
+    const out: { id: ItemId; source: Source }[] = [];
+    for (const item of Object.values(this.ds.items)) {
+      for (const source of item.sources) {
+        if (source.kind === "vendor" && source.target === name) {
+          out.push({ id: item.id, source });
+        }
+      }
+    }
+    return out.sort((a, b) =>
+      this.item(a.id).name.localeCompare(this.item(b.id).name, "en"));
+  }
+
   /** Toutes les recettes de craft d'un item, dans l'ordre du fichier. */
   recipesFor(id: ItemId): Recipe[] {
     return this.craftRecipes.get(id) ?? [];

@@ -13,7 +13,8 @@ import type {
 } from "../data/types";
 import {
   ASSET_BASE, abbreviation, badges, itemLink, keyword, MAX_SPOTS, sourceLines,
-  sourceList, spoil, spotLine, tile, veilName, veilPlain, veilTile, zoneTag,
+  sourceList, spoil, spotLine, tile, traderLink, veilName, veilPlain, veilTile,
+  zoneTag,
 } from "./format";
 
 const KIND_LABEL: Record<Provider["kind"], string> = {
@@ -87,9 +88,9 @@ export class DetailsWindows {
   private bindContextMenu(): void {
     const onContextMenu = (event: MouseEvent) => {
       const el = (event.target as Element | null)
-        ?.closest?.("[data-provider], [data-item]") as HTMLElement | null;
+        ?.closest?.("[data-provider], [data-item], [data-trader]") as HTMLElement | null;
       if (!el) return;
-      const { provider, item } = el.dataset;
+      const { provider, item, trader } = el.dataset;
       const hide = this.availability.spoilers === "hide";
       if (provider && this.model.hasProvider(provider)) {
         // caché c'est caché : la fenêtre d'un sujet voilé le révélerait
@@ -98,19 +99,26 @@ export class DetailsWindows {
       } else if (item && this.model.has(item)) {
         if (hide && !this.availability.item(item)) return;
         this.openItem(item, event);
+      } else if (trader && this.model.traderOffers(trader).length > 0) {
+        this.openTrader(trader, event);     // openTrader porte sa propre garde
+        if (!this.open.has(`trader:${trader}`)) return;
       } else return;
       event.preventDefault();
     };
 
-    // clic gauche sur un nom de contenant : il n'est pas sélectionnable comme
-    // objet courant, l'ouvrir est la seule chose qu'il puisse faire
+    // clic gauche sur un nom de contenant ou de marchand : ni l'un ni l'autre
+    // n'est sélectionnable comme objet courant, l'ouvrir est leur seul geste
     const onClick = (event: MouseEvent) => {
       const el = (event.target as Element | null)
-        ?.closest?.("[data-provider]") as HTMLElement | null;
-      const id = el?.dataset.provider;
-      if (id && this.model.hasProvider(id)) {
+        ?.closest?.("[data-provider], [data-trader]") as HTMLElement | null;
+      if (!el) return;
+      const { provider, trader } = el.dataset;
+      if (provider && this.model.hasProvider(provider)) {
         event.stopPropagation();
-        this.openProvider(id, event);
+        this.openProvider(provider, event);
+      } else if (trader && this.model.traderOffers(trader).length > 0) {
+        event.stopPropagation();
+        this.openTrader(trader, event);
       }
     };
 
@@ -141,6 +149,19 @@ export class DetailsWindows {
     if (!this.model.zone(name)) return;
     if (this.availability.spoilers === "hide" && !this.availability.zone(name)) return;
     this.window(`zone:${name}`, name, at, () => this.zoneView(name));
+  }
+
+  /**
+   * La fiche d'un marchand : où il se trouve, ce qu'il vend, à quel prix.
+   * Un marchand entièrement retardé (`requiresZone` sur tous ses échanges)
+   * ne s'ouvre pas en mode Hide — sa fiche le révélerait.
+   */
+  openTrader(name: string, at?: MouseEvent): void {
+    const offers = this.model.traderOffers(name);
+    if (offers.length === 0) return;
+    if (this.availability.spoilers === "hide"
+        && !offers.some((o) => this.availability.source(o.source))) return;
+    this.window(`trader:${name}`, name, at, () => this.traderView(name));
   }
 
   /** La fenêtre du plan de courses (§5.8) — singleton comme les autres. */
@@ -391,6 +412,89 @@ export class DetailsWindows {
     return fragment;
   }
 
+  // --------------------------------------------------------------- marchand
+
+  /**
+   * Même gabarit que les fiches de contenant : où, puis quoi. Chaque échange
+   * est une ligne avec son prix ; un échange que la donnée sait retardé
+   * (`requiresZone`) se voile entier, prix compris — le nom de l'item comme
+   * celui de la monnaie révéleraient ce que le retard cache.
+   */
+  private traderView(name: string): DocumentFragment {
+    const offers = this.model.traderOffers(name);
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(this.head(name,
+      propList([["Type", "Trader — talk to them"]]), traderTile(name)));
+
+    const zones = [...new Set(offers.map((o) => o.source.zone)
+      .filter((z): z is string => Boolean(z)))];
+    if (zones.length > 0) {
+      const block = document.createElement("div");
+      let hidden = 0;
+      for (const zone of zones) {
+        if (!this.availability.zone(zone)) {
+          hidden += 1;              // le compte, jamais les noms
+          continue;
+        }
+        block.appendChild(this.zoneBlock(zone, null, []));
+      }
+      if (hidden > 0) block.appendChild(undiscoveredNote(hidden));
+      fragment.appendChild(this.section("Where to find them", block));
+    }
+
+    fragment.appendChild(this.section(
+      offers.length > 1 ? `Offers (${offers.length})` : "Offer",
+      this.traderRows(offers)));
+    fragment.appendChild(this.foot(name.replace(/ /g, "_")));
+    return fragment;
+  }
+
+  /** Une ligne par échange : l'item vendu, et son prix à droite. */
+  private traderRows(offers: { id: ItemId; source: Source }[]): HTMLElement {
+    const list = document.createElement("div");
+    list.className = "rows";
+    for (const { id, source } of offers) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.dataset.item = id;
+
+      const thumb = tile(this.model, this.model.item(id));
+      veilTile(this.availability, id, thumb);
+      const link = itemLink(this.model, id, (picked) => this.onSelect(picked));
+      veilName(this.availability, id, link);
+      const label = document.createElement("span");
+      label.append(link, " ", badges(this.model, id));
+
+      const note = document.createElement("span");
+      note.className = "stack";
+      if (source.costItem && this.model.has(source.costItem)) {
+        const cost = itemLink(this.model, source.costItem,
+          (picked) => this.onSelect(picked));
+        veilName(this.availability, source.costItem, cost);
+        note.append(`for ${source.costQty ?? "1"} `, cost);
+      }
+
+      // l'échange lui-même est retardé : tout se tait, le prix compris
+      if (!this.availability.source(source)
+          && this.availability.spoilers !== "show") {
+        if (this.availability.spoilers === "blur") {
+          spoil(row);
+        } else {
+          veilPlain(this.availability, link);
+          label.querySelector(".badges")?.remove();
+          thumb.querySelector("img")?.remove();
+          thumb.textContent = "?";
+          thumb.className = "tile censored";
+          note.replaceChildren();
+          delete row.dataset.item;
+        }
+      }
+      row.append(thumb, label, note);
+      list.appendChild(row);
+    }
+    return list;
+  }
+
   // ---------------------------------------------------------------- secteur
 
   /**
@@ -440,8 +544,7 @@ export class DetailsWindows {
     if (contents.traders.length > 0) {
       const lines = contents.traders.map((trader) => {
         const li = document.createElement("li");
-        const name = document.createElement("span");
-        name.textContent = trader.name;
+        const name = traderLink(trader.name);
         // un marchand dont tous les échanges attendent une zone (Ulrich vend à
         // Office, mais seulement une fois Albatross atteinte) est un spoiler
         if (!trader.sources.some((s) => this.availability.source(s))) {
@@ -759,6 +862,14 @@ function providerTile(provider: Provider): HTMLElement {
     img.addEventListener("error", () => img.remove());
     span.appendChild(img);
   }
+  return span;
+}
+
+/** Un marchand n'a pas de portrait dans la donnée : ses initiales, en grand. */
+function traderTile(name: string): HTMLElement {
+  const span = document.createElement("span");
+  span.className = "tile big";
+  span.textContent = abbreviation(name);
   return span;
 }
 

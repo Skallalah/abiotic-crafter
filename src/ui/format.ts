@@ -146,6 +146,14 @@ export function sourceLine(
     const link = itemLink(model, source.from, onSelect, object);
     if (availability) veilName(availability, source.from, link);
     li.append(" ", link);
+  } else if (source.kind === "vendor" && source.target) {
+    // « buy Warren Bunning » : le marchand a sa fiche, comme un contenant —
+    // et un marchand que la donnée sait retardé (requiresZone) ne se nomme pas
+    const link = traderLink(source.target);
+    if (availability && !availability.source(source)) {
+      veilPlain(availability, link);
+    }
+    li.append(" ", link);
   } else {
     const text = document.createElement("span");
     text.textContent = object;
@@ -180,6 +188,17 @@ export function providerLink(id: string, label: string): HTMLButtonElement {
   button.dataset.provider = id;
   button.textContent = label;
   button.title = `${label} — what's inside, and where`;
+  return button;
+}
+
+/** Nom d'un marchand, cliquable : clic gauche comme clic droit ouvrent sa fiche. */
+export function traderLink(name: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "link trader";
+  button.dataset.trader = name;
+  button.textContent = name;
+  button.title = `${name} — what they sell, and where`;
   return button;
 }
 
@@ -310,6 +329,11 @@ export function veilPlain(availability: Availability, el: HTMLElement): void {
   el.replaceChildren(redactedBar());
   el.classList.add("censored");
   el.title = "Beyond your discovered zones";
+  // caché c'est caché : plus de fenêtre au clic droit, plus de clic
+  delete el.dataset.item;
+  delete el.dataset.provider;
+  delete el.dataset.trader;
+  if (el instanceof HTMLButtonElement) el.disabled = true;
 }
 
 /** Même réglage pour la vignette : son icône identifie l'item aussi bien que

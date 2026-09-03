@@ -219,6 +219,14 @@ describe("zoneContents — l'inventaire d'un secteur", () => {
     expect(office.traders[0]!.sources.every((s) => s.kind === "vendor")).toBe(true);
     expect(zoneContents(m, "Manufacturing West").traders).toEqual([]);
   });
+
+  it("traderOffers : ce qu'un marchand vend, trié par nom d'item", () => {
+    const offers = m.traderOffers("Warren Bunning");
+    expect(offers.map((o) => o.id)).toEqual(["glowstick", "keyboard"]);
+    expect(offers.every((o) => o.source.kind === "vendor"
+      && o.source.target === "Warren Bunning")).toBe(true);
+    expect(m.traderOffers("Personne")).toEqual([]);
+  });
 });
 
 describe("non-régression", () => {
