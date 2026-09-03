@@ -120,6 +120,15 @@ describe("le plan de courses", () => {
     expect(titles).toContain("Test Tube");
   });
 
+  it("la pastille de zone du plan ouvre la fenêtre du secteur", () => {
+    const plan = mount();
+    plan.add("glowstick");
+    document.querySelector<HTMLButtonElement>(".winbox .zone button.zonetag")!.click();
+    const sector = [...document.querySelectorAll(".winbox")]
+      .find((w) => w.textContent!.includes("Somewhere in the zone"));
+    expect(sector).toBeTruthy();
+  });
+
   it("voile un objectif hors de portée — le plan n'est pas une fuite", () => {
     const nothing = computeAvailability(model,
       { enabled: true, zones: new Set(), spoilers: "hide" });

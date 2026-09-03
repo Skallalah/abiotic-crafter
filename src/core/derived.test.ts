@@ -3,7 +3,9 @@ import { derivedDataset, discoveryDataset, mockupDataset } from "./fixtures";
 import { computeAvailability } from "./discovery";
 import { Model, type RecipeChoice } from "./tree";
 import { computeTotals } from "./totals";
-import { containerSources, groupByZone, OTHER_METHODS, sourceZones } from "./zones";
+import {
+  containerSources, groupByZone, OTHER_METHODS, sourceZones, zoneContents,
+} from "./zones";
 
 const NO_CHOICE: RecipeChoice = new Map();
 const model = new Model(derivedDataset());
@@ -160,6 +162,58 @@ describe("containerSources — les tables de loot complètent les LOOT nus", () 
     const got = containerSources(m, "metal_scrap", nothing);
     expect(got.some((c) => c.source.targetId === "toolbox")).toBe(false);
     expect(got.some((c) => c.source.targetId === "locker")).toBe(true);
+  });
+});
+
+describe("zoneContents — l'inventaire d'un secteur", () => {
+  const sector = () => {
+    const ds = mockupDataset();
+    // certifiés « posés dans le décor » par === Environment ===
+    ds.items.tech_scrap!.sources[0]!.env = true;
+    ds.items.test_tube!.sources.push(
+      { kind: "pickup", zone: "Office Sector", env: true });
+    // un marchand, cité deux fois : une seule ligne
+    ds.items.glowstick!.sources.push(
+      { kind: "vendor", zone: "Office Sector", target: "Warren Bunning" });
+    ds.items.keyboard!.sources.push(
+      { kind: "vendor", zone: "Office Sector", target: "Warren Bunning" });
+    // un contenant et une prise à dépecer, pour couvrir chaque famille
+    ds.providers.office_locker = {
+      id: "office_locker", name: "Office Locker", kind: "container",
+      zones: [{ zone: "Office Sector" }], drops: [],
+    };
+    ds.providers.peccary = {
+      id: "peccary", name: "Peccary", kind: "butcher",
+      zones: [{ zone: "Office Sector" }], drops: [],
+    };
+    return new Model(ds);
+  };
+  const m = sector();
+  const office = zoneContents(m, "Office Sector");
+
+  it("sépare le décor certifié du simple « trouvable ici », sans doublon", () => {
+    // test_tube a un pickup vague ET un certifié : le certifié l'emporte
+    expect(office.env).toEqual(["tech_scrap", "test_tube"]);
+    expect(office.somewhere).toEqual(["box_of_screws", "desk_phone", "keyboard"]);
+  });
+
+  it("n'invente pas d'item depuis les sources break/drop de la zone", () => {
+    // metal_scrap se casse à Office, mais n'y est pas « posé quelque part »
+    expect([...office.env, ...office.somewhere]).not.toContain("metal_scrap");
+  });
+
+  it("regroupe les providers du secteur par famille, triés par nom", () => {
+    expect(office.containers.map((p) => p.id)).toEqual(["office_locker"]);
+    expect(office.creatures.map((p) => p.id)).toEqual(["peccary", "security_bot"]);
+    expect(office.nodes.map((p) => p.id)).toEqual(["computer"]);
+    // le Computer vit aussi à Manufacturing West
+    expect(zoneContents(m, "Manufacturing West").nodes.map((p) => p.id))
+      .toEqual(["computer"]);
+  });
+
+  it("liste chaque marchand de la zone une seule fois", () => {
+    expect(office.traders).toEqual(["Warren Bunning"]);
+    expect(zoneContents(m, "Manufacturing West").traders).toEqual([]);
   });
 });
 

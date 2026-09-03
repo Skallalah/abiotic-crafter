@@ -158,7 +158,8 @@ export class PlanWindow {
       const title = document.createElement("h4");
       const count = document.createElement("small");
       count.textContent = `${group.entries.length} resource${group.entries.length > 1 ? "s" : ""}`;
-      title.append(zoneTag(this.model, group.name), count);
+      title.append(zoneTag(this.model, group.name,
+        (name, at) => this.details.openZone(name, at)), count);
       block.appendChild(title);
       for (const entry of group.entries) {
         if (entry.optional) continue;        // le plan liste le requis, pas le bonus

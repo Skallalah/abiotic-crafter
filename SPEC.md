@@ -385,6 +385,23 @@ ressource sortie du plan est décochée d'office. Un objectif devenu hors de
 portée reste épinglé, voilé — le plan est un choix de l'utilisateur, pas une
 fuite.
 
+## 5.9 La fenêtre de secteur
+
+Toute pastille de zone du bilan, du plan et des fenêtres de détail est
+cliquable et ouvre la fenêtre du secteur (singleton `zone:<nom>`) — la
+question inverse des fenêtres d'item : « qu'est-ce que je trouve ici ? ».
+Le panneau de découverte n'opte pas : son clic veut déjà dire « découvert ».
+
+Six sections en tuiles compactes (`zoneContents`, src/core/zones.ts), sans
+détail des tables de loot — chaque tuile est vivante (clic gauche :
+sélection d'un item ou fiche d'un contenant ; clic droit : fiche), le détail
+est à un geste. « Lying around » (pickups certifiés `env`), « Somewhere in
+the zone » (pickups d'infobox), contenants, créatures (enemy + butcher),
+nœuds de ressources (destroyable + salvage + pickup), marchands (noms
+seulement — ils n'ont pas de fiche). Troncature « + N more » au-delà de 12
+tuiles par section. Une pseudo-zone du bilan n'a pas de fenêtre, et un
+secteur non découvert ne s'ouvre pas en mode Hide.
+
 ## 6. Design tokens
 
 Extraits de `mockup/index.html`, à placer dans `src/styles/tokens.css`. Ne pas en dévier sans raison.

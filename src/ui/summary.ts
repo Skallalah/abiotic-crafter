@@ -29,6 +29,9 @@ export class Summary {
 
   private availability!: Availability;
 
+  /** Posé par main.ts : la pastille d'un secteur ouvre sa fenêtre. */
+  onZone?: (name: string, at?: MouseEvent) => void;
+
   render(
     root: ItemId,
     choice: RecipeChoice,
@@ -177,7 +180,7 @@ export class Summary {
       const title = document.createElement("h4");
       const count = document.createElement("small");
       count.textContent = `${group.entries.length} resource${group.entries.length > 1 ? "s" : ""}`;
-      title.append(zoneTag(this.model, group.name), count);
+      title.append(zoneTag(this.model, group.name, this.onZone), count);
       block.appendChild(title);
 
       for (const entry of group.entries) {

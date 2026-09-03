@@ -1137,3 +1137,22 @@ restait que l'en-tête de zone. Une rangée ne se tait plus que si son voile
 est à elle (sujet [REDACTED], drop censuré), pas confiné à un li imbriqué —
 la ligne fautive, elle, est déjà tue par la règle des li. La règle des blocs
 `.zone` suit : un bloc ne disparaît que si aucune rangée n'y survit.
+
+## Fenêtre de secteur : l'inventaire, pas les tables
+
+La fenêtre d'un secteur (§5.9) liste QUI est là, jamais ce que chacun
+lâche : étaler les tables de loot des contenants et créatures noierait la
+fenêtre (décision utilisateur) — le clic droit ouvre la fiche, le détail
+est à un geste. Conséquences assumées : un item que la zone ne lâche que
+par ses tables de loot n'apparaît dans aucune liste d'items (il se
+découvre en ouvrant le contenant, comme en jeu), et les marchands, qui
+n'ont pas de fiche, ne sont que des noms.
+
+Côté items, seuls les pickups comptent : un objet qu'on y casse ou qu'on y
+tue apparaît via son provider, pas en double. La distinction « Lying
+around » / « Somewhere in the zone » réutilise le marqueur `env` tel quel.
+
+La pastille de zone cliquable est un opt-in par appelant (`zoneTag` prend
+un rappel) et non une délégation globale sur `data-zone` : le panneau de
+découverte pose déjà `data-zone` sur ses rangées, dont le clic veut dire
+« découvert(e) », pas « ouvre la fenêtre ».

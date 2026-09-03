@@ -123,6 +123,19 @@ describe("zoneTag", () => {
     expect(tag.querySelector("img")).toBeNull();
     expect(tag.style.getPropertyValue("--zone")).toBe("");
   });
+
+  it("devient un bouton quand on lui confie l'ouverture de la fenêtre de zone", () => {
+    const opened: string[] = [];
+    const tag = zoneTag(model, "Office Sector", (name) => opened.push(name));
+    expect(tag.tagName).toBe("BUTTON");
+    expect(tag.textContent).toBe("Office Sector");
+    tag.click();
+    expect(opened).toEqual(["Office Sector"]);
+    // sans rappel, le span inerte de toujours — aucun appelant ne change
+    expect(zoneTag(model, "Office Sector").tagName).toBe("SPAN");
+    // une pseudo-zone n'a pas de fenêtre : inerte même avec un rappel
+    expect(zoneTag(model, "Other methods", (n) => opened.push(n)).tagName).toBe("SPAN");
+  });
 });
 
 

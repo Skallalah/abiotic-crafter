@@ -5,11 +5,15 @@ import type { Availability } from "../core/discovery";
 import type { Model } from "../core/tree";
 import { BODY_ICONS, DAMAGE_FALLBACK, DAMAGE_TYPES, svgIcon } from "./icons";
 import { armRetrobar } from "./retrobar";
-import { OTHER_METHODS, containerSources, sourceZones } from "../core/zones";
-import type { Drop, ItemId, Provider, ProviderId, Source } from "../data/types";
 import {
-  ASSET_BASE, badges, itemLink, MAX_SPOTS, sourceLines, sourceList, spotLine,
-  tile, veilName, veilTile, zoneTag,
+  OTHER_METHODS, containerSources, sourceZones, zoneContents,
+} from "../core/zones";
+import type {
+  Drop, ItemId, Provider, ProviderId, Source, Zone,
+} from "../data/types";
+import {
+  ASSET_BASE, abbreviation, badges, itemLink, keyword, MAX_SPOTS, sourceLines,
+  sourceList, spoil, spotLine, tile, veilName, veilTile, zoneTag,
 } from "./format";
 
 const KIND_LABEL: Record<Provider["kind"], string> = {
@@ -23,6 +27,9 @@ const KIND_LABEL: Record<Provider["kind"], string> = {
 
 const WIDTH = 380;
 const HEIGHT = 440;
+
+/** Tuiles montrées d'emblée par section de la fenêtre de secteur. */
+const MAX_CELLS = 12;
 
 /**
  * Les fenêtres de détail, ouvertes au clic droit là où on a cliqué.
@@ -123,6 +130,17 @@ export class DetailsWindows {
   openProvider(id: ProviderId, at?: MouseEvent): void {
     const provider = this.model.provider(id)!;
     this.window(`provider:${id}`, provider.name, at, () => this.providerView(id));
+  }
+
+  /**
+   * La fenêtre d'un secteur — « qu'est-ce que je trouve ici ? ». Ouverte par
+   * les pastilles de zone. Une pseudo-zone du bilan n'a rien à montrer, et un
+   * secteur non découvert ne s'ouvre pas en mode Hide : caché, c'est caché.
+   */
+  openZone(name: string, at?: MouseEvent): void {
+    if (!this.model.zone(name)) return;
+    if (this.availability.spoilers === "hide" && !this.availability.zone(name)) return;
+    this.window(`zone:${name}`, name, at, () => this.zoneView(name));
   }
 
   /** La fenêtre du plan de courses (§5.8) — singleton comme les autres. */
@@ -373,6 +391,137 @@ export class DetailsWindows {
     return fragment;
   }
 
+  // ---------------------------------------------------------------- secteur
+
+  /**
+   * L'inventaire du secteur, une section par nature, en tuiles compactes.
+   *
+   * Volontairement sans détail : chaque tuile est vivante (clic gauche
+   * sélectionne un item ou ouvre un contenant, clic droit ouvre la fiche) —
+   * étaler les tables de loot ici noierait la fenêtre. Un item que la zone ne
+   * lâche que par ses contenants n'apparaît dans aucune liste d'items : il se
+   * découvre en ouvrant la fiche du contenant, comme en jeu.
+   */
+  private zoneView(name: string): DocumentFragment {
+    const zone = this.model.zone(name)!;
+    const contents = zoneContents(this.model, name);
+    const fragment = document.createDocumentFragment();
+
+    const parts: string[] = [];
+    const count = (n: number, word: string) => {
+      if (n > 0) parts.push(`${n} ${word}${n > 1 ? "s" : ""}`);
+    };
+    count(contents.env.length + contents.somewhere.length, "item");
+    count(contents.containers.length, "container");
+    count(contents.creatures.length, "creature");
+    count(contents.nodes.length, "resource node");
+    count(contents.traders.length, "trader");
+    fragment.appendChild(this.head(name,
+      parts.join(" · ") || "The wiki lists nothing for this sector.",
+      zoneTile(zone, name)));
+
+    const grid = (cells: HTMLLIElement[]) => sourceList(cells, MAX_CELLS, "zonegrid");
+    const add = (title: string, count: number, cells: () => HTMLLIElement[]) => {
+      if (count > 0) {
+        fragment.appendChild(this.section(`${title} (${count})`, grid(cells())));
+      }
+    };
+    add("Lying around", contents.env.length,
+      () => contents.env.map((id) => this.itemCell(id)));
+    add("Somewhere in the zone", contents.somewhere.length,
+      () => contents.somewhere.map((id) => this.itemCell(id)));
+    add("Containers", contents.containers.length,
+      () => contents.containers.map((p) => this.providerCell(p)));
+    add("Creatures", contents.creatures.length,
+      () => contents.creatures.map((p) => this.providerCell(p)));
+    add("Resource nodes", contents.nodes.length,
+      () => contents.nodes.map((p) => this.providerCell(p)));
+
+    if (contents.traders.length > 0) {
+      const lines = contents.traders.map((trader) => {
+        const li = document.createElement("li");
+        li.append(keyword("buy", "vendor"), ` from ${trader}`);
+        return li;
+      });
+      fragment.appendChild(this.section(
+        contents.traders.length > 1
+          ? `Traders (${contents.traders.length})` : "Trader",
+        sourceList(lines)));
+    }
+
+    fragment.appendChild(this.foot(name.replace(/ /g, "_")));
+    return fragment;
+  }
+
+  /** Tuile + nom, vivante comme partout : clic = sélection, clic droit = fiche. */
+  private itemCell(id: ItemId): HTMLLIElement {
+    const item = this.model.item(id);
+    const cell = document.createElement("li");
+    cell.className = "cell";
+    cell.dataset.item = id;
+    cell.title = `Observe ${item.name}`;
+
+    const thumb = tile(this.model, item);
+    veilTile(this.availability, id, thumb);
+    const label = document.createElement("span");
+    label.className = "name";
+    label.textContent = item.name;
+    veilName(this.availability, id, label);
+    cell.append(thumb, label);
+
+    if (this.availability.spoilers === "hide" && !this.availability.item(id)) {
+      delete cell.dataset.item;
+      cell.title = "Beyond your discovered zones";
+      return cell;
+    }
+    cell.addEventListener("click", (event) => {
+      event.stopPropagation();
+      this.onSelect(id);
+    });
+    return cell;
+  }
+
+  /** Le clic global sur `data-provider` ouvre sa fiche : rien d'autre à câbler. */
+  private providerCell(provider: Provider): HTMLLIElement {
+    const cell = document.createElement("li");
+    cell.className = "cell";
+    cell.dataset.provider = provider.id;
+    cell.title = `${provider.name} — what's inside, and where`;
+
+    const thumb = document.createElement("span");
+    thumb.className = "tile";
+    thumb.textContent = abbreviation(provider.name);
+    if (provider.icon) {
+      const img = document.createElement("img");
+      img.src = ASSET_BASE + provider.icon;
+      img.alt = "";
+      img.loading = "lazy";
+      img.addEventListener("error", () => img.remove());
+      thumb.appendChild(img);
+    }
+    const label = document.createElement("span");
+    label.className = "name";
+    label.textContent = provider.name;
+    cell.append(thumb, label);
+
+    // présence retardée : un provider peut rester voilé dans sa propre zone
+    if (!this.availability.provider(provider.id)
+        && this.availability.spoilers !== "show") {
+      if (this.availability.spoilers === "blur") return spoil(cell) as HTMLLIElement;
+      const bar = document.createElement("span");
+      bar.className = "redacted";
+      bar.textContent = "[REDACTED]";
+      label.replaceChildren(bar);
+      label.classList.add("censored");
+      thumb.querySelector("img")?.remove();
+      thumb.textContent = "?";
+      thumb.className = "tile censored";
+      cell.title = "Beyond your discovered zones";
+      delete cell.dataset.provider;
+    }
+    return cell;
+  }
+
   // ---------------------------------------------------------------- commun
 
   private head(name: string, subtitle: string | HTMLElement,
@@ -485,7 +634,7 @@ export class DetailsWindows {
     block.className = "zoneblock";
     const color = this.model.zone(zone)?.color;
     if (color) block.style.setProperty("--zone", color);
-    block.appendChild(zoneTag(this.model, zone));
+    block.appendChild(zoneTag(this.model, zone, (name, at) => this.openZone(name, at)));
 
     if (ways) block.appendChild(ways);
     if (spots.length > 0) {
@@ -599,6 +748,22 @@ function providerTile(provider: Provider): HTMLElement {
   if (provider.icon) {
     const img = document.createElement("img");
     img.src = ASSET_BASE + provider.icon;
+    img.alt = "";
+    img.addEventListener("error", () => img.remove());
+    span.appendChild(img);
+  }
+  return span;
+}
+
+/** La pastille du secteur en grand, cerclée de sa couleur quand le wiki l'a. */
+function zoneTile(zone: Zone, name: string): HTMLElement {
+  const span = document.createElement("span");
+  span.className = "tile big";
+  span.textContent = abbreviation(name);
+  if (zone.color) span.style.setProperty("--zone", zone.color);
+  if (zone.icon) {
+    const img = document.createElement("img");
+    img.src = ASSET_BASE + zone.icon;
     img.alt = "";
     img.addEventListener("error", () => img.remove());
     span.appendChild(img);

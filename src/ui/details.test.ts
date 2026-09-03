@@ -234,6 +234,58 @@ describe("fenêtre d'un item", () => {
 });
 
 
+describe("fenêtre d'un secteur", () => {
+  it("range l'inventaire par nature, en tuiles cliquables", () => {
+    const { windows, selected } = mount();
+    windows.openZone("Office Sector");
+    const box = boxes()[0]!;
+    expect(box.querySelector(".wb-title")!.textContent).toBe("Office Sector");
+
+    const titles = [...box.querySelectorAll(".details-section h4")]
+      .map((h) => h.textContent);
+    // le mockup n'a aucun pickup certifié env, un cassable et une créature
+    expect(titles).toEqual([
+      "Somewhere in the zone (5)", "Creatures (1)", "Resource nodes (1)",
+    ]);
+
+    // une tuile d'item sélectionne au clic…
+    box.querySelector<HTMLButtonElement>(".zonegrid [data-item='keyboard']")!.click();
+    expect(selected).toEqual(["keyboard"]);
+    // …et une tuile de provider porte data-provider : le clic global l'ouvre
+    box.querySelector<HTMLButtonElement>(".zonegrid [data-provider='computer']")!.click();
+    expect(boxes()).toHaveLength(2);
+    expect(boxes()[1]!.textContent).toContain("Destroyable object");
+  });
+
+  it("s'ouvre depuis la pastille de zone d'une fenêtre d'item", () => {
+    mount();
+    rightClick(anchorEl());
+    boxes()[0]!.querySelector<HTMLButtonElement>("button.zonetag")!.click();
+    expect(boxes()).toHaveLength(2);
+    expect(boxes()[1]!.textContent).toContain("Somewhere in the zone");
+  });
+
+  it("ignore les pseudo-zones du bilan", () => {
+    const { windows } = mount();
+    windows.openZone("Other methods");
+    expect(boxes()).toHaveLength(0);
+  });
+
+  it("mode Hide : un secteur non découvert ne s'ouvre pas", () => {
+    const world = new Model(discoveryDataset());
+    document.body.innerHTML = "";
+    const windows = new DetailsWindows(world, () => {}, "https://wiki/",
+      computeAvailability(world, {
+        enabled: true, zones: new Set(["Office Sector"]), spoilers: "hide",
+      }));
+    instances.push(windows);
+    windows.openZone("Manufacturing West");
+    expect(boxes()).toHaveLength(0);
+    windows.openZone("Office Sector");
+    expect(boxes()).toHaveLength(1);
+  });
+});
+
 describe("découverte dans les fenêtres", () => {
   const world = new Model(discoveryDataset());
   const state = (...zones: string[]) => ({ enabled: true, zones: new Set(zones) });

@@ -1,4 +1,4 @@
-import type { ItemId, Source } from "../data/types";
+import type { ItemId, Provider, Source } from "../data/types";
 import type { Availability } from "./discovery";
 import type { Model } from "./tree";
 import type { Totals } from "./totals";
@@ -100,6 +100,68 @@ export function containerSources(
     }
   }
   return out;
+}
+
+/**
+ * L'inventaire d'un secteur — la question inverse des fenêtres d'item :
+ * « qu'est-ce que je trouve ici ? ».
+ *
+ * Les items ne viennent que des sources pickup de la zone : un objet qu'on y
+ * casse ou qu'on y tue apparaît via son provider, pas en double dans les
+ * listes. Un pickup certifié `env` (=== Environment === de la page secteur)
+ * l'emporte sur un pickup d'infobox du même item. Les providers du secteur
+ * se rangent par famille : contenants à ouvrir, créatures (tuées ou
+ * dépecées), nœuds de ressources (cassés, démontés, ramassés). Les marchands
+ * n'ont pas de fiche : seuls leurs noms, cités par les échanges de la zone.
+ */
+export interface ZoneContents {
+  /** Certifiés « posés dans le décor ». */
+  env: ItemId[];
+  /** Pickups d'infobox : « trouvable ici », sans plus. */
+  somewhere: ItemId[];
+  containers: Provider[];
+  creatures: Provider[];
+  nodes: Provider[];
+  traders: string[];
+}
+
+const CREATURE_KINDS = new Set<Provider["kind"]>(["enemy", "butcher"]);
+
+export function zoneContents(model: Model, zone: string): ZoneContents {
+  const env = new Set<ItemId>();
+  const somewhere = new Set<ItemId>();
+  const traders = new Set<string>();
+  for (const item of Object.values(model.ds.items)) {
+    for (const source of item.sources) {
+      if (source.zone !== zone) continue;
+      if (source.kind === "pickup") (source.env ? env : somewhere).add(item.id);
+      else if (source.kind === "vendor" && source.target) traders.add(source.target);
+    }
+  }
+  for (const id of env) somewhere.delete(id);
+
+  const containers: Provider[] = [];
+  const creatures: Provider[] = [];
+  const nodes: Provider[] = [];
+  for (const provider of Object.values(model.ds.providers)) {
+    if (!provider.zones.some((z) => z.zone === zone)) continue;
+    if (provider.kind === "container") containers.push(provider);
+    else if (CREATURE_KINDS.has(provider.kind)) creatures.push(provider);
+    else nodes.push(provider);
+  }
+
+  const byName = (a: ItemId, b: ItemId) =>
+    model.item(a).name.localeCompare(model.item(b).name, "en");
+  const providersByName = (a: Provider, b: Provider) =>
+    a.name.localeCompare(b.name, "en");
+  return {
+    env: [...env].sort(byName),
+    somewhere: [...somewhere].sort(byName),
+    containers: containers.sort(providersByName),
+    creatures: creatures.sort(providersByName),
+    nodes: nodes.sort(providersByName),
+    traders: [...traders].sort((a, b) => a.localeCompare(b, "en")),
+  };
 }
 
 /**

@@ -208,10 +208,31 @@ export function itemLink(model: Model, id: string, onSelect: (id: string) => voi
  * les appelants peuvent la reprendre pour un filet ou un fond.
  *
  * « Other methods » n'est pas une zone du jeu : ni pastille, ni couleur.
+ *
+ * Avec `onOpen`, la pastille devient un bouton qui ouvre la fenêtre du
+ * secteur — mais seulement pour une vraie zone du jeu : une pseudo-zone du
+ * bilan reste un span inerte, rappel ou pas. Le panneau de découverte, dont
+ * le clic veut déjà dire « découvert », n'opte pas.
  */
-export function zoneTag(model: Model, name: string): HTMLElement {
+export function zoneTag(
+  model: Model,
+  name: string,
+  onOpen?: (name: string, at?: MouseEvent) => void,
+): HTMLElement {
   const zone = model.zone(name);
-  const tag = document.createElement("span");
+  let tag: HTMLElement;
+  if (onOpen && zone) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.title = `${name} — what's found there`;
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      onOpen(name, event);
+    });
+    tag = button;
+  } else {
+    tag = document.createElement("span");
+  }
   tag.className = "zonetag";
   if (zone?.color) tag.style.setProperty("--zone", zone.color);
 

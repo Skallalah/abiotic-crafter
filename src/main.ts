@@ -83,6 +83,7 @@ details.onPin = (id) => { plan.add(id); renderTree(); };
 const list = new ItemList(model, (id) => setRoot(id), () => discover.open());
 list.setAvailability(availability);
 const summary = new Summary(model, (id) => setHighlight(id), (id) => setRoot(id));
+summary.onZone = (name, at) => details.openZone(name, at);
 const tree = new TreeView(model, canvas.stage, {
   toggle: (path) => {
     if (expanded.has(path)) expanded.delete(path);
